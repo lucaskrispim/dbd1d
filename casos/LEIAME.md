@@ -36,6 +36,20 @@ allow redistribution. Their folders hold only the files of the authors of dbd1d 
 | `amonia_sun2022`, `yang2022_N2`, `yang2022_1pcH2` | N2-H2 mechanism of the supplementary data of Sun et al., Plasma Sources Sci. Technol. 31 (2022) 094009 | the supplementary BOLSIG+ file of the same article | `N2 0.5 / H2 0.5`, `N2 1`, `N2 0.99 / H2 0.01` |
 | `ar_n2_o2` | N2-O2 mechanism of the ZDPlasKin site (version 1.03, with the processes that have no cross sections in the database commented out), joined to the argon mechanism of this repository with six cross reactions by `casos/ar_n2_o2/monta.py` | the N2 and O2 sets used with that mechanism plus argon | `N2 0.78 / O2 0.21 / Ar 0.01` |
 
+Variants used in the article, built from the cases above by editing `kinet.inp` and running
+`caso.py zdplaskin` and `caso.py exporta` (the tables do not change, since only heavy-particle
+coefficients change):
+
+| Case | Change |
+|---|---|
+| `yang2022_N2_pool50`, `yang2022_1pcH2_pool50` | `N2(A3) + N2(A3)`: 1.6e-10 to `N2 + N2(B3)`, 0.8e-10 to `N2 + N2(C3)`, 2.4e-10 to `N2 + N + N` cm3/s (50 % dissociation, total kept at 4.8e-10) |
+| `yang2022_1pcH2_h05`, `yang2022_1pcH2_pool50_h05` | `N2(a'1) + H2 => N2 + H + H` split into 1.3e-11 to `N2 + H + H` and 1.3e-11 to `N2 + H2` cm3/s (50 % H yield), the second also with the pooling change |
+| `yang2022_N2_calor` | `yang2022_N2` with the heat block in `gas.json` (rotational excitation of N2 as fast heating, enthalpies by `caso.py entalpias` plus six ions given in the file); needs `caso.py calor` and `caso.py tabelas` |
+
+The case `argonio_jovanovic` is complete and runs as is: the argon mechanism of the root with
+`Ar* + Ar* => Ar^+ + Ar + e` at 1.2e-9 cm3/s and `Ar* + Ar + Ar` at 8.33e-33 cm6/s, from
+Jovanović et al., Plasma Sources Sci. Technol. (2023), doi 10.1088/1361-6595/acd2fc.
+
 The argon case at the repository root is complete and runs as is: its mechanism (`kinet.inp`)
 takes the heavy-particle coefficients of the argon example distributed with ZDPlasKin, with two
 reactions added by the authors, and its tables come from the SIGLO argon cross sections (LXCat).

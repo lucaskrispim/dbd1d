@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dbd1d"
-version = "1.0.0"
+version = "1.1.0"
 description = "One-dimensional fluid model of dielectric barrier discharges generated from ZDPlasKin chemistry files"
 readme = "README.md"
 license = "GPL-3.0-or-later"
 requires-python = ">=3.10"
-dependencies = ["numpy>=2.0", "scipy>=1.15"]
+dependencies = ["numpy>=2.0", "scipy>=1.15,<1.19"]
 
 [project.optional-dependencies]
 figures = ["matplotlib>=3.5", "pillow>=9"]

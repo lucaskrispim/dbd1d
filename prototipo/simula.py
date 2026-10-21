@@ -413,6 +413,7 @@ def valida(p, a):
         (a.eps_dieletrico >= 1.0, "--eps-dieletrico precisa ser pelo menos 1"),
         (a.eps_gas >= 1.0, "--eps-gas precisa ser pelo menos 1"),
         (a.gama >= 0.0, "--gama nao pode ser negativo"),
+        (0.0 <= a.reflexao_eletrons < 1.0, "--reflexao-eletrons precisa estar em [0, 1)"),
         (a.rtol > 0.0 and a.atol > 0.0, "--rtol e --atol precisam ser positivos"),
         (a.k0_ar_ion is None or a.k0_ar_ion > 0.0, "--k0-ar-ion precisa ser positivo"),
         (a.en_aquecimento_ar_ion is None or a.en_aquecimento_ar_ion > 0.0,
@@ -499,6 +500,7 @@ def grava_parametros(a, md):
                 "commit": commit, "alteracoes_locais": alteracoes, "sha256": hashes,
                 "modelo": {"n_gas": md.n_gas, "t_gas": md.t_gas, "transporte": md.transporte,
                            "gama_sec": md.gama, "eps_sec": md.eps_sec, "eps_gas": md.eps_gas,
+                           "reflexao_eletrons": md.reflexao_eletrons,
                            "faces": md.faces.tolist()},
                 "python": platform.python_version(), "numpy": np.__version__, "scipy": scipy.__version__,
                 **{v: os.environ.get(v) for v in ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS")}}
@@ -538,6 +540,8 @@ def cria_parser():
     p.add_argument("--eps-gas", type=float, default=1.0,
                    help="permissividade relativa do gás (o Fortran usa 1,000516; docs/lacunas.md, T4)")
     p.add_argument("--gama", type=float, default=0.05, help="emissão secundária por íon")
+    p.add_argument("--reflexao-eletrons", type=float, default=0.0,
+                   help="coeficiente de reflexão dos elétrons na parede (Hagelaar et al. 2000), de 0 a 1")
     p.add_argument("--ne0", type=float, default=1.0, help="densidade inicial de elétrons, cm-3")
     p.add_argument("--neutro", action="store_true", help="íon inicial do gas.json igual aos elétrons")
     p.add_argument("--sem-freio", action="store_true", help="fluxo térmico de parede sem o fator de Boltzmann")
@@ -619,6 +623,7 @@ def monta_modelo(a, caso, faces):
             espessura_dir=a.espessura_dir, eps_dieletrico_dir=a.eps_dieletrico_dir,
             n_gas=a.pressao / (KB * a.t_gas) * 1e-6,
             eps_dieletrico=a.eps_dieletrico, gama_sec=a.gama, freio=not a.sem_freio, faces=faces,
+            reflexao_eletrons=a.reflexao_eletrons,
             aquecimento=a.aquecimento, gas_solto=a.gas_solto, t_parede=a.t_parede, t_gas=a.t_gas,
             k0_ar=a.k0_ar_ion, en_aquecimento_ar=a.en_aquecimento_ar_ion, k0_ar2=a.k0_ar2_ion,
             ganho_tres_corpos=a.ganho_tres_corpos, eps_gas=a.eps_gas,

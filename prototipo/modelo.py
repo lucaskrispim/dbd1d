@@ -140,7 +140,7 @@ class Modelo:
                  k0_ar=None, en_aquecimento_ar=None, k0_ar2=None, ganho_tres_corpos=0.0, eps_gas=1.0,
                  transporte=None, gas=None, tabela_calor=None,
                  forma="seno", subida=0.0, largura=0.0, descida=0.0,
-                 espessura_dir=None, eps_dieletrico_dir=None, tabela_tensao=None):
+                 espessura_dir=None, eps_dieletrico_dir=None, tabela_tensao=None, reflexao_eletrons=0.0):
         self.q, self.tab = quimica, tabela
         if quimica.bolsig_tres_corpos:
             raise ErroQuimica("reações do BOLSIG+ com dois elétrons reagentes: "
@@ -167,6 +167,12 @@ class Modelo:
         # valor a 0 °C; a 300 K seria ~1,00047; o padrão 1 é o vácuo)
         self.eps_gas = eps_gas
         self.gama = gama_sec
+        # reflexão de elétrons na parede (Hagelaar et al. 2000): o fluxo absorvido,
+        # térmico e deriva, e a energia que ele leva ficam vezes (1 - r)/(1 + r)
+        if not 0.0 <= reflexao_eletrons < 1.0:
+            raise ValueError(f"reflexão de elétrons {reflexao_eletrons}: precisa estar em [0, 1)")
+        self.reflexao_eletrons = reflexao_eletrons
+        self.absorcao_eletrons = (1.0 - reflexao_eletrons) / (1.0 + reflexao_eletrons)
         self.alfa, self.sigma_cx = polarizabilidade, sigma_cx
         self.t_gas = t_gas
         # densidade do gás a 1 atm na temperatura dada, cm-3
@@ -711,6 +717,7 @@ class Modelo:
                 f = np.where((w_n < 0.0) & (temp[:, cel] > 0.0) & self.freio,
                              np.exp(-Q * np.abs(ce) * meia / (KB * temp[:, cel])), 1.0)
             out[:, lado] = n[:, cel] * (self.fator_parede * f * 0.5 * v_term[:, cel] + np.maximum(w_n, 0.0))
+        out[self.i_e] *= self.absorcao_eletrons
         gama_ions = self.gama * out[self.ions].sum(axis=0)
         G[:, 0] = -out[:, 0]
         G[:, -1] = out[:, 1]
@@ -746,8 +753,8 @@ class Modelo:
                 f = 1.0
                 if w_n < 0.0 and self.freio:
                     f = np.exp(-Q * abs(campo[face]) * self.d[face] / (KB * te[cel]))
-            saida[lado] = (n[ie, cel] * f * 0.5 * v_term[cel] * 2.5 * KB * te[cel] / Q
-                           + max(w_eps, 0.0) * n_eps[cel])
+            saida[lado] = self.absorcao_eletrons * (n[ie, cel] * f * 0.5 * v_term[cel] * 2.5 * KB * te[cel] / Q
+                                                    + max(w_eps, 0.0) * n_eps[cel])
         Ge[0] = -saida[0] + self.eps_sec * gama_ions[0]
         Ge[-1] = saida[1] - self.eps_sec * gama_ions[1]
         return Ge

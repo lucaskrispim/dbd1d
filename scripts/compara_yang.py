@@ -57,6 +57,17 @@ def series(d):
             np.array(tg))
 
 
+def simulados(t_us, t):
+    """Instantes medidos (µs) que a execução já alcançou (t em s)."""
+    return [x for x in t_us if x * 1e-6 <= t[-1] + 1e-9]
+
+
+def mistura(d):
+    """N2 ou N2+1%H2, pelo caso da execução."""
+    caso = json.loads((d / "parametros.json").read_text())["argumentos"]["caso"]
+    return "N2+1%H2" if "1pcH2" in pathlib.Path(caso).name else "N2"
+
+
 def energia(d):
     a = json.loads((d / "parametros.json").read_text())["argumentos"]
     sup = np.loadtxt(d / "superficie.dat", skiprows=1, ndmin=2)
@@ -74,7 +85,7 @@ def main():
     n_pulsos = int(np.floor(t[-1] / PERIODO + 1e-9))
     pulsos = np.arange(1, n_pulsos + 1)
     antes = np.array([np.argmin(np.abs(t - n * PERIODO + 1e-6)) for n in pulsos])  # 1 µs antes do pulso n + 1
-    gas = "N2+1%H2" if "1pc" in str(a.principal) else "N2"
+    gas = mistura(a.principal)
     print(f"{a.principal.name}: {n_pulsos} pulsos ({gas})")
     medida_n = le("fig9_N_acumulado_N2.csv") if gas == "N2" else le("fig14_N_acumulado_1pcH2.csv")
     print(f"{'pulso':>5s} {'N méd':>9s} {'N centro':>9s} {'N medido':>9s} {'H méd':>9s} {'T_g (K)':>8s}")
@@ -88,6 +99,8 @@ def main():
         hm = le("fig14_H_acumulado_1pcH2.csv")
         print("H medido (fig. 14(b)) contra o 1D, média no gap:")
         for tt, hv in hm[:, :2]:
+            if not simulados([tt], t):
+                continue
             j = int(np.argmin(np.abs(t - tt * 1e-6)))
             print(f"  {tt:7.0f} µs: medido {hv:9.2e}, 1D {med['H'][j]:9.2e}")
     if "N2(A3)" in med:

@@ -1,0 +1,25 @@
+{
+  "_formato": [
+    "Propriedades do gás de fundo do caso, lidas pelo protótipo (prototipo/modelo.py).",
+    "fundo: espécie do kinet.inp que forma o gás de fundo e a sua fração (por enquanto, uma só com fração 1).",
+    "cv_por_kb: calor específico a volume constante por partícula pesada, em unidades de k_B (1,5 em gás monoatômico, 2,5 em diatômico sem vibração).",
+    "condutividade: condutividade térmica em W/(m K); tipo linear_com_raiz, (a T + b) escala, vezes (T/t_raiz)^(1/2) acima de t_raiz, ou tipo tabela, com T (K) e kappa, interpolada linearmente e presa nos extremos.",
+    "ion_inicial: íon positivo semeado com os elétrons no plasma inicial neutro.",
+    "calor (opcional): entalpias de formação (eV) das espécies; cada reação de partículas pesadas com mais de um reagente libera -soma(nu h) como calor do gás (as do BOLSIG+ e as de um só reagente, radiativas, ficam de fora); com --energia, a energia média dos elétrons consumidos também. Sem o bloco, o gás só aquece pela perda elástica e pelo Joule dos íons.",
+    "calor.processos_rapidos (opcional): processos do bolsigdb.dat cuja energia vira calor do gás em picossegundos (por exemplo N2 -> N2(rot)); ferramentas/caso.py calor e tabelas gravam a potência deles em tabela_calor_tg.dat (saldo com a desexcitação, limitado pela perda inelástica), que o gás recebe.",
+    "Campos fonte são só registro."
+  ],
+  "fundo": {
+    "AR": 1.0
+  },
+  "cv_por_kb": 1.5,
+  "condutividade": {
+    "tipo": "linear_com_raiz",
+    "a": 0.0307313,
+    "b": 10.006,
+    "escala": 0.001,
+    "t_raiz": 3000.0
+  },
+  "ion_inicial": "AR^+",
+  "fonte": "condutividade do Fortran (DF em termico.f90); cv de gás monoatômico"
+}

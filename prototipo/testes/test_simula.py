@@ -517,3 +517,23 @@ def test_composicao_com_frações_diferentes_do_fundo_e_erro(tmp_path):
     g["fundo"] = {"N2": 0.5, "N": 0.5}
     (caso / "gas.json").write_text(json.dumps(g))
     assert confere_composicao(caso) is None
+
+
+def test_reflexao_de_eletrons_chega_ao_modelo(tmp_path):
+    # --reflexao-eletrons fica nos argumentos e no modelo gravado, e muda os elétrons
+    d, padrao = tmp_path / "r", tmp_path / "p"
+    roda(d, "--t-end", "2e-9", "--reflexao-eletrons", "0.7")
+    roda(padrao, "--t-end", "2e-9")
+    p = json.loads((d / "parametros.json").read_text())
+    assert p["argumentos"]["reflexao_eletrons"] == 0.7
+    assert p["modelo"]["reflexao_eletrons"] == 0.7
+    ne = [colunas(x, ["E"])[:, 0] for x in (d, padrao)]
+    assert np.max(np.abs(ne[0] / ne[1] - 1.0)) > 1e-6
+
+
+def test_reflexao_de_eletrons_fora_da_faixa_e_recusada(tmp_path):
+    r = subprocess.run([sys.executable, str(PROTOTIPO / "simula.py"), str(tmp_path / "x"), "--t-end", "2e-9",
+                        "--reflexao-eletrons", "1.0"], capture_output=True, text=True,
+                       env={"OPENBLAS_NUM_THREADS": "1", "PATH": ""})
+    assert r.returncode != 0 and "--reflexao-eletrons" in r.stderr
+    assert "Traceback" not in r.stderr

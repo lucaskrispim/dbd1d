@@ -47,6 +47,7 @@ r_e = 0,7); mobilidades iônicas do `transporte.json`.
 | Pressão | 150 Torr | `--pressao 19998` |
 | Gás | N₂ puro e N₂:H₂ 99:1, mecanismo da amônia de Sun 2022 | `--caso casos/yang2022_N2`, `--caso casos/yang2022_1pcH2` |
 | Temperatura | 300 K, com aquecimento (o artigo mede T) | `--t-gas 300 --t-parede 300 --aquecimento` |
+| Superfície | γ = 0,05, elétrons secundários com 5 eV (padrão do programa; o artigo não informa) | `--gama 0.05 --eps-sec 5` |
 | Elétrons | equação de energia | `--energia` |
 | Estado inicial | resíduo da rajada anterior (100 ms antes) desconhecido | `--neutro --ne0 1e6`, com sensibilidade |
 | Duração | 150 pulsos (1,5 ms) | `--t-end 1.5e-3` |
@@ -70,7 +71,8 @@ figuras. v_d = μN · (E/N); D/μ = DN/μN; energia média = 3/2 k T_e.
 | Tensão | campo aplicado medido a 60 Torr vezes d + 2 l/ε (1,092 cm), gerador CPT a 40 kHz | `--forma tabela --tensao-tabela validacao/takashima2012/pulso_cpt.txt --periodo 2.5e-5` |
 | Gás | N₂ 78 %, O₂ 21 %, Ar 1 % (mecanismo N₂-O₂ do ZDPlasKin com argônio) | `--caso casos/ar_n2_o2` |
 | Pressões | 20, 40, 60, 100, 200 e 300 Torr | `--pressao` |
-| Duração | cinco pulsos; energia do quinto por retomada fina | |
+| Superfície | γ = 0,05, elétrons secundários com 5 eV (padrão do programa; o artigo não informa) | `--gama 0.05 --eps-sec 5` |
+| Duração | cinco pulsos; energia do quinto por retomada fina (`scripts/retoma_fina.py`) | |
 | Área | 14 mm × 65 mm = 9,1 cm² | na comparação |
 
 A forma do pulso medida a 60 Torr vale para todas as pressões (o artigo não mostra as outras);

@@ -13,7 +13,8 @@ complete model (species, reactions, electron coefficients, transport) without ed
 - adaptive BDF integration with the electric potential in the state vector and an analytic sparse
   Jacobian;
 - applied voltage: sine, step, trapezoidal pulse train or a tabulated measured pulse repeated
-  periodically.
+  periodically;
+- optional electron reflection at the walls (`--reflexao-eletrons`, Hagelaar et al. 2000).
 
 The source is commented in Portuguese; this file and the article are in English.
 
@@ -29,7 +30,9 @@ OPENBLAS_NUM_THREADS=1 python3 -m pytest -q -m "not lento"
 The digitizer of the validation data reads vector figures with `pdftocairo` (Debian and Ubuntu
 package `poppler-utils`); without it, its four vector tests are skipped.
 
-Tested with numpy 2.2 and 2.5, scipy 1.15 and 1.18. In this package 351 tests pass and 96 are
+Tested with numpy 2.2 and 2.5, scipy 1.15 and 1.18. The integrator builds on the internal BDF
+implementation of scipy (`scipy.integrate._ivp`), so scipy is bounded below 1.19 until a newer
+version is tested. In this package 370 tests pass and 96 are
 skipped, each with the reason: they generate cases (ZDPlasKin and BOLSIG+ needed) or use the
 gas mixtures whose mechanisms and cross sections we cannot redistribute (`casos/LEIAME.md`). With
 `ZDPLASKIN_DIR` set and those cases rebuilt, they run too.
@@ -80,7 +83,12 @@ www.zdplaskin.laplace.univ-tlse.fr and set `ZDPLASKIN_DIR`. Running a case does 
 al. 2020, Yang et al. 2022, Takashima et al. 2012, electron swarm data); the measured data
 extracted from the figures of these articles are in `docs/literatura/dados/`, each with the script
 that extracts them. The runs are started by `remoto/validacao_*.sh` and compared by
-`scripts/compara_*.py`.
+`scripts/compara_*.py`; `scripts/retoma_fina.py` restarts chosen pulses of a run with fine output.
+
+`validacao/townsend.py` verifies the coupled model against the Townsend breakdown of a gap between
+bare metal electrodes: it computes the breakdown voltage of the continuous linear problem with the
+wall conditions of the code and finds the breakdown of the simulation from the growth rate of the
+ion inventory (a few seconds per voltage).
 
 ## License
 

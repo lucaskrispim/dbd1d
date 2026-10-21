@@ -1,0 +1,95 @@
+{
+  "_formato": [
+    "Propriedades do gás de fundo do caso, lidas pelo protótipo (prototipo/modelo.py).",
+    "fundo: espécie do kinet.inp que forma o gás de fundo e a sua fração (por enquanto, uma só com fração 1).",
+    "cv_por_kb: calor específico a volume constante por partícula pesada, em unidades de k_B (1,5 em gás monoatômico, 2,5 em diatômico sem vibração).",
+    "condutividade: condutividade térmica em W/(m K); tipo linear_com_raiz, (a T + b) escala, vezes (T/t_raiz)^(1/2) acima de t_raiz, ou tipo tabela, com T (K) e kappa, interpolada linearmente e presa nos extremos.",
+    "ion_inicial: íon positivo semeado com os elétrons no plasma inicial neutro.",
+    "calor (opcional): entalpias em eV por partícula, para o calor de cada reação (-soma de nu h), e processos_rapidos, processos do BOLSIG+ cuja energia vira calor do gás em picossegundos.",
+    "Campos fonte são só registro."
+  ],
+  "fundo": {
+    "N2": 1
+  },
+  "cv_por_kb": 2.5,
+  "condutividade": {
+    "tipo": "tabela",
+    "T": [
+      200,
+      250,
+      300,
+      350,
+      400,
+      500,
+      600,
+      800,
+      1000
+    ],
+    "kappa": [
+      0.01997,
+      0.02324,
+      0.02645,
+      0.02963,
+      0.03278,
+      0.03901,
+      0.04515,
+      0.0571,
+      0.06858
+    ]
+  },
+  "ion_inicial": "N2^+",
+  "fonte": [
+    "N2 puro de Yang et al. 2022 (PSST 31 015017), 150 Torr; mecanismo da amônia de Sun et al. 2022",
+    "condutividade da mistura pela teoria cinética (Cantera e GRI-Mech 3.0), como no caso amonia_sun2022",
+    "cv de gás diatômico sem vibração, 2,5 k_B"
+  ],
+  "calor": {
+    "processos_rapidos": [
+      "N2 -> N2(rot)"
+    ],
+    "entalpias": {
+      "N2": 0.0,
+      "H2": 0.0,
+      "NH3": -0.4757,
+      "N": 4.899,
+      "H": 2.2594,
+      "NH": 3.6992,
+      "NH2": 1.9904,
+      "N2(V1)": 0.29,
+      "N2(V2)": 0.59,
+      "N2(V3)": 0.88,
+      "N2(V4)": 1.17,
+      "N2(V5)": 1.47,
+      "N2(V6)": 1.76,
+      "N2(V7)": 2.06,
+      "N2(V8)": 2.35,
+      "H2(V1)": 0.516,
+      "H2(V2)": 1.0,
+      "H2(V3)": 1.5,
+      "N2(A3)": 6.17,
+      "N2(B3)": 7.35,
+      "N2(A'1)": 8.4,
+      "N2(C3)": 11.03,
+      "N(2D)": 7.2897,
+      "N(2P)": 8.4666,
+      "N2^+": 15.6,
+      "H2^+": 15.4,
+      "NH3^+": 9.7243,
+      "NH2^+": 12.1904,
+      "NH^+": 16.6992,
+      "N^+": 19.439,
+      "H^+": 15.8594,
+      "N2H^+": 10.7415,
+      "H3^+": 11.4826,
+      "NH4^+": 6.5368,
+      "H^-": 1.5052,
+      "N3^+": 15.3531,
+      "N4^+": 14.5
+    },
+    "fonte": [
+      "processo rápido: a excitação rotacional do N2 relaxa em picossegundos; a vibracional (relaxação V-T lenta) fica de fora, como no caso n2",
+      "estimativa automática (caso.py entalpias), em eV por partícula relativa aos elementos a 298 K: N2: entalpia de formação a 298 K do GRI-Mech 3.0 (Cantera); H2: entalpia de formação a 298 K do GRI-Mech 3.0 (Cantera); NH3: entalpia de formação a 298 K do GRI-Mech 3.0 (Cantera); N: entalpia de formação a 298 K do GRI-Mech 3.0 (Cantera); H: entalpia de formação a 298 K do GRI-Mech 3.0 (Cantera); NH: entalpia de formação a 298 K do GRI-Mech 3.0 (Cantera); NH2: entalpia de formação a 298 K do GRI-Mech 3.0 (Cantera); N2(V1): N2 mais o limiar de N2->N2(V1) (0.29 eV); N2(V2): N2 mais o limiar de N2->N2(V2) (0.59 eV); N2(V3): N2 mais o limiar de N2->N2(V3) (0.88 eV); N2(V4): N2 mais o limiar de N2->N2(V4) (1.17 eV); N2(V5): N2 mais o limiar de N2->N2(V5) (1.47 eV); N2(V6): N2 mais o limiar de N2->N2(V6) (1.76 eV); N2(V7): N2 mais o limiar de N2->N2(V7) (2.06 eV); N2(V8): N2 mais o limiar de N2->N2(V8) (2.35 eV); H2(V1): H2 mais o limiar de H2->H2(V1) (0.516 eV); H2(V2): H2 mais o limiar de H2->H2(V2) (1 eV); H2(V3): H2 mais o limiar de H2->H2(V3) (1.5 eV); N2(A3): N2 mais o limiar de N2->N2(A3,V0-4) (6.17 eV); N2(B3): N2 mais o limiar de N2->N2(B3) (7.35 eV); N2(A'1): N2 mais o limiar de N2->N2(A'1) (8.4 eV); N2(C3): N2 mais o limiar de N2->N2(C3) (11.03 eV); N(2D): N mais o limiar de N->N(2D) (2.39071 eV); N(2P): N mais o limiar de N->N(2P) (3.5676 eV); N2^+: N2 mais o limiar de N2->N2^+ (15.6 eV); H2^+: H2 mais o limiar de H2->H2^+ (15.4 eV); NH3^+: NH3 mais o limiar de NH3->NH3^+ (10.2 eV); NH2^+: NH2 mais o limiar de NH2->NH2^+ (10.2 eV); NH^+: NH mais o limiar de NH->NH^+ (13 eV); N^+: N mais o limiar de N->N^+ (14.54 eV); H^+: H mais o limiar de H->H^+ (13.6 eV)",
+      "íons fora do GRI-Mech, na mesma convenção (neutro mais o limiar): N2H^+, H3^+ e NH4^+ pelo H^+ do caso menos a afinidade protônica de N2, H2 e NH3 (493,8, 422,3 e 853,6 kJ/mol; Hunter e Lias, J. Phys. Chem. Ref. Data 27, 413, 1998); H^-: H menos a afinidade eletrônica 0,7542 eV; N3^+: N3 com 414,22 kJ/mol (Chase 1998) mais 11,06 eV (Dyke et al. 1982); N4^+: N2^+ menos a ligação N2^+ com N2, cerca de 1,1 eV (aproximado, como no caso n2)"
+    ]
+  }
+}
