@@ -3,6 +3,7 @@
 com dados conhecidos é gerado pelo matplotlib em PDF (vetorial) e em PNG
 (raster), e o digitalizador tem de devolver os mesmos dados a partir da
 moldura dos eixos e da cor de cada série."""
+import shutil
 import sys
 
 import numpy as np
@@ -12,6 +13,10 @@ from conftest import RAIZ
 
 sys.path.insert(0, str(RAIZ / "ferramentas"))
 import digitaliza as dg  # noqa: E402
+
+# a leitura vetorial passa o PDF pelo pdftocairo (pacote poppler-utils)
+precisa_pdftocairo = pytest.mark.skipif(shutil.which("pdftocairo") is None,
+                                        reason="pdftocairo (poppler-utils) não instalado")
 
 X_PONTOS = np.array([100.0, 300.0, 500.0, 650.0])
 Y_PONTOS = np.array([0.559, 0.935, 1.535, 2.474])
@@ -48,6 +53,7 @@ def _janelas(molduras):
     return sorted(molduras, key=lambda m: m[0])
 
 
+@precisa_pdftocairo
 @pytest.mark.parametrize("log", [False, True])
 def test_vetorial_marcadores_e_curva(tmp_path, log):
     pdf = tmp_path / "fig.pdf"
@@ -100,6 +106,7 @@ def test_eixo_log_e_linear():
     np.testing.assert_allclose(e.valor(np.array([50.0, 30.0])), [0.0, 2.0])
 
 
+@precisa_pdftocairo
 def test_tracos_de_escala_vetoriais(tmp_path):
     # matplotlib põe traços em 0, 100, ..., 700 no eixo x e 0, 0,5, ..., 3 no y
     pdf = tmp_path / "fig.pdf"
@@ -157,6 +164,7 @@ def test_raster_marcadores_com_barra_e_linha(tmp_path):
     np.testing.assert_allclose(ey.valor(base), y - err, atol=0.015 * 5)
 
 
+@precisa_pdftocairo
 def test_moldura_desenhada_como_caminho_fechado(tmp_path):
     # gnuplot desenha a moldura como um retângulo fechado (M L L L Z), não
     # como quatro linhas: o lado que o Z fecha também conta
