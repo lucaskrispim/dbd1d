@@ -39,7 +39,7 @@ class Eixo:
 # ---------------------------------------------------------------- vetorial
 
 def _cor(texto):
-    m = re.match(r"rgb\(([\d.]+)%,([\d.]+)%,([\d.]+)%\)", texto or "")
+    m = re.match(r"rgb\(\s*([\d.]+)%\s*,\s*([\d.]+)%\s*,\s*([\d.]+)%\s*\)", texto or "")
     return tuple(float(g) / 100.0 for g in m.groups()) if m else None
 
 
@@ -95,18 +95,26 @@ def _subcaminhos(d):
     return out
 
 
-def _percorre(el, m, saida):
+def _propriedade(el, nome, herdada):
+    """Valor de stroke ou fill: o pdftocairo até o 22 grava no atributo style,
+    o 24 (cairo 1.18) em atributo próprio; sem nenhum dos dois, vale o do
+    elemento de cima, como no SVG."""
+    v = re.search(nome + r":\s*(rgb\([^)]*\)|none)", el.get("style", ""))
+    if v:
+        return v.group(1)
+    return el.get(nome, herdada)
+
+
+def _percorre(el, m, saida, traco=None, preench=None):
     m = m @ _matriz(el.get("transform"))
+    traco = _propriedade(el, "stroke", traco)
+    preench = _propriedade(el, "fill", preench)
     if el.tag == _NS + "path":
-        st = el.get("style", "")
-        tr = re.search(r"stroke:(rgb\([^)]*\)|none)", st)
-        pr = re.search(r"fill:(rgb\([^)]*\)|none)", st)
         for sub in _subcaminhos(el.get("d", "")):
             p = np.array([(m @ [x, y, 1.0])[:2] for x, y in sub])
-            saida.append({"traco": _cor(tr.group(1)) if tr else None,
-                          "preenchimento": _cor(pr.group(1)) if pr else None, "p": p})
+            saida.append({"traco": _cor(traco), "preenchimento": _cor(preench), "p": p})
     for f in el:
-        _percorre(f, m, saida)
+        _percorre(f, m, saida, traco, preench)
 
 
 def tracos_pdf(pdf, pagina):
@@ -117,7 +125,12 @@ def tracos_pdf(pdf, pagina):
         svg = Path(d) / "p.svg"
         subprocess.run(["pdftocairo", "-svg", "-f", str(pagina), "-l", str(pagina), str(pdf), str(svg)],
                        check=True, capture_output=True)
-        raiz = ET.parse(svg).getroot()
+        return tracos_svg(svg)
+
+
+def tracos_svg(svg):
+    """Traços de um SVG gravado pelo pdftocairo, no formato de tracos_pdf."""
+    raiz = ET.parse(svg).getroot()
     saida = []
     for f in raiz:
         if f.tag != _NS + "defs":

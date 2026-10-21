@@ -29,7 +29,7 @@ OPENBLAS_NUM_THREADS=1 python3 -m pytest -q -m "not lento"
 The digitizer of the validation data reads vector figures with `pdftocairo` (Debian and Ubuntu
 package `poppler-utils`); without it, its four vector tests are skipped.
 
-Tested with numpy 2.2 and 2.5, scipy 1.15 and 1.18. In this package 350 tests pass and 96 are
+Tested with numpy 2.2 and 2.5, scipy 1.15 and 1.18. In this package 351 tests pass and 96 are
 skipped, each with the reason: they generate cases (ZDPlasKin and BOLSIG+ needed) or use the
 gas mixtures whose mechanisms and cross sections we cannot redistribute (`casos/LEIAME.md`). With
 `ZDPLASKIN_DIR` set and those cases rebuilt, they run too.

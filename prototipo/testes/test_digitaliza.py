@@ -255,3 +255,21 @@ def test_curva_seguida_separa_continua_de_tracejada(tmp_path):
         xc, yc = ex.valor(c[:, 0]), ey.valor(c[:, 1])
         np.testing.assert_allclose(yc, np.interp(xc, x, real), atol=0.06)
         assert xc.max() > 9.5
+
+
+def test_svg_do_poppler_22_e_do_24_dao_os_mesmos_tracos():
+    # o mesmo PDF (uma curva vermelha com marcadores, matplotlib) pelo
+    # pdftocairo 22.02 e pelo 24.02: o 24 (cairo 1.18) troca o atributo style
+    # por atributos de apresentação, põe espaços dentro do rgb() e deixa o
+    # preenchimento do texto no <g> de cima
+    dados = RAIZ / "prototipo" / "testes" / "dados"
+    a = dg.tracos_svg(dados / "figura_poppler22.svg")
+    b = dg.tracos_svg(dados / "figura_poppler24.svg")
+    assert len(a) == len(b) > 0
+    for ta, tb in zip(a, b):
+        assert ta["traco"] == tb["traco"]
+        assert ta["preenchimento"] == tb["preenchimento"]
+        assert np.allclose(ta["p"], tb["p"], atol=1e-3)
+    assert len(dg.molduras_vetoriais(b)) == 1
+    # a linha e os três marcadores vermelhos, contados por subcaminho
+    assert sum(t["traco"] == (1.0, 0.0, 0.0) for t in b) == 7
