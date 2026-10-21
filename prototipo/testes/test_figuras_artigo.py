@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Rótulos da figura do enxame no artigo (artigo/figuras.py): nomes próprios
-com maiúscula e a temperatura quando a série não é a 300 K."""
+"""Labels of the swarm figure of the article (artigo/figuras.py): proper names
+capitalised and the temperature when the series is not at 300 K."""
 import sys
 
 import pytest
@@ -23,8 +23,8 @@ def test_rotulo_enxame(nome, rotulo):
 
 
 def test_legenda_fica_abaixo_dos_dados_e_do_rotulo(tmp_path):
-    # a legenda não cobre curva nem o rótulo do eixo x: fica inteira abaixo
-    # da caixa do painel com os números e o rótulo
+    # the legend covers neither a curve nor the x-axis label: it lies entirely below
+    # the box of the panel with the numbers and the label
     import matplotlib.pyplot as plt
     fig, e = plt.subplots(1, 2, figsize=(7.2, 3.5))
     for x in e:

@@ -1,13 +1,13 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Extração da figura 4 de Loffhagen et al. 2020, PCPP, doi
-10.1007/s11090-020-10121-y: tensão de ignição medida e calculada de uma DBD de
-argônio com TMS (gap de 1 mm, vidro borofloat de 2 mm com ε_r = 4,6, 86,2 kHz,
-1 atm, 300 K). Figura vetorial, página 30 do PDF.
+"""Extraction of figure 4 of Loffhagen et al. 2020, PCPP, doi
+10.1007/s11090-020-10121-y: measured and computed ignition voltage of an argon
+DBD with TMS (1 mm gap, 2 mm borofloat glass with eps_r = 4.6, 86.2 kHz, 1 atm,
+300 K). Vector figure, page 30 of the PDF.
 
-Calibração (pt, y para baixo): eixo x com traços principais em 261,00 (0 ppm)
-e 385,45 (200 ppm); eixo y em 548,11 (1,0 kV) e 456,42 (3,5 kV).
+Calibration (pt, y downwards): x axis with major ticks at 261.00 (0 ppm) and
+385.45 (200 ppm); y axis at 548.11 (1.0 kV) and 456.42 (3.5 kV).
 
-Uso: python3 docs/literatura/dados/loffhagen2020.py  (grava em loffhagen2020/)
+Usage: python3 docs/literatura/dados/loffhagen2020.py  (writes to loffhagen2020/)
 """
 import sys
 from pathlib import Path
@@ -30,8 +30,8 @@ def main():
     ty = dg.tracos_de_escala(tr, MOLDURA, "y", min_comp=2.5)
     assert len(tx) == 5 and len(ty) == 6, (tx, ty)
     ex, ey = dg.Eixo(tx[0], 0.0, tx[-1], 200.0), dg.Eixo(ty[0], 3.5, ty[-1], 1.0)
-    # pontos medidos: círculos cheios; o centro vertical e a barra de erro vêm
-    # dos segmentos verticais da barra (dois por ponto, encostados no centro)
+    # measured points: filled circles; the vertical centre and the error bar come
+    # from the vertical segments of the bar (two per point, touching the centre)
     pontos = []
     for t in tr:
         p = t["p"]
@@ -53,7 +53,7 @@ def main():
     u_max, u_min = ey.valor(barras[:, 0]), ey.valor(barras[:, 1])
     SAIDA.mkdir(exist_ok=True)
     np.savetxt(SAIDA / "fig4_ignicao_medida.csv", np.column_stack([x, u, u_min, u_max]), fmt="%.4g", delimiter=",",
-               header="Loffhagen 2020 fig. 4: tensão de ignição medida (amplitude da senoide), Ar com x ppm de TMS\n"
+               header="Loffhagen 2020 fig. 4: measured ignition voltage (amplitude of the sine), Ar with x ppm of TMS\n"
                       "x_ppm,Ui_kV,Ui_min_kV,Ui_max_kV", comments="# ")
     for nome, cor in (("k3.0e-16_a0.25", (0, 0, 0)), ("k2.4e-16_a0.30", (1, 0, 0)), ("k2.2e-17_a0.55", (0, 0, 1))):
         c = [t["p"] for t in tr if dg._mesma_cor(t["traco"], cor) and len(t["p"]) == 12
@@ -61,9 +61,9 @@ def main():
         assert len(c) == 1, nome
         np.savetxt(SAIDA / f"fig4_ignicao_modelo_{nome}.csv", np.column_stack([ex.valor(c[0][:, 0]), ey.valor(c[0][:, 1])]),
                    fmt="%.4g", delimiter=",", comments="# ",
-                   header=f"Loffhagen 2020 fig. 4: tensão de ignição calculada, k_M,Ar* e α_Pl = {nome}\nx_ppm,Ui_kV")
+                   header=f"Loffhagen 2020 fig. 4: computed ignition voltage, k_M,Ar* and alpha_Pl = {nome}\nx_ppm,Ui_kV")
     for linha in np.column_stack([x, u, u_min, u_max]):
-        print("x = %3.0f ppm: U_i = %.3f kV (%.3f a %.3f)" % tuple(linha))
+        print("x = %3.0f ppm: U_i = %.3f kV (%.3f to %.3f)" % tuple(linha))
 
 
 if __name__ == "__main__":

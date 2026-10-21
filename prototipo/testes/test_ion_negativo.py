@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Íons negativos (H- na amônia de Sun et al. 2022, O- e O2- no ar): mobilidade
-e difusão como os positivos, deriva no sentido oposto, presos no volume pelo
-campo das paredes e com aquecimento Joule. Química de teste: o argônio com a
-carga do Ar2+ trocada para -1 (a mecânica do modelo não depende da reação)."""
+"""Negative ions (H- in the ammonia case of Sun et al. 2022, O- and O2- in air):
+mobility and diffusion as the positive ones, drift in the opposite direction,
+trapped in the volume by the wall field and with Joule heating. Test chemistry:
+argon with the charge of Ar2+ changed to -1 (the mechanics of the model does not
+depend on the reaction)."""
 import copy
 
 import numpy as np
@@ -37,7 +38,7 @@ def test_ion_negativo_e_aceito_com_a_mobilidade_do_arquivo(pecas):
 
 
 def test_deriva_no_sentido_oposto(pecas):
-    # densidade uniforme e campo uniforme: fluxo interno -mu E n para o negativo
+    # uniform density and uniform field: inner flux -mu E n for the negative ion
     pos, neg = _modelos(pecas)
     k = neg.nomes.index("AR2^+")
     n = np.full((neg.n_esp, neg.m), 1e10)
@@ -52,8 +53,8 @@ def test_deriva_no_sentido_oposto(pecas):
 
 
 def test_preso_no_volume_pelo_campo_e_sem_emissao_secundaria(pecas):
-    # campo +x: o negativo vai para a parede esquerda (deriva entra inteira) e
-    # na direita só o térmico freado por exp(-e E d/(k T)); não arranca elétrons
+    # field +x: the negative ion goes to the left wall (drift enters fully) and
+    # on the right only the thermal flux braked by exp(-e E d/(k T)); it does not extract electrons
     _, neg = _modelos(pecas)
     k = neg.nomes.index("AR2^+")
     n = np.zeros((neg.n_esp, neg.m))
@@ -71,13 +72,13 @@ def test_preso_no_volume_pelo_campo_e_sem_emissao_secundaria(pecas):
 
 
 def test_joule_dos_ions_negativos(pecas):
-    # o aquecimento Joule soma todos os íons, positivos e negativos
+    # Joule heating sums all ions, positive and negative
     _, neg = _modelos(pecas, aquecimento=True, v_pico=3e3, espessura=1.75e-3)
     y = neg.estado_inicial(n_e0=0.0)
     z = y[:-2].reshape(neg.n_var, neg.m)
     k = neg.nomes.index("AR2^+")
     z[k] = 1e12
-    z[neg.nomes.index("AR^+")] = 1e12           # neutro: o campo é o aplicado
+    z[neg.nomes.index("AR^+")] = 1e12           # neutral: the field is the applied one
     n = neg.separa(y)[0]
     campo = neg.campo_nas_celulas(neg.campo(1e-8, n, 0.0, 0.0)[1])
     sem = copy.deepcopy(neg)

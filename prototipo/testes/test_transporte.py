@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Dados de transporte por espécie (transporte.json): o arquivo padrão reproduz
-os valores do argônio que estavam escritos no código, cada espécie usa os
-seus dados e a falta de um dado é erro explícito, em vez da mobilidade do Ar+
-ou da difusão do Ar* aplicadas em silêncio."""
+"""Transport data per species (transporte.json): the default file reproduces the
+argon values that were written in the code, each species uses its own data and a
+missing value is an explicit error, instead of the Ar+ mobility or the Ar*
+diffusion applied silently."""
 import copy
 import json
 
@@ -48,7 +48,7 @@ def test_padrao_reproduz_os_valores_do_argonio(pecas):
 
 
 def test_cada_especie_usa_os_seus_dados(pecas, dados):
-    # Ar2+ com mobilidade de Frost própria: o modelo usa a dele, não a do Ar+
+    # Ar2+ with its own Frost mobility: the model uses it, not that of Ar+
     dados["AR2^+"]["mobilidade"] = {"tipo": "frost", "K0": 2.0, "EN_aquecimento": 100.0}
     dados["AR*"]["difusao"]["D0"] = 2.0e-5
     dados["AR2^+"]["massa_u"] = 80.0
@@ -63,7 +63,7 @@ def test_cada_especie_usa_os_seus_dados(pecas, dados):
 
 
 def test_difusao_local_usa_os_dados_da_especie(pecas, dados):
-    # com aquecimento a difusão dos neutros segue a T local, com os mesmos dados
+    # with heating the diffusion of the neutrals follows the local T, with the same data
     dados["AR*"]["difusao"] = {"D0": 3.0e-5, "T0": 300.0, "expoente": 1.5}
     md = Modelo(*pecas, n_celulas=4, aquecimento=True, transporte=dados)
     n = md.separa(md.estado_inicial())[0]
@@ -77,7 +77,7 @@ def test_difusao_local_usa_os_dados_da_especie(pecas, dados):
     ("AR2^+", "mobilidade", "AR2^+"), ("AR*", "difusao", "AR*"), ("AR^+", "massa_u", "AR^+")])
 def test_dado_ausente_e_erro(pecas, dados, especie, campo, mensagem):
     del dados[especie][campo]
-    with pytest.raises(ValueError, match=r"transporte.*" + mensagem.replace("^", r"\^").replace("*", r"\*")
+    with pytest.raises(ValueError, match=r"transport.*" + mensagem.replace("^", r"\^").replace("*", r"\*")
                        + r".*" + campo):
         Modelo(*pecas, n_celulas=4, transporte=dados)
 
@@ -102,8 +102,8 @@ def test_tipo_de_mobilidade_desconhecido_e_erro(pecas, dados):
 
 
 def test_ion_negativo_sem_mobilidade_e_erro(pecas):
-    # um íon negativo sem mobilidade no arquivo não pode virar neutro (sem
-    # deriva) em silêncio
+    # a negative ion without mobility in the file cannot silently become a neutral (without
+    # drift)
     q = copy.copy(pecas[0])
     q.carga = q.carga.copy()
     q.carga[q.indice["AR*"]] = -1
@@ -115,7 +115,7 @@ def test_opcoes_do_argonio_sobrepoem_o_arquivo(pecas):
     md = Modelo(*pecas, n_celulas=4, k0_ar=1.5, en_aquecimento_ar=200.0, k0_ar2=1.9)
     assert md.transporte["AR^+"]["mobilidade"] == {"tipo": "frost", "K0": 1.5, "EN_aquecimento": 200.0}
     assert md.transporte["AR2^+"]["mobilidade"]["K0"] == 1.9
-    # o arquivo em disco não muda
+    # the file on disk does not change
     assert json.loads((RAIZ / "transporte.json").read_text())["AR^+"]["mobilidade"]["K0"] == 1.61
 
 
@@ -127,8 +127,8 @@ def test_opcoes_do_argonio_sobrepoem_o_arquivo(pecas):
     ("AR2^+", ("mobilidade",), 1.95), ("AR*", ("difusao",), 17e-6),
     ("AR*", ("perda_na_parede",), 1.5), ("AR*", ("perda_na_parede",), -0.1)])
 def test_valor_invalido_e_erro(pecas, dados, especie, caminho, valor):
-    # só a presença das chaves não basta: K0 negativo inverteria a deriva em
-    # silêncio, e um tipo errado cairia em traceback
+    # the presence of the keys alone is not enough: a negative K0 would silently invert the
+    # drift, and a wrong type would end in a traceback
     alvo = dados[especie]
     for chave in caminho[:-1]:
         alvo = alvo[chave]
@@ -151,7 +151,7 @@ def test_erros_de_transporte_sao_valueerror(pecas, dados):
 
 
 def test_opcao_do_argonio_incompativel_e_erro(pecas, dados):
-    # campo de aquecimento para um Ar+ de mobilidade constante não teria efeito
+    # a heating field for an Ar+ of constant mobility would have no effect
     dados["AR^+"]["mobilidade"] = {"tipo": "constante", "K0": 1.61}
     with pytest.raises(ErroTransporte, match="frost"):
         Modelo(*pecas, n_celulas=4, en_aquecimento_ar=200.0, transporte=dados)
@@ -159,7 +159,7 @@ def test_opcao_do_argonio_incompativel_e_erro(pecas, dados):
 
 @pytest.mark.parametrize("gama", [1.0, 0.5, 0.0])
 def test_perda_na_parede_dos_neutros(pecas, dados, gama):
-    # fluxo de Chantry na parede: gama/(2 - gama) do fluxo térmico n v/2
+    # Chantry flux at the wall: gamma/(2 - gamma) of the thermal flux n v/2
     dados["AR*"]["perda_na_parede"] = gama
     md = Modelo(*pecas, n_celulas=4, transporte=dados)
     k = md.nomes.index("AR*")
@@ -185,8 +185,8 @@ def test_estado_inicial_neutro_semeia_o_primeiro_ion(pecas):
 
 
 def test_mobilidades_iguais_as_do_fortran(dados):
-    # o fortran_contra_prototipo depende de os padrões dos dois códigos serem
-    # iguais; src/parametros.f90 tem os do Fortran
+    # fortran_contra_prototipo depends on the defaults of the two codes being
+    # equal; src/parametros.f90 has those of the Fortran code
     import re
     texto = (RAIZ / "src" / "parametros.f90").read_text()
     valor = {m.group(1): float(m.group(2).replace("d", "e"))
@@ -197,8 +197,8 @@ def test_mobilidades_iguais_as_do_fortran(dados):
 
 
 def test_mobilidade_em_tabela_por_e_n(pecas, dados):
-    # K0 medido em função de E/N (como nas tabelas de Ellis et al. 1976),
-    # interpolado linearmente e preso nos extremos
+    # K0 measured as a function of E/N (as in the tables of Ellis et al. 1976),
+    # interpolated linearly and clamped at the ends
     dados["AR2^+"]["mobilidade"] = {"tipo": "tabela", "E_N": [10.0, 100.0, 300.0], "K0": [2.0, 1.8, 1.2]}
     md = Modelo(*pecas, n_celulas=4, transporte=dados)
     escala = N_LOSCHMIDT / md.n_gas * 1e-4
@@ -213,12 +213,12 @@ def test_mobilidade_em_tabela_por_e_n(pecas, dados):
                                  {"tipo": "tabela", "E_N": [10.0, 50.0], "K0": [2.0, -1.0]}])
 def test_mobilidade_em_tabela_invalida(pecas, dados, mob):
     dados["AR2^+"]["mobilidade"] = mob
-    with pytest.raises(ErroTransporte, match=r"AR2\^\+.*tabela"):
+    with pytest.raises(ErroTransporte, match=r"AR2\^\+.*table"):
         Modelo(*pecas, n_celulas=4, transporte=dados)
 
 
 def test_mobilidade_em_tabela_com_cauda_de_campo_alto(pecas, dados):
-    # acima do último E/N medido, K = K_último (E/N_último / (E/N))^(1/2)
+    # above the last measured E/N, K = K_last (E/N_last / (E/N))^(1/2)
     dados["AR2^+"]["mobilidade"] = {"tipo": "tabela", "E_N": [10.0, 40.0], "K0": [2.3, 2.4], "acima": "raiz"}
     md = Modelo(*pecas, n_celulas=4, transporte=dados)
     escala = N_LOSCHMIDT / md.n_gas * 1e-4

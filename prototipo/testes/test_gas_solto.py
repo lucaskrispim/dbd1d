@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Gás de fundo solto, como gas_fixo = .false. no código Fortran: o Ar neutro
-entra no estado, difunde com o coeficiente do Ar* (DK), participa da química e
-recebe de volta pela parede, como átomos neutros, as partículas de argônio que
-ela absorve (achado N15). O N dos elétrons (E/N e coeficientes da tabela) é o
-dos neutros da célula, Ar + Ar*."""
+"""Free background gas, as gas_fixo = .false. in the Fortran code: neutral Ar
+enters the state, diffuses with the coefficient of Ar* (DK), takes part in the
+chemistry and receives back from the wall, as neutral atoms, the argon particles
+that the wall absorbs (finding N15). The N of the electrons (E/N and table
+coefficients) is that of the neutrals of the cell, Ar + Ar*."""
 import numpy as np
 import pytest
 
@@ -27,8 +27,8 @@ def aleatorio(md, semente):
 
 
 def test_atomos_de_argonio_conservados(pecas):
-    # transporte, paredes e química: a soma de Ar, Ar*, Ar+ e 2 Ar2+ no gap não
-    # muda; os elétrons entram e saem, os átomos não
+    # transport, walls and chemistry: the sum of Ar, Ar*, Ar+ and 2 Ar2+ in the gap does not
+    # change; electrons enter and leave, atoms do not
     md = ModeloRapido(*pecas, n_celulas=16, agrupamento=1.5, v_pico=5e3, espessura=1.75e-3,
                       gas_solto=True)
     n = aleatorio(md, 7)
@@ -41,10 +41,10 @@ def test_atomos_de_argonio_conservados(pecas):
 
 
 def test_parede_devolve_os_atomos_como_ar_neutro(pecas):
-    # Ar uniforme e 1e6 cm-3 de Ar* só na célula da parede, sem campo: a química
-    # que pesa (Ar* + Ar -> 2 Ar e Ar* + 2 Ar -> 3 Ar) troca Ar* por Ar um a um, e
-    # a parede devolve como Ar o Ar* que absorve; a soma dn(Ar) + dn(Ar*) nessa
-    # célula fica só com a difusão do Ar* para a vizinha
+    # uniform Ar and 1e6 cm-3 of Ar* only in the wall cell, without field: the chemistry
+    # that matters (Ar* + Ar -> 2 Ar and Ar* + 2 Ar -> 3 Ar) exchanges Ar* for Ar one to one, and
+    # the wall returns as Ar the Ar* it absorbs; the sum dn(Ar) + dn(Ar*) in that
+    # cell keeps only the diffusion of Ar* to the neighbour
     md = ModeloRapido(*pecas, n_celulas=10, v_pico=0.0, gas_solto=True)
     n = np.zeros((md.n_esp, md.m))
     i_ar, i_m = md.nomes.index("AR"), md.nomes.index("AR*")
@@ -77,8 +77,8 @@ def test_gas_preso_nada_muda(pecas):
     f1 = md1.rhs(1e-8, np.concatenate([n1.ravel(), [1e-7, -2e-7]]))
     d0 = f0[:-2].reshape(md0.n_esp, 12)
     d1 = f1[:-2].reshape(md1.n_esp, 12)
-    # as espécies comuns mudam só pelo N dos neutros, que passa a incluir o Ar*
-    # (~1e-8 do N do gás)
+    # the common species change only through the N of the neutrals, which now includes Ar*
+    # (~1e-8 of the N of the gas)
     for k, s in enumerate(md0.nomes):
         np.testing.assert_allclose(d1[md1.nomes.index(s)], d0[k], rtol=1e-6, atol=1e-6 * np.abs(d0).max())
     np.testing.assert_allclose(f1[-2:], f0[-2:], rtol=1e-6)
@@ -99,8 +99,8 @@ def test_jacobiano_estruturado_com_gas_solto(pecas):
 
 
 def test_frost_com_o_n_local(pecas):
-    # como ions.f90: K = K0 (N0/N) / sqrt(1 + (E/N)/210 Td), com N as partículas
-    # pesadas da célula também dentro do E/N
+    # as ions.f90: K = K0 (N0/N) / sqrt(1 + (E/N)/210 Td), with N the heavy
+    # particles of the cell, also inside E/N
     md = ModeloRapido(*pecas, n_celulas=10, v_pico=0.0, gas_solto=True)
     n = np.zeros((md.n_esp, md.m))
     n[md.nomes.index("AR")] = md.n_gas
@@ -113,12 +113,12 @@ def test_frost_com_o_n_local(pecas):
     assert mob[md.nomes.index("AR^+"), 3] == pytest.approx(esperado, rel=1e-12)
 
 
-# ------------------------------------------- gás solto com o fundo em mistura
+# ------------------------------------------- free gas with a mixed background
 AMONIA = RAIZ / "casos" / "amonia_sun2022"
 
 
 def _atomos(nome):
-    """Átomos de N e de H na espécie, pela fórmula do nome."""
+    """Atoms of N and H in the species, from the formula of the name."""
     import re
     s = nome.upper().replace("^+", "").replace("^-", "").split("(")[0]
     c = {"N": 0, "H": 0}
@@ -133,7 +133,7 @@ def amonia():
     from tabela import TabelaTg
     q = quimica_do(AMONIA)
     transporte = json.loads((AMONIA / "transporte.json").read_text())
-    # a parede devolve cada partícula como N2 e H2 com os seus átomos
+    # the wall returns each particle as N2 and H2 with its atoms
     for nome, dados in transporte.items():
         if not nome.startswith("_"):
             a = _atomos(nome)
@@ -158,8 +158,8 @@ def test_mistura_solta_comeca_nas_fracoes(amonia):
 
 
 def test_mistura_solta_conserva_os_atomos_de_cada_elemento(amonia):
-    # transporte, paredes (devolução como N2 e H2) e química: os átomos de N e
-    # os de H no gap não mudam, cada um por si
+    # transport, walls (return as N2 and H2) and chemistry: the N atoms and
+    # the H atoms in the gap do not change, each on its own
     md = _modelo_amonia(amonia)
     g = np.random.default_rng(3)
     n = 10.0 ** g.uniform(9, 12, size=(md.n_esp, md.m))
@@ -179,6 +179,6 @@ def test_mistura_solta_pede_os_atomos_por_fundo(amonia):
     q, tab, transporte = amonia
     import copy
     t = copy.deepcopy(transporte)
-    t["NH3"]["atomos_do_fundo"] = 2.0          # numa mistura, um número só não diz de qual fundo
+    t["NH3"]["atomos_do_fundo"] = 2.0          # in a mixture, a single number does not say which background
     with pytest.raises(ErroTransporte, match=r"NH3.*atomos_do_fundo"):
         _modelo_amonia((q, tab, t))

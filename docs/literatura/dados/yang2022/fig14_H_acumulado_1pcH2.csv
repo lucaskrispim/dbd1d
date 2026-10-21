@@ -1,4 +1,4 @@
-# Yang 2022 fig. 14(b): H medido por TALIF durante a rajada, N2 com 1 % de H2, 150 Torr; mín. e máx.: extremos da barra de erro (barras claras incluídas), ou a borda do marcador quando não há barra visível; a barra pode se estender alguns pixels onde a curva do modelo, da mesma cor, cruza a coluna do ponto
+# Yang 2022 fig. 14(b): H measured by TALIF during the burst, N2 with 1% H2, 150 Torr; min and max: ends of the error bar (light bars included), or the edge of the marker when no bar is visible; the bar may extend a few pixels where the model curve, of the same colour, crosses the column of the point
 # t_us,H_cm3,H_min_cm3,H_max_cm3
 103.53,4.4489e+14,3.629e+14,5.2419e+14
 199.73,7.7957e+14,6.8548e+14,8.7366e+14

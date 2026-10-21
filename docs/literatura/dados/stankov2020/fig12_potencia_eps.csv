@@ -1,4 +1,4 @@
-# Stankov 2020 fig. 12: potência média medida e calculada (γ = 0,02) para cada ε_r
+# Stankov 2020 fig. 12: mean power measured (P_medida) and computed (gamma = 0.02) for each eps_r
 # p_mbar,P_medida_W,P_eps3.3_W,P_eps3.75_W,P_eps4.2_W,P_eps4.65_W,P_eps5.1_W
 100,0.562137,0.480098,0.542235,0.599428,0.701287,0.758439
 300,0.937393,0.837965,0.900102,1.02434,1.12372,1.24553

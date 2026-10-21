@@ -14,7 +14,7 @@ def pytest_configure(config):
 
 
 def _tem_terceiros():
-    """ZDPlasKin e BOLSIG+ disponíveis (ZDPLASKIN_DIR ou as cópias do repositório de pesquisa)."""
+    """ZDPlasKin and BOLSIG+ available (ZDPLASKIN_DIR or the copies of the research repository)."""
     sys.path.insert(0, str(RAIZ / "ferramentas"))
     import caso
     try:
@@ -24,14 +24,14 @@ def _tem_terceiros():
         return False
 
 
-# testes que geram o zdplaskin_m.F90 ou as tabelas: pulados sem o ZDPlasKin e o
-# BOLSIG+, que não vêm no pacote (a licença do ZDPlasKin não permite redistribuir)
+# tests that generate zdplaskin_m.F90 or the tables: skipped without ZDPlasKin and
+# BOLSIG+, which do not come with the package (the ZDPlasKin licence does not allow redistribution)
 precisa_terceiros = pytest.mark.skipif(not _tem_terceiros(), reason="ZDPlasKin e BOLSIG+ ausentes (defina ZDPLASKIN_DIR)")
 
 
 def quimica_do(pasta):
-    """Química do caso como o simula.py a escolhe: o zdplaskin_m.F90 quando existe
-    (repositório de pesquisa), senão o quimica.json (pacote distribuído)."""
+    """Chemistry of the case as simula.py chooses it: zdplaskin_m.F90 when it exists
+    (research repository), otherwise quimica.json (distributed package)."""
     from quimica_zdp import Quimica
     pasta = pathlib.Path(pasta)
     if (pasta / "zdplaskin_m.F90").exists():
@@ -39,11 +39,11 @@ def quimica_do(pasta):
     return Quimica.de_json(pasta / "quimica.json")
 
 
-# No pacote distribuído faltam, de propósito, os arquivos que não podemos
-# redistribuir (código do ZDPlasKin, seções de choque do LXCat, mecanismos de
-# outros autores) e as referências do código Fortran antigo. Um teste que falha
-# só por um deles vira pulado, com o arquivo no motivo. No repositório de
-# pesquisa (com o zdplaskin_m.F90 na raiz) nada muda.
+# The distributed package lacks, on purpose, the files we cannot
+# redistribute (ZDPlasKin code, LXCat cross sections, mechanisms of
+# other authors) and the references of the old Fortran code. A test that fails
+# only because of one of them becomes skipped, with the file in the reason. In the research
+# repository (with zdplaskin_m.F90 at the root) nothing changes.
 NAO_DISTRIBUIDOS = [RAIZ / p for p in ("zdplaskin_m.F90", "bolsigdb.dat", "casos/n2", "casos/amonia_sun2022",
                                         "casos/amonia_sun2022_hongW98", "casos/ar_n2_o2", "casos/ar_n2",
                                         "casos/xu2025", "casos/yang2022_N2", "casos/yang2022_1pcH2",
@@ -52,9 +52,9 @@ PACOTE = not (RAIZ / "zdplaskin_m.F90").exists()
 
 
 def _arquivo_nao_distribuido(texto):
-    """Um caminho da mensagem que não existe e fica dentro de um arquivo ou
-    pasta não distribuídos (os casos de terceiros têm no pacote só os arquivos
-    do grupo: faltam a química e as tabelas)."""
+    """A path of the message that does not exist and lies inside a file or
+    folder that is not distributed (the third-party cases have in the package only
+    the files of the group: the chemistry and the tables are missing)."""
     for m in re.finditer(re.escape(str(RAIZ)) + r"/[^\s'\":,)]*", texto):
         caminho = pathlib.Path(m.group(0))
         if caminho.exists():
@@ -71,8 +71,8 @@ def pytest_runtest_makereport(item, call):
     rel = resultado.get_result()
     if not (PACOTE and rel.failed and call.excinfo is not None):
         return
-    # só erro de arquivo ausente: FileNotFoundError, ou a saída de um subprocesso
-    # (simula.py, scripts) que recusou um caso ou arquivo inexistente
+    # only a missing-file error: FileNotFoundError, or the output of a subprocess
+    # (simula.py, scripts) that refused a nonexistent case or file
     texto = call.excinfo.exconly()
     ausente = call.excinfo.errisinstance(FileNotFoundError) or any(
         s in texto for s in ("No such file", "não tem ", "não existe", "não é uma pasta"))
@@ -84,8 +84,8 @@ def pytest_runtest_makereport(item, call):
 
 
 def precisa_caso(nome):
-    """Teste que roda o caso casos/NOME: pulado quando a química ou as tabelas
-    dele não estão presentes (no pacote, os casos de terceiros vêm sem elas)."""
+    """Test that runs the case casos/NAME: skipped when its chemistry or tables
+    are not present (in the package, the third-party cases come without them)."""
     caso = RAIZ / "casos" / nome
     tem = ((caso / "zdplaskin_m.F90").exists() or (caso / "quimica.json").exists()) \
         and (caso / "tabela_energia_tg.dat").exists()

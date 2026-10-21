@@ -1,19 +1,18 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Compara as saídas de duas execuções do simulador, coluna a coluna.
+"""Compares the outputs of two runs of the simulator, column by column.
 
-Uso: python3 scripts/compara.py DIR_A DIR_B [--tol 1e-12] [--tempo-max 2e-8]
+Usage: python3 scripts/compara.py DIR_A DIR_B [--tol 1e-12] [--max-time 2e-8]
 
-Lê perfil.dat, superficie.dat, borda0.dat, centro.dat e borda1.dat dos dois
-diretórios (as séries só se existirem nos dois, porque o protótipo não grava as
-três últimas), alinha os registros
-pelo instante e as colunas pelo nome, e reporta a maior diferença relativa de
-cada coluna comum; colunas que só um lado tem são listadas. Serve para Fortran
-contra Fortran, protótipo contra protótipo e um contra o outro. Com --estrito (o
-make regressao usa), também reprova série ausente de um lado, coluna só de um
-lado (exceto CFL e n_eps, próprias de cada código) e instante só de um lado.
-A diferença relativa usa |a-b| / max(|a|, |b|, piso), em que o piso é 1e-30
-vezes o maior valor absoluto da coluna, para não amplificar ruído em torno de
-zero. Sai com código 1 se alguma coluna passar de --tol.
+Reads perfil.dat and superficie.dat (and borda0.dat, centro.dat and borda1.dat
+of the original Fortran code, if present in both directories), aligns the
+records by time and the columns by name, and reports the largest relative
+difference of each common column; columns present on one side only are listed.
+With --strict (the regression test uses it), it also fails on a series missing
+on one side, a column on one side only (except CFL and n_eps, specific to each
+code) and a time on one side only. The relative difference is |a-b| /
+max(|a|, |b|, floor), with the floor 1e-30 times the largest absolute value of
+the column, so as not to amplify noise around zero. Exits with code 1 if any
+column exceeds --tol.
 """
 import argparse
 import math
@@ -27,7 +26,7 @@ def numero(texto):
     try:
         return float(texto)
     except ValueError:
-        # o formato 1pe24.16 perde o E quando o expoente tem três dígitos
+        # the format 1pe24.16 loses the E when the exponent has three digits
         if "-" in texto[1:] or "+" in texto[1:]:
             i = max(texto.rfind("-"), texto.rfind("+"))
             return float(texto[:i] + "E" + texto[i:])
@@ -35,12 +34,12 @@ def numero(texto):
 
 
 def cabecalho(linha):
-    """O writer grava os nomes em campos de 24 caracteres; alguns têm espaço."""
+    """The writer puts the names in fields of 24 characters; some contain spaces."""
     return [linha[i:i + 24].strip() for i in range(0, len(linha.rstrip()), 24)]
 
 
 def le_serie(caminho, tempo_max):
-    """Arquivo com cabeçalho e uma linha por instante; a primeira coluna é o tempo."""
+    """File with a header and one line per time; the first column is the time."""
     linhas = caminho.read_text().splitlines()
     nomes = confere_nomes(cabecalho(linhas[0]), caminho)
     dados = {}
@@ -60,13 +59,13 @@ PROPRIAS = {"CFL", "n_eps"}
 def confere_nomes(nomes, caminho):
     repetidos = sorted({n for n in nomes if nomes.count(n) > 1})
     if repetidos:
-        sys.exit(f"{caminho}: colunas repetidas: {', '.join(repetidos)}")
+        sys.exit(f"{caminho}: repeated columns: {', '.join(repetidos)}")
     return nomes
 
 
 def le_perfil(caminho, tempo_max):
-    """Blocos separados por linha vazia: instante, cabeçalho, uma linha por nó.
-    Cada bloco é lido com o seu cabeçalho e os valores ficam por nome."""
+    """Blocks separated by an empty line: time, header, one line per node. Each
+    block is read with its own header and the values are kept by name."""
     dados = {}
     nomes = None
     bloco = []
@@ -89,7 +88,7 @@ def le_perfil(caminho, tempo_max):
 def compara(nomes_a, nomes_b, a, b, rotulo, tol, estrito=False):
     comuns = sorted(set(a) & set(b))
     if not comuns:
-        print(f"{rotulo}: nenhum registro em comum")
+        print(f"{rotulo}: no record in common")
         return False
     nomes = [n for n in nomes_a if n in nomes_b]
     so_um = [n for n in nomes_a if n not in nomes_b] + [n for n in nomes_b if n not in nomes_a]
@@ -103,7 +102,7 @@ def compara(nomes_a, nomes_b, a, b, rotulo, tol, estrito=False):
     for k in comuns:
         for n in nomes:
             if n not in a[k] or n not in b[k]:
-                continue                       # a última linha do Fortran não tem campo
+                continue                       # the last line of the Fortran output lacks the field
             x, y = a[k][n], b[k][n]
             if math.isnan(x) or math.isnan(y):
                 d = 0.0 if (math.isnan(x) and math.isnan(y)) else math.inf
@@ -114,14 +113,14 @@ def compara(nomes_a, nomes_b, a, b, rotulo, tol, estrito=False):
     ok = all(d <= tol for d in pior.values())
     if estrito:
         ok = ok and so_registro == 0 and all(n in PROPRIAS for n in so_um)
-    print(f"{rotulo}: {len(comuns)} registros, {len(nomes)} colunas comuns, {'OK' if ok else 'DIFERE'}")
+    print(f"{rotulo}: {len(comuns)} records, {len(nomes)} common columns, {'OK' if ok else 'DIFFERS'}")
     for n, d in pior.items():
         if d > tol:
-            print(f"    {n:>14s}  dif. relativa máx. {d:.3e}")
+            print(f"    {n:>14s}  max. relative diff. {d:.3e}")
     if so_um:
-        print(f"    colunas só de um lado: {', '.join(so_um)}")
+        print(f"    columns on one side only: {', '.join(so_um)}")
     if so_registro:
-        print(f"    registros só de um lado: {so_registro}")
+        print(f"    records on one side only: {so_registro}")
     return ok
 
 
@@ -130,9 +129,9 @@ def main():
     p.add_argument("a", type=pathlib.Path)
     p.add_argument("b", type=pathlib.Path)
     p.add_argument("--tol", type=float, default=1e-12)
-    p.add_argument("--tempo-max", type=float, default=math.inf)
-    p.add_argument("--estrito", action="store_true",
-                   help="reprova série ausente, coluna ou instante só de um lado")
+    p.add_argument("--max-time", "--tempo-max", dest="tempo_max", type=float, default=math.inf)
+    p.add_argument("--strict", "--estrito", dest="estrito", action="store_true",
+                   help="fail on a missing series, or a column or time on one side only")
     args = p.parse_args()
 
     ok = True
@@ -140,7 +139,7 @@ def main():
         existe = ((args.a / nome).exists(), (args.b / nome).exists())
         if not all(existe):
             if any(existe):
-                print(f"{nome}: só em {'A' if existe[0] else 'B'}")
+                print(f"{nome}: only in {'A' if existe[0] else 'B'}")
                 ok &= not args.estrito
             continue
         na, da = le_serie(args.a / nome, args.tempo_max)

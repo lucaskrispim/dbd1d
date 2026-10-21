@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Química lida do zdplaskin_m.F90 e tabela em Python contra o Fortran (módulos
-tabela e cinetica, este conferido contra o ZDPlasKin em teste_cinetica)."""
+"""Chemistry read from zdplaskin_m.F90 and table in Python against the Fortran code
+(modules tabela and cinetica, the latter checked against ZDPlasKin in teste_cinetica)."""
 import numpy as np
 import pytest
 
@@ -73,9 +73,9 @@ def test_fontes_iguais_ao_fortran(quimica, tabela):
 
 
 def test_tabela_em_e_n_ate_campo_quase_nulo():
-    # Q3: a tabela vai até 1e-4 Td, como a de energia; sem campo a Te tende à do
-    # gás, como no ZDPlasKin direto (352 K a 1e-3 Td; antes a tabela começava em
-    # 0,01 Td e prendia Te em 2358 K, mudando k8 por até 1e4)
+    # Q3: the table goes down to 1e-4 Td, as the energy one; without field Te tends to the
+    # gas temperature, as in ZDPlasKin directly (352 K at 1e-3 Td; before, the table started at
+    # 0.01 Td and held Te at 2358 K, changing k8 by up to 1e4)
     from tabela import TE, Tabela
     tab = Tabela(RAIZ / "tabela_bolsig.dat")
     assert tab.e_n[0] <= 1.0e-4 * (1 + 1e-12)
@@ -85,8 +85,8 @@ def test_tabela_em_e_n_ate_campo_quase_nulo():
 
 
 def test_cada_reacao_igual_ao_fortran_a_300_e_320_K(quimica, tabela):
-    # VT6: reação por reação, com tolerância relativa à própria taxa (a soma das
-    # fontes, com escala do maior termo, escondia a reação 6, até 8e-19 dela)
+    # VT6: reaction by reaction, with tolerance relative to the rate itself (the sum of the
+    # sources, scaled by the largest term, hid reaction 6, up to 8e-19 of it)
     reac = referencia("reacoes")
     assert len(reac) == 30
     for (e_n, c, t_gas), ref in reac.items():
@@ -98,12 +98,12 @@ def test_cada_reacao_igual_ao_fortran_a_300_e_320_K(quimica, tabela):
 
 
 def test_aquecimento_pela_perda_elastica_igual_ao_fortran():
-    # mesma composição (gás solto) e mesmo E/N, temperatura uniforme igual à da
-    # parede (sem condução) e sem Joule dos íons. Duas diferenças de modelo,
-    # desfeitas antes de comparar a 1e-12: o Fortran usa gama - 1 = 0,667 e o
-    # protótipo 2/3 (G1), e a perda elástica do protótipo é por N dos neutros
-    # dividida pela capacidade com N das pesadas, enquanto a do Fortran não tem
-    # a razão N_neutros/N_pesadas (até 4e-6 na composição 2)
+    # same composition (free gas) and same E/N, uniform temperature equal to that of the
+    # wall (no conduction) and without ion Joule heating. Two model differences,
+    # undone before comparing at 1e-12: the Fortran code uses gamma - 1 = 0.667 and the
+    # prototype 2/3 (G1), and the elastic loss of the prototype is per N of neutrals
+    # divided by the heat capacity with N of the heavy species, while the Fortran one lacks
+    # the ratio N_neutrals/N_heavy (up to 4e-6 in composition 2)
     from modelo import Modelo
     aquec = referencia("aquecimento")
     q, tab = quimica_do(RAIZ), Tabela(RAIZ / "tabela_bolsig.dat")
@@ -114,7 +114,7 @@ def test_aquecimento_pela_perda_elastica_igual_ao_fortran():
         n_neutro = dens[q.indice["AR"]] + dens[q.indice["AR*"]]
         campo = np.full(md.m, e_n * 1e-21 * n_neutro * 1e6)
         mob, _, _, _, _, extra = md.coeficientes(campo, n, None, np.full(md.m, t_gas))
-        mob[md.ions] = 0.0                                   # sem Joule dos íons
+        mob[md.ions] = 0.0                                   # without ion Joule heating
         dtdt = md.d_temperatura(n, np.full(md.m, t_gas), campo, mob, extra)
         como_fortran = dtdt * (0.667 * 1.5) * md.n_pesadas(n) / extra["n"]
         np.testing.assert_allclose(como_fortran, ref, rtol=1e-12, err_msg=f"{e_n} Td, composicao {c}, {t_gas} K")

@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Química exportada (quimica.json): o modelo roda sem o zdplaskin_m.F90, que é
-código do ZDPlasKin e não pode ser redistribuído. A química carregada do JSON
-tem de dar os mesmos coeficientes, taxas, fontes e energia por reação que a
-lida do zdplaskin_m.F90, bit a bit, em estados sorteados."""
+"""Exported chemistry (quimica.json): the model runs without zdplaskin_m.F90, which
+is ZDPlasKin code and cannot be redistributed. The chemistry loaded from the JSON
+must give the same coefficients, rates, sources and energy per reaction as the one
+read from zdplaskin_m.F90, bit for bit, in random states."""
 import json
 
 import numpy as np
@@ -55,8 +55,8 @@ def test_json_igual_ao_zdplaskin_m(tmp_path, caso):
 
 
 def test_json_com_literal_alterado_e_detectado(tmp_path):
-    # um número do programa alterado em 1 % tem de mudar os coeficientes: a
-    # comparação bit a bit do teste acima não deixa passar texto mal copiado
+    # a number of the program changed by 1% must change the coefficients: the
+    # bit for bit comparison of the test above does not let badly copied text through
     import re
     caso = RAIZ / "casos" / "ar_n2_o2"
     q = Quimica(caso / "zdplaskin_m.F90")
@@ -79,13 +79,13 @@ def test_json_sem_reacao_e_recusado(tmp_path):
     d = json.loads(arq.read_text())
     d["programa"] = d["programa"][:-1]
     arq.write_text(json.dumps(d))
-    with pytest.raises(ValueError, match="reação"):
+    with pytest.raises(ValueError, match="reaction"):
         _avalia(Quimica.de_json(arq), _estados(q))
 
 
 def test_simulacao_so_com_quimica_json(tmp_path):
-    # caso sem zdplaskin_m.F90 e sem bolsigdb.dat, só com o quimica.json: a
-    # execução é idêntica à do caso original
+    # case without zdplaskin_m.F90 and without bolsigdb.dat, only with quimica.json: the
+    # run is identical to that of the original case
     import shutil
     import subprocess
     import sys
@@ -108,13 +108,13 @@ def test_simulacao_so_com_quimica_json(tmp_path):
 
 
 def test_json_sem_limiar_necessario_e_erro_e_nao_usa_o_bolsigdb_da_raiz(tmp_path):
-    # um caso exportado sem os limiares de que precisa não pode rodar com o
-    # bolsigdb.dat do argônio da raiz, que é de outro gás
+    # a case exported without the thresholds it needs cannot run with the
+    # bolsigdb.dat of the root argon, which is of another gas
     import shutil
     import subprocess
     import sys
     from conftest import PROTOTIPO
-    # no argônio as reações do Ar* com elétrons precisam dos limiares
+    # in argon the reactions of Ar* with electrons need the thresholds
     copia = tmp_path / "ar"
     copia.mkdir()
     for nome in ("tabela_energia_tg.dat", "tabela_eedf.dat", "gas.json", "transporte.json", "quimica.json"):
@@ -127,7 +127,7 @@ def test_json_sem_limiar_necessario_e_erro_e_nao_usa_o_bolsigdb_da_raiz(tmp_path
                         "--n-celulas", "10", "--energia", "--t-end", "2e-9", "--dt-saida", "1e-9",
                         "--espessura", "1e-3"], capture_output=True, text=True,
                        env={"OPENBLAS_NUM_THREADS": "1", "PATH": ""})
-    assert r.returncode != 0 and "limiar" in r.stdout + r.stderr and "Traceback" not in r.stderr
+    assert r.returncode != 0 and "threshold" in r.stdout + r.stderr and "Traceback" not in r.stderr
 
 
 def test_json_de_outro_formato_e_recusado(tmp_path):
@@ -139,9 +139,9 @@ def test_json_de_outro_formato_e_recusado(tmp_path):
 
 
 def test_json_cobre_if_divisao_inteira_e_any_neutral(tmp_path):
-    # módulo sintético do grupo (testes/dados), que roda também no pacote:
-    # IF / ELSE IF / ELSE, IF de uma linha, divisão inteira, literal simples,
-    # PARAMETER e ANY_NEUTRAL passam pelo JSON sem mudar um bit
+    # synthetic module of the group (testes/dados), which also runs in the package:
+    # IF / ELSE IF / ELSE, one-line IF, integer division, single precision literal,
+    # PARAMETER and ANY_NEUTRAL go through the JSON without changing a bit
     from conftest import PROTOTIPO
     q = Quimica(PROTOTIPO / "testes" / "dados" / "sintetico_zdp.F90")
     arq = tmp_path / "quimica.json"
@@ -152,7 +152,7 @@ def test_json_cobre_if_divisao_inteira_e_any_neutral(tmp_path):
     a, b = _avalia(q, est), _avalia(j, est)
     for x, y in zip(a, b):
         assert np.array_equal(x, y, equal_nan=True)
-    # os ramos do IF aparecem nas células sorteadas: o fator da reação 3 muda
+    # the IF branches appear in the random cells: the factor of reaction 3 changes
     tg, en = est[1], est[3]
     ramo = np.where((tg > 600) & (en < 100), 2.0, np.where(tg > 450, 3.0, 1.0))
     assert len(set(ramo)) == 3

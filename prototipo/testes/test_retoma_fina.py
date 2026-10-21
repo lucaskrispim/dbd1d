@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Retomada fina (scripts/retoma_fina.py): a linha de comando remontada do
-parametros.json de uma execução repete todas as opções dela e troca só o
-destino, a retomada, o fim e o intervalo de gravação."""
+"""Fine restart (scripts/retoma_fina.py): the command line rebuilt from the
+parametros.json of a run repeats all its options and changes only the destination,
+the restart, the end and the output interval."""
 import sys
 
 from conftest import RAIZ
@@ -11,7 +11,7 @@ sys.path.insert(0, str(RAIZ / "prototipo"))
 import retoma_fina  # noqa: E402
 from simula import cria_parser  # noqa: E402
 
-# argumentos gravados por uma execução de sensibilidade do Yang na mercury
+# arguments recorded by a sensitivity run of Yang on mercury
 ORIGINAL = {
     "dir": "/m/execucoes/validacao_yang/YS_e1.5", "n_celulas": 50, "agrupamento": 3.0, "v_pico": 1000.0,
     "periodo": 1e-05, "forma": "tabela", "tensao_tabela": "/m/validacao/yang2022/pulso50.txt", "t_gas": 300.0,
@@ -37,6 +37,6 @@ def test_repete_as_opcoes_e_troca_so_a_janela():
 
 
 def test_inicio_do_pulso():
-    # pulso n começa em (n - 1) períodos
+    # pulse n starts at (n - 1) periods
     assert retoma_fina.inicio_do_pulso(5, 1e-5) == 4e-5
     assert retoma_fina.inicio_do_pulso(1, 2.5e-5) == 0.0

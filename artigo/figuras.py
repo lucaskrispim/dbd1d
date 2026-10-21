@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Figuras do artigo (em inglês), a partir das execuções de validação em
-execucoes/validacao e dos dados extraídos em docs/literatura/dados.
+"""Figures of the article, from the validation runs in execucoes/validacao and
+the data extracted in docs/literatura/dados.
 
-Uso: python3 artigo/figuras.py [DIR_DAS_EXECUCOES]   (grava em artigo/figuras/)
+Usage: python3 artigo/figuras.py [RUNS_DIR]   (writes to artigo/figuras/)
 """
 import json
 import pathlib
@@ -23,21 +23,21 @@ import matplotlib.pyplot as plt  # noqa: E402
 DADOS = RAIZ / "docs" / "literatura" / "dados"
 SAIDA = pathlib.Path(__file__).with_name("figuras")
 EPS0 = 8.8541878128e-12
-# estilo aplicado só por main, para não mudar o matplotlib de quem só importa o módulo
+# style applied only by main, so as not to change matplotlib for whoever just imports the module
 ESTILO = {"font.size": 9, "axes.grid": True, "grid.alpha": 0.3, "legend.fontsize": 7.5,
           "figure.dpi": 150, "savefig.bbox": "tight"}
 
 
 def legenda(eixo, **kw):
-    """Marca o painel para ter a legenda embaixo, fora da área dos dados (ela
-    é posta por fecha, depois que o tamanho dos rótulos é conhecido)."""
+    """Marks the panel to have its legend below, outside the data area (it is
+    placed by fecha, once the size of the labels is known)."""
     eixo._legenda_embaixo = kw
 
 
 def fecha(fig, saida):
-    """Legendas embaixo dos rótulos do eixo x de cada painel, para não cobrir
-    curva nem rótulo, e a figura gravada. A distância é medida em pontos
-    (altura dos números e do rótulo do eixo), que não muda com o layout."""
+    """Legends below the x labels of each panel, so as not to cover curves or
+    labels, and the figure written. The distance is measured in points (height of
+    the tick labels and of the axis label), which does not change with the layout."""
     from matplotlib.transforms import ScaledTranslation
     fig.tight_layout()
     fig.canvas.draw()
@@ -93,7 +93,7 @@ def stankov(base):
     legenda(e[1, 1])
     fecha(fig, SAIDA / "stankov.pdf")
 
-    # tensão no gap e densidade de elétrons contra o modelo deles
+    # gap voltage and electron density against their model
     d = st / "S100_n100"
     a = json.loads((d / "parametros.json").read_text())["argumentos"]
     per = a["periodo"]
@@ -153,7 +153,7 @@ def takashima(base):
     fig, e = plt.subplots(figsize=(3.6, 3.4))
     e.plot(m40[:, 0], m40[:, 1], "o", color="k", ms=3, label="measured, 40 kHz")
     e.plot(m20[:, 0], m20[:, 1], "s", color="gray", ms=3, label="measured, 20 kHz")
-    # só marcadores, com tracejado fino: entre as pressões calculadas não há valores
+    # markers only, with a thin dashed line: there are no values between the computed pressures
     e.plot([x for x, _ in res], [y for _, y in res], "C0^--", lw=0.6, label="dbd1d, 5th pulse")
     e.set(xlabel="p (Torr)", ylabel="coupled energy per pulse (mJ)", title="dry air, ns pulses")
     legenda(e)
@@ -161,12 +161,12 @@ def takashima(base):
 
 
 def yang(base):
-    """Rajadas de pulsos de ns em N2 e N2 + 1% H2 (Yang et al. 2022): o que as
-    execuções de 150 pulsos já alcançaram."""
+    """Bursts of ns pulses in N2 and N2 + 1% H2 (Yang et al. 2022): what the runs of
+    150 pulses have reached."""
     yg = base / "validacao_yang"
     per = compara_yang.PERIODO
     fim = 1e6 * max(compara_yang.series(yg / x)[0][-1] for x in ("YN2_n50", "YH2_n50"))
-    ate = 1.15 * fim  # janela dos gráficos: o que as execuções alcançaram e um pouco mais
+    ate = 1.15 * fim  # window of the plots: what the runs reached and a little more
     fig, e = plt.subplots(2, 2, figsize=(7.2, 6.8))
     for nome, rot, cor, arq in (("YN2_n50", "N$_2$", "C0", "fig9_N_acumulado_N2.csv"),
                                 ("YH2_n50", "N$_2$ + 1% H$_2$", "C3", "fig14_N_acumulado_1pcH2.csv")):

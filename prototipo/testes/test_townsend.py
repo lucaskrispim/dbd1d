@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Referência contínua do critério de Townsend (validacao/townsend.py), com
-coeficientes sintéticos: sem difusão e sem fluxo térmico ela recai no critério
-clássico gama (exp(alfa d) - 1) = 1; a reabsorção térmica no cátodo pede mais
-multiplicação (gap maior) para romper."""
+"""Continuous reference of the Townsend criterion (validacao/townsend.py), with
+synthetic coefficients: without diffusion and without thermal flux it reduces to
+the classical criterion gamma (exp(alpha d) - 1) = 1; the thermal reabsorption at
+the cathode requires more multiplication (larger gap) to break down."""
 import sys
 
 import numpy as np
@@ -33,7 +33,7 @@ def test_difusao_pequena_muda_pouco_e_fluxo_termico_pede_mais_multiplicacao():
     assert abs(g_dif / GAP_CLASSICO - 1.0) < 0.1
     g_ter = gap_de_ruptura(d_e=0.3, v_th=1.0e6)
     assert g_ter > 1.05 * g_dif
-    # com reflexão, menos elétrons voltam ao cátodo e a ruptura fica mais fácil
+    # with reflection, fewer electrons return to the cathode and breakdown is easier
     assert gap_de_ruptura(d_e=0.3, v_th=1.0e6, a_e=0.5) < g_ter
 
 
@@ -44,10 +44,10 @@ def test_raizes_satisfazem_a_equacao_caracteristica():
 
 @pytest.mark.parametrize("gama, reflexao", [(0.05, 0.0), (0.05, 0.5)])
 def test_ruptura_do_simulador_bate_com_a_referencia(tmp_path, gama, reflexao):
-    # ponta a ponta: argônio a 100 Torr, gap de 1,5 mm (p d = 15 Torr cm),
-    # eletrodos metálicos, campo local. Com 200 células a ruptura discreta fica
-    # 0,2 a 0,3 % abaixo da referência contínua (estudo de malha de 100 a 800
-    # células em validacao/townsend.py); a tolerância é 0,5 %
+    # end to end: argon at 100 Torr, gap of 1.5 mm (p d = 15 Torr cm),
+    # metal electrodes, local field. With 200 cells the discrete breakdown lies
+    # 0.2 to 0.3% below the continuous reference (mesh study from 100 to 800
+    # cells in validacao/townsend.py); the tolerance is 0.5%
     gap, pressao = 1.5e-3, 100.0 * townsend.TORR
     v_ref, _ = townsend.ruptura_referencia(gap, pressao, gama, r=reflexao)
     vs = v_ref * np.array([0.99, 1.01])

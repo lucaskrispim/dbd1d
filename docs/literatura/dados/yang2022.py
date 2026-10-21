@@ -1,18 +1,18 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Extração dos dados de Yang et al. 2022, PSST 31 015017 (DBD de pulsos de
-nanossegundos em N2 e N2/H2, 150 Torr, gap de 8 mm, rajadas de 150 pulsos a
-100 kHz). As figuras são imagens JPEG de 200 ppi embutidas no PDF; o script as
-extrai com pdfimages e lê por cor.
+"""Extraction of the data of Yang et al. 2022, PSST 31 015017 (nanosecond pulse
+DBD in N2 and N2/H2, 150 Torr, 8 mm gap, bursts of 150 pulses at 100 kHz). The
+figures are JPEG images of 200 ppi embedded in the PDF; the script extracts them
+with pdfimages and reads them by colour.
 
-Calibração de cada painel: posições dos traços de escala principais (pixels
-da imagem embutida, y para baixo), achadas por
-digitaliza.tracos_de_escala_raster, e o valor de cada traço lido no rótulo
-da figura. Cada par foi conferido contra a posição do texto do rótulo (a
-coluna ou a linha de pixels escuros ao lado do traço), porque traços
-secundários do mesmo comprimento enganam a leitura a olho. A incerteza de leitura é de um a dois pixels, da ordem de 0,5 % do
-fundo de escala, além da compressão JPEG.
+Calibration of each panel: positions of the major ticks (pixels of the embedded
+image, y downwards), found by digitaliza.tracos_de_escala_raster, and the value
+of each tick read from the label of the figure. Each pair was checked against
+the position of the label text (the column or row of dark pixels next to the
+tick), because minor ticks of the same length mislead a reading by eye. The
+reading uncertainty is one to two pixels, of the order of 0.5% of full scale,
+plus the JPEG compression.
 
-Uso: python3 docs/literatura/dados/yang2022.py  (grava em yang2022/)
+Usage: python3 docs/literatura/dados/yang2022.py  (writes to yang2022/)
 """
 import subprocess
 import sys
@@ -33,25 +33,25 @@ VERMELHO, AZUL, PRETO = (0.93, 0.08, 0.08), (0.08, 0.08, 0.93), (0.0, 0.0, 0.0)
 
 def grava(nome, cabecalho, colunas, nota):
     if "_min" in cabecalho:
-        nota += ("; mín. e máx.: extremos da barra de erro (barras claras incluídas), ou a borda do marcador quando "
-                 "não há barra visível; a barra pode se estender alguns pixels onde a curva do modelo, da mesma cor, "
-                 "cruza a coluna do ponto")
+        nota += ("; min and max: ends of the error bar (light bars included), or the edge of the marker when "
+                 "no bar is visible; the bar may extend a few pixels where the model curve, of the same colour, "
+                 "crosses the column of the point")
     SAIDA.mkdir(exist_ok=True)
     np.savetxt(SAIDA / nome, np.column_stack(colunas), fmt="%.5g", delimiter=",",
                header=f"{nota}\n{cabecalho}", comments="# ")
-    print(f"{nome}: {len(colunas[0])} pontos")
+    print(f"{nome}: {len(colunas[0])} points")
 
 
 def imagens():
-    """Imagens embutidas, pelo número que o pdfimages -list mostra."""
+    """Embedded images, by the number that pdfimages -list shows."""
     d = Path(tempfile.mkdtemp())
     subprocess.run(["pdfimages", "-png", str(PDF), str(d / "img")], check=True)
     return lambda n: dg.le_png(d / f"img-{n:03d}.png")
 
 
 def curva(img, cor, janela, ex, ey, tol=0.3, excluir=()):
-    """Curva da cor dada; as caixas em excluir (x0, y0, x1, y1 em pixels, como
-    a legenda) são pintadas de branco antes, para não entrarem na mediana."""
+    """Curve of the given colour; the boxes in excluir (x0, y0, x1, y1 in pixels,
+    such as the legend) are painted white first, so they stay out of the median."""
     if excluir:
         img = img.copy()
         for x0, y0, x1, y1 in excluir:
@@ -61,21 +61,21 @@ def curva(img, cor, janela, ex, ey, tol=0.3, excluir=()):
 
 
 def pontos(img, cor, janela, ex, ey, tol=0.3, abertura=3, alcance=150, min_px=12, separa=False):
-    """Marcadores, com a barra de erro vertical (sem barra, os extremos são as
-    bordas do marcador)."""
-    # separa só onde marcadores se tocam (fig. 3): onde um marcador encosta numa
-    # curva de modelo da mesma cor, a mancha alongada seria partida em dois
+    """Markers, with the vertical error bar (without a bar, the ends are the
+    edges of the marker)."""
+    # split only where markers touch (fig. 3): where a marker touches a model
+    # curve of the same colour, the elongated blob would be cut in two
     c = dg.marcadores_raster(img, cor, janela, tol, min_px=min_px, abertura=abertura, separa=separa)
     c = c[np.argsort(c[:, 0])]
-    # as barras são claras (semitransparentes): a cor misturada ao branco também vale
+    # the bars are light (semi-transparent): the colour mixed with white counts too
     topo, base = dg.barras_raster(img, cor, c, janela, alcance, tol, alfa_min=0.15)
     return ex.valor(c[:, 0]), ey.valor(c[:, 1]), ey.valor(base), ey.valor(topo)
 
 
 def envoltoria(img, janela, ex, ey):
-    """Envoltória de cima e de baixo da curva medida de N2(A), que oscila a cada
-    pulso: pixels avermelhados (o vermelho e a mistura com o azul do modelo por
-    cima) por coluna."""
+    """Upper and lower envelope of the measured N2(A) curve, which oscillates at
+    every pulse: reddish pixels (the red and its mix with the blue of the model
+    drawn on top) per column."""
     x0, y0, x1, y1 = [int(v) for v in janela]
     sub = img[y0 + 3:y1 - 2, x0 + 3:x1 - 2]
     m = (sub[..., 0] - sub[..., 2] > 0.25) & (sub[..., 1] < 0.45)
@@ -87,7 +87,7 @@ def envoltoria(img, janela, ex, ey):
 
 
 def figura2(img):
-    """Pulso 50 em N2 a 150 Torr: tensão, corrente, potência e energia acoplada."""
+    """Pulse 50 in N2 at 150 Torr: voltage, current, power and coupled energy."""
     ex = dg.Eixo(82.0, 0.0, 596.0, 200.0)
     ev = dg.Eixo(342.5, 0.0, 140.5, 30.0)
     ei = dg.Eixo(340.0, 0.0, 153.0, 60.0)
@@ -98,11 +98,11 @@ def figura2(img):
     limpa[115:180, 430:592] = 1.0
     xp, yp = dg.extremo_raster(limpa, PRETO, jan, "max", 0.35)
     grava("fig2_tensao_pulso50.csv", "t_ns,V_kV", [t, v],
-          "Yang 2022 fig. 2(a): tensão medida no pulso 50 de uma rajada de 150, N2, 150 Torr, 100 kHz; "
-          f"mediana por coluna, que corta o pico estreito: pico pela borda da linha {ev.valor(yp):.1f} kV "
-          f"em {ex.valor(xp):.1f} ns")
+          "Yang 2022 fig. 2(a): voltage measured in pulse 50 of a burst of 150, N2, 150 Torr, 100 kHz; "
+          f"median per column, which cuts the narrow peak: peak from the edge of the line {ev.valor(yp):.1f} kV "
+          f"at {ex.valor(xp):.1f} ns")
     t, i = curva(img, VERMELHO, (jan[0], jan[1], jan[2] - 4, jan[3]), ex, ei, 0.35, legenda)
-    grava("fig2_corrente_pulso50.csv", "t_ns,I_A", [t, i], "Yang 2022 fig. 2(a): corrente medida no pulso 50")
+    grava("fig2_corrente_pulso50.csv", "t_ns,I_A", [t, i], "Yang 2022 fig. 2(a): current measured in pulse 50")
     ex2 = dg.Eixo(836.0, 0.0, 1350.0, 200.0)
     ep = dg.Eixo(387.5, 0.0, 237.0, 1.0)
     ee = dg.Eixo(387.5, 0.0, 117.5, 8.0)
@@ -110,89 +110,89 @@ def figura2(img):
     legenda2 = [(1085, 125, 1345, 190)]
     t, p = curva(img, VERMELHO, jan2, ex2, ep, 0.35, legenda2)
     grava("fig2_potencia_pulso50.csv", "t_ns,P_MW", [t, p],
-          "Yang 2022 fig. 2(b): potência instantânea no pulso 50; só a forma: a integral desta curva dá 3,7 mJ "
-          "em 200 ns, 11 % acima da curva de energia (3,3 mJ, o valor do texto)")
+          "Yang 2022 fig. 2(b): instantaneous power in pulse 50; shape only: the integral of this curve gives 3.7 mJ "
+          "in 200 ns, 11% above the energy curve (3.3 mJ, the value of the text)")
     t, e = curva(img, AZUL, jan2, ex2, ee, 0.35, legenda2)
     grava("fig2_energia_pulso50.csv", "t_ns,E_mJ", [t, e],
-          "Yang 2022 fig. 2(b): energia acoplada acumulada no pulso 50 (3,3 mJ no fim, segundo o texto)")
+          "Yang 2022 fig. 2(b): cumulative coupled energy in pulse 50 (3.3 mJ at the end, according to the text)")
 
 
 def figura3(img):
-    """Energia acoplada por pulso ao longo da rajada."""
+    """Coupled energy per pulse along the burst."""
     ex = dg.Eixo(88.0, 0.0, 640.5, 150.0)
     ey = dg.Eixo(471.5, 0.0, 33.5, 4.0)
     jan = (90, 30, 659, 470)
-    for nome, cor, desc in (("total", VERMELHO, "incluindo os pulsos refletidos, medida em t = 200 ns"),
-                            ("incidente", AZUL, "só o pulso incidente, medida em t = 30 ns")):
+    for nome, cor, desc in (("total", VERMELHO, "including the reflected pulses, measured at t = 200 ns"),
+                            ("incidente", AZUL, "incident pulse only, measured at t = 30 ns")):
         x, y, lo, hi = pontos(img, cor, jan, ex, ey, 0.35, separa=True)
         ok = ~((x > ex.valor(420)) & (y < ey.valor(380)))   # legenda
         grava(f"fig3_energia_{nome}.csv", "pulso,E_mJ,E_min_mJ,E_max_mJ", [np.round(x[ok]), y[ok], lo[ok], hi[ok]],
-              f"Yang 2022 fig. 3: energia acoplada por pulso, {desc}; N2, 150 Torr; barras: desvio-padrão em 100 rajadas")
+              f"Yang 2022 fig. 3: coupled energy per pulse, {desc}; N2, 150 Torr; bars: standard deviation over 100 bursts")
 
 
 def figura7(img):
-    """N2(A, v=0) e N2(A, v=1) medidos em N2: envoltória do sinal que oscila a
-    cada pulso."""
+    """N2(A, v=0) and N2(A, v=1) measured in N2: envelope of the signal that
+    oscillates at every pulse."""
     for nome, jan, ex, ey in (
             ("v0", (108, 141, 610, 560), dg.Eixo(121.5, 0.0, 596.5, 1750.0), dg.Eixo(541.5, 0.0, 141.5, 5e13)),
             ("v1", (828, 145, 1329, 564), dg.Eixo(841.5, 0.0, 1315.5, 1750.0), dg.Eixo(554.0, 0.0, 145.5, 1e14))):
         t, topo, base = envoltoria(img, jan, ex, ey)
         ok = ~((t > ex.valor(jan[0] + 290)) & (topo > ey.valor(jan[1] + 80)))   # legenda
         grava(f"fig7_n2a_{nome}_N2.csv", "t_us,max_cm3,min_cm3", [t[ok], topo[ok], base[ok]],
-              f"Yang 2022 fig. 7: N2(A, {nome}) medido por TDLAS, rajada de 150 pulsos em N2, 150 Torr; "
-              "envoltória de cima e de baixo (o sinal oscila a cada pulso de 10 µs); a de cima é aproximada onde "
-              "o modelo, desenhado por cima em azul semitransparente, encobre o topo da curva medida")
+              f"Yang 2022 fig. 7: N2(A, {nome}) measured by TDLAS, burst of 150 pulses in N2, 150 Torr; "
+              "upper and lower envelope (the signal oscillates at every 10 us pulse); the upper one is approximate where "
+              "the model, drawn on top in semi-transparent blue, hides the top of the measured curve")
 
 
 def figura8(img):
-    """Temperatura rotacional e translacional ao longo da rajada em N2."""
+    """Rotational and translational temperature along the burst in N2."""
     ex = dg.Eixo(865.0, 0.0, 1387.5, 1600.0)
     ey = dg.Eixo(549.5, 300.0, 140.0, 450.0)
     jan = (868, 139, 1388, 574)
-    # os pontos medidos se encostam numa faixa contínua: depois de apagar as
-    # barras de erro (abertura 3 × 3), a mediana por coluna, de 10 em 10 µs
+    # the measured points touch each other in a continuous band: after erasing
+    # the error bars (3 x 3 opening), the median per column, every 10 us
     m = ndimage.binary_opening(dg.mascara(img, PRETO, 0.35, jan), np.ones((3, 3), dtype=bool))
-    m[380:, 1150:] = False                                 # legenda (canto de baixo à direita)
+    m[380:, 1150:] = False                                 # legend (lower right corner)
     xs = np.flatnonzero(m.any(axis=0))
     ys = np.array([np.median(np.flatnonzero(m[:, x])) for x in xs])
     t, temp = ex.valor(xs), ey.valor(ys)
     grade = np.arange(np.ceil(t.min() / 10) * 10, t.max(), 10.0)
     grava("fig8_temperatura_N2.csv", "t_us,T_K", [grade, np.interp(grade, t, temp)],
-          "Yang 2022 fig. 8(b): temperatura rotacional e translacional medida, N2, 150 Torr; pontos encostados "
-          "lidos como curva (mediana por coluna) e amostrados de 10 em 10 µs; incerteza de 10 K segundo o texto")
+          "Yang 2022 fig. 8(b): measured rotational and translational temperature, N2, 150 Torr; touching points "
+          "read as a curve (median per column) and sampled every 10 us; uncertainty of 10 K according to the text")
     t, tm = curva(img, AZUL, jan, ex, ey, 0.35)
     ok = ~((t > ex.valor(1150)) & (tm < ey.valor(470)))
-    grava("fig8_temperatura_modelo_N2.csv", "t_us,T_K", [t[ok], tm[ok]], "Yang 2022 fig. 8(b): modelo deles")
+    grava("fig8_temperatura_modelo_N2.csv", "t_us,T_K", [t[ok], tm[ok]], "Yang 2022 fig. 8(b): their model")
 
 
 def figura9(img):
-    """N acumulado e N produzido por pulso em N2."""
+    """Accumulated N and N produced per pulse in N2."""
     ex = dg.Eixo(125.0, 0.0, 610.5, 150.0)
     e_por = dg.Eixo(411.0, 0.0, 12.0, 7e13)
     e_acum = dg.Eixo(416.0, 0.0, 12.0, 4.5e15)
     jan = (127, 12, 614, 434)
     x, y, lo, hi = pontos(img, AZUL, jan, ex, e_acum, 0.35)
     grava("fig9_N_acumulado_N2.csv", "pulso,N_cm3,N_min_cm3,N_max_cm3", [np.round(x), y, lo, hi],
-          "Yang 2022 fig. 9: N(4S) medido por TALIF 100 µs depois de cada pulso, rajada em N2, 150 Torr")
+          "Yang 2022 fig. 9: N(4S) measured by TALIF 100 us after each pulse, burst in N2, 150 Torr")
     x, y, lo, hi = pontos(img, VERMELHO, jan, ex, e_por, 0.35)
     grava("fig9_N_por_pulso_N2.csv", "pulso,dN_cm3,dN_min_cm3,dN_max_cm3", [np.round(x), y, lo, hi],
-          "Yang 2022 fig. 9: N produzido por pulso, diferença entre medidas a 10 pulsos de distância")
+          "Yang 2022 fig. 9: N produced per pulse, difference between measurements 10 pulses apart")
 
 
 def figura11(img):
-    """N2(A, v=0 e 1) medidos em N2 com 1 % de H2."""
+    """N2(A, v=0 and 1) measured in N2 with 1% H2."""
     for nome, jan, ex in (("v0", (110, 139, 612, 560), dg.Eixo(122.5, 0.0, 597.5, 1750.0)),
                           ("v1", (828, 140, 1330, 559), dg.Eixo(841.0, 0.0, 1316.5, 1750.0))):
         ey = dg.Eixo(544.5 if nome == "v0" else 545.0, 0.0, 140.0 if nome == "v0" else 140.5, 7e13)
         t, topo, base = envoltoria(img, jan, ex, ey)
         ok = ~((t > ex.valor(jan[0] + 290)) & (topo > ey.valor(jan[1] + 80)))
         grava(f"fig11_n2a_{nome}_1pcH2.csv", "t_us,max_cm3,min_cm3", [t[ok], topo[ok], base[ok]],
-              f"Yang 2022 fig. 11: N2(A, {nome}) medido, rajada de 150 pulsos em N2 com 1 % de H2, 150 Torr; envoltória; "
-              "a de cima é aproximada onde o modelo encobre a curva medida")
+              f"Yang 2022 fig. 11: N2(A, {nome}) measured, burst of 150 pulses in N2 with 1% H2, 150 Torr; envelope; "
+              "the upper one is approximate where the model hides the measured curve")
 
 
 def figura14(img):
-    """N acumulado, N por pulso e H acumulado em N2 com 1 % de H2."""
+    """Accumulated N, N per pulse and accumulated H in N2 with 1% H2."""
     ex = dg.Eixo(139.5, 0.0, 624.5, 150.0)
     e_por = dg.Eixo(498.5, 0.0, 88.0, 2e13)
     e_acum = dg.Eixo(500.5, 0.0, 87.5, 1.2e15)
@@ -200,34 +200,34 @@ def figura14(img):
     x, y, lo, hi = pontos(img, AZUL, jan, ex, e_acum, 0.35)
     ok = ~((x > ex.valor(380)) & (x < ex.valor(620)) & (y > e_acum.valor(330)) & (y < e_acum.valor(260)))
     grava("fig14_N_acumulado_1pcH2.csv", "pulso,N_cm3,N_min_cm3,N_max_cm3", [np.round(x[ok]), y[ok], lo[ok], hi[ok]],
-          "Yang 2022 fig. 14(a): N medido 100 µs depois de cada pulso, N2 com 1 % de H2, 150 Torr")
+          "Yang 2022 fig. 14(a): N measured 100 us after each pulse, N2 with 1% H2, 150 Torr")
     x, y, lo, hi = pontos(img, VERMELHO, jan, ex, e_por, 0.35, alcance=120)
     ok = ~((x > ex.valor(380)) & (x < ex.valor(620)) & (y > e_por.valor(330)) & (y < e_por.valor(260)))
     grava("fig14_N_por_pulso_1pcH2.csv", "pulso,dN_cm3,dN_min_cm3,dN_max_cm3", [np.round(x[ok]), y[ok], lo[ok], hi[ok]],
-          "Yang 2022 fig. 14(a): N produzido por pulso (barras grandes: diferença de medidas próximas); "
-          "o ponto do pulso 110, sob a curva do modelo, não é separado")
+          "Yang 2022 fig. 14(a): N produced per pulse (large bars: difference of nearby measurements); "
+          "the point of pulse 110, under the model curve, is not separated")
     ex2 = dg.Eixo(944.5, 0.0, 1312.5, 1500.0)
     ey2 = dg.Eixo(488.5, 0.0, 116.5, 1e16)
     jan2 = (935, 116, 1386, 487)
     x, y, lo, hi = pontos(img, VERMELHO, jan2, ex2, ey2, 0.35)
     ok = ~((x > ex2.valor(1240)) & (y < ey2.valor(380)) & (y > ey2.valor(470)))
     grava("fig14_H_acumulado_1pcH2.csv", "t_us,H_cm3,H_min_cm3,H_max_cm3", [x[ok], y[ok], lo[ok], hi[ok]],
-          "Yang 2022 fig. 14(b): H medido por TALIF durante a rajada, N2 com 1 % de H2, 150 Torr")
+          "Yang 2022 fig. 14(b): H measured by TALIF during the burst, N2 with 1% H2, 150 Torr")
 
 
 def figura16(img):
-    """N e H 100 µs depois de uma rajada de 50 pulsos contra a fração de H2."""
+    """N and H 100 us after a burst of 50 pulses versus the H2 fraction."""
     ex = dg.Eixo(96.5, 0.0, 513.5, 35.0)
     ey = dg.Eixo(401.5, 1e14, 45.5, 1e16, log=True)
     jan = (90, 45, 514, 400)
     for esp, cor in (("N", VERMELHO), ("H", AZUL)):
-        # medidos: círculos cheios; os triângulos vazados do modelo somem na abertura
+        # measured: filled circles; the hollow triangles of the model vanish in the opening
         x, y, lo, hi = pontos(img, cor, jan, ex, ey, 0.35, abertura=6, alcance=15)
-        # frações da figura: 0, 1, 5, 9, 17 e 33 %; o marcador em 0 fica cortado
-        # pelo eixo e o centroide sai deslocado (0,14 %)
+        # fractions of the figure: 0, 1, 5, 9, 17 and 33%; the marker at 0 is cut
+        # by the axis and its centroid is shifted (0.14%)
         x = np.array([min((0.0, 1.0, 5.0, 9.0, 17.0, 33.0), key=lambda f: abs(f - v)) for v in x])
         grava(f"fig16_{esp}_contra_H2.csv", "H2_pct,dens_cm3,dens_min_cm3,dens_max_cm3", [x, y, lo, hi],
-              f"Yang 2022 fig. 16: {esp} medido 100 µs depois de rajada de 50 pulsos, 150 Torr")
+              f"Yang 2022 fig. 16: {esp} measured 100 us after a burst of 50 pulses, 150 Torr")
 
 
 def main():

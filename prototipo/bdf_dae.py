@@ -1,11 +1,12 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""BDF do scipy com matriz de massa diagonal (0 ou 1): resolve M y' = f(t, y),
-uma DAE de índice 1 em que as componentes com M = 0 são algébricas (aqui, o
-potencial do Poisson). É o _step_impl do scipy 1.15 com duas mudanças:
-  LU = lu(M - c J)   e   dy = solve(c f - M (psi + d)).
-As componentes algébricas devem ficar fora do controle de erro (atol grande).
-Usa partes internas do scipy (testado com 1.15 e 1.18); NEWTON_MAXITER fica no
-módulo para poder ser aumentado.
+"""BDF of scipy with a diagonal mass matrix (0 or 1): solves M y' = f(t, y), an
+index-one DAE in which the components with M = 0 are algebraic (here, the
+potential of the Poisson equation). It is the _step_impl of scipy 1.15 with two
+changes:
+  LU = lu(M - c J)   and   dy = solve(c f - M (psi + d)).
+The algebraic components must stay outside the error control (large atol).
+Uses internal parts of scipy (tested with 1.15 and 1.18); NEWTON_MAXITER is a
+module variable so that it can be raised.
 """
 import numpy as np
 from scipy.integrate._ivp.bdf import BDF, MAX_ORDER, MIN_FACTOR, MAX_FACTOR, change_D
@@ -14,8 +15,8 @@ from scipy.sparse import issparse, diags
 from scipy.sparse.linalg import splu
 from scipy.linalg import lu_factor, lu_solve
 
-# iterações de Newton por passo (o scipy usa 4; com 8 o pulso de corrente de
-# Saifutdinov precisa de um terço menos jacobianos, medido pelo especialista)
+# Newton iterations per step (scipy uses 4; with 8 a current pulse needs a third
+# fewer Jacobians, as measured in a test case)
 NEWTON_MAXITER = 8
 
 
@@ -52,12 +53,12 @@ class BDFMassa(BDF):
             self.M = diags(self.massa, format="csc")
         else:
             self.M = np.diag(self.massa)
-        # as componentes algébricas não têm derivada: o predictor começa constante
+        # the algebraic components have no derivative: the predictor starts constant
         self.D[1] *= self.massa
         self.contador = {"newton": 0, "falhas": 0, "rejeicoes": 0, "cortes": 0}
-        # equilibração por linha antes da LU: as linhas algébricas (c*A, ~1e-7) e as
-        # diferenciais (1 - c*J, até 1e12) têm escalas muito diferentes e a LU
-        # esparsa acusava matriz singular por cancelamento
+        # row equilibration before the LU: the algebraic rows (c*A, ~1e-7) and the
+        # differential ones (1 - c*J, up to 1e12) have very different scales and the
+        # sparse LU reported a singular matrix by cancellation
         if issparse(self.I):
             def lu(A):
                 self.nlu += 1
@@ -130,7 +131,7 @@ class BDFMassa(BDF):
                     LU = None
                     current_jac = True
             if not converged:
-                # Newton não convergiu nem com o jacobiano atual: passo pela metade
+                # Newton did not converge even with a current Jacobian: halve the step
                 self.contador["cortes"] += 1
                 factor = 0.5
                 h_abs *= factor

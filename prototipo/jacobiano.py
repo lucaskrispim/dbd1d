@@ -1,19 +1,20 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Jacobiano estruturado do modelo acoplado e formulação DAE com o potencial no
-estado (proposta e medida pelo especialista em convergência, 17/10/2026).
+"""Structured Jacobian of the coupled model and differential-algebraic form with
+the potential in the state.
 
-1. ModeloRapido.jacobiano(t, y): jacobiano denso na estrutura
+1. ModeloRapido.jacobiano(t, y): dense Jacobian with the structure
        J = J_local + S G,
-   J_local = d rhs/d y a campo fixo (bloco-tridiagonal, por diferenças finitas
-   coloridas: 3*n_var avaliações), S = d rhs/d campo nas faces (8 avaliações) e
-   G = d campo/d(rho, sigma), a resposta linear do Poisson, pré-calculada por
-   malha. Substitui as N = n_var*m + 2 avaliações do jacobiano por diferenças
-   finitas do scipy, cujo passo adaptativo colapsava no pulso de corrente e
-   tornava o jacobiano ruído de arredondamento.
+   J_local = d rhs/d y at fixed field (block tridiagonal, by coloured finite
+   differences: 3*n_var evaluations), S = d rhs/d field at the faces (8
+   evaluations) and G = d field/d(rho, sigma), the linear response of the
+   Poisson equation, computed once per mesh. It replaces the N = n_var*m + 2
+   evaluations of scipy's finite-difference Jacobian, whose adaptive step
+   collapsed during current pulses and turned the Jacobian into round-off noise.
 
-2. SistemaDAE: o potencial nos m+2 nós entra no estado, 0 = A phi - b(n,
-   sigma, t) (DAE de índice 1), com jacobiano esparso em banda, integrado por
-   bdf_dae.BDFMassa (matriz de massa nula nas linhas do Poisson) com LU esparsa.
+2. SistemaDAE: the potential at the m+2 nodes is in the state, 0 = A phi - b(n,
+   sigma, t) (an index-one DAE), with a sparse banded Jacobian, integrated by
+   bdf_dae.BDFMassa (zero mass matrix in the rows of the Poisson equation) with
+   sparse LU.
 """
 import numpy as np
 from scipy import sparse
@@ -70,8 +71,8 @@ class ModeloRapido(Modelo):
         return rhs
 
     def _prepara_poisson(self):
-        """G: campo nas m+1 faces por unidade de rho em cada célula (colunas 0..m-1)
-        e por unidade de sigma_esq e sigma_dir (colunas m, m+1)."""
+        """G: field at the m+1 faces per unit of rho in each cell (columns 0..m-1)
+        and per unit of sigma_esq and sigma_dir (columns m, m+1)."""
         m = self.m
         n = m + 2
         self.ab = self._matriz_poisson()
@@ -82,7 +83,7 @@ class ModeloRapido(Modelo):
             B[n - 1, m + 1] = -1.0 / EPS0
         Phi = solve_banded((1, 1), self.ab, B)
         self.G = -np.diff(Phi, axis=0) / self.d[:, None]        # (m+1, m+2)
-        # matriz esparsa A do Poisson (para a formulação DAE)
+        # sparse matrix A of the Poisson equation (for the DAE form)
         ab = self.ab
         self.A_poisson = sparse.diags([ab[2, :-1], ab[1], ab[0, 1:]], [-1, 0, 1], format="csr")
 
@@ -90,16 +91,16 @@ class ModeloRapido(Modelo):
         n, s_esq, s_dir = self.separa(y)
         return self.campo(t, n, s_esq, s_dir)[1]
 
-    # ------------------------------------------------------------ jacobiano
-    REL_Y = 1.0e-7          # passo relativo das diferenças finitas nas densidades
-    REL_E = 1.0e-6          # e no campo (a não linearidade em E tem escala de ~1e7 V/m)
+    # ------------------------------------------------------------ Jacobian
+    REL_Y = 1.0e-7          # relative finite-difference step in the densities
+    REL_E = 1.0e-6          # and in the field (the nonlinearity in E has a scale of ~1e7 V/m)
 
     def _passo_fd(self, v, f, limiar, rel):
         sinal = np.where(f >= 0.0, 1.0, -1.0)
         return (v + rel * sinal * np.maximum(np.abs(v), limiar)) - v
 
     def partes_jacobiano(self, t, y, campo, atol=1e-4, limiar_campo=1.0e4):
-        """J_local (esparso, N x N, a campo fixo) e S = d rhs/d campo (esparso, N x (m+1))."""
+        """J_local (sparse, N x N, at fixed field) and S = d rhs/d field (sparse, N x (m+1))."""
         m, nv = self.m, self.n_var
         N = nv * m + 2
         f0 = self.rhs_campo(t, y, campo)
@@ -149,7 +150,7 @@ class ModeloRapido(Modelo):
         return J_loc, S
 
     def jacobiano(self, t, y, atol=1e-4, limiar_campo=1.0e4):
-        """Jacobiano denso de rhs: J_local + S G_y."""
+        """Dense Jacobian of rhs: J_local + S G_y."""
         m, N = self.m, self.n_var * self.m + 2
         campo = self.campo_de(t, y)
         J_loc, S = self.partes_jacobiano(t, y, campo, atol, limiar_campo)
@@ -163,8 +164,8 @@ class ModeloRapido(Modelo):
 
 
 class SistemaDAE:
-    """Sistema z = (y, phi): phi nos m+2 nós, com 0 = A phi - b (linhas de massa
-    nula no BDFMassa)."""
+    """System z = (y, phi): phi at the m+2 nodes, with 0 = A phi - b (rows of zero
+    mass in BDFMassa)."""
 
     def __init__(self, md):
         self.md = md
@@ -191,7 +192,7 @@ class SistemaDAE:
         return np.concatenate([f, g])
 
     def jacobiano(self, t, z, atol=1e-4):
-        """Jacobiano esparso: [[J_loc, S dE/dphi], [-db/dy, A]]."""
+        """Sparse Jacobian: [[J_loc, S dE/dphi], [-db/dy, A]]."""
         md = self.md
         m, N = md.m, self.N
         y, phi = self.separa(z)
@@ -207,7 +208,7 @@ class SistemaDAE:
         for k in range(md.n_esp):
             if md.carga[k] != 0.0:
                 lin.append(np.arange(1, m + 1)); col.append(k * m + np.arange(m))
-                val.append(Q * 1e6 * md.carga[k] * md.h / EPS0)          # -db/dn = +rho h/eps0 por n
+                val.append(Q * 1e6 * md.carga[k] * md.h / EPS0)          # -db/dn = +rho h/eps0 per n
         if md.espessura > 0.0:
             lin.append([0, m + 1]); col.append([N - 2, N - 1]); val.append([1.0 / EPS0, 1.0 / EPS0])
         dB = sparse.csc_matrix((np.concatenate(val), (np.concatenate(lin), np.concatenate(col))),

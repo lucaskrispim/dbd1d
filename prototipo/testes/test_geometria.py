@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Geometria do reator: barreiras dielétricas com espessura e permissividade
-diferentes em cada eletrodo (Sun et al. 2022: 1 e 2 mm de quartzo) e a
-pressão do gás como parâmetro (10 a 50 kPa)."""
+"""Reactor geometry: dielectric barriers with different thickness and permittivity
+on each electrode (Sun et al. 2022: 1 and 2 mm of quartz) and the gas pressure as
+a parameter (10 to 50 kPa)."""
 import json
 import subprocess
 import sys
@@ -27,7 +27,7 @@ GEOM = dict(n_celulas=40, gap=5e-3, espessura=1e-3, eps_dieletrico=4.3, espessur
 
 
 def campo_vazio(v):
-    # capacitor em série: as três camadas têm o mesmo D = eps0 eps E
+    # capacitor in series: the three layers have the same D = eps0 eps E
     return v / (5e-3 + 1e-3 / 4.3 + 2e-3 / 3.8)
 
 
@@ -36,13 +36,13 @@ def test_barreiras_diferentes_no_poisson_sem_carga(pecas, classe):
     md = classe(*pecas, **GEOM)
     phi, campo = md.poisson(np.zeros(md.m), 0.0, 0.0, 3e3)
     np.testing.assert_allclose(campo, campo_vazio(3e3), rtol=1e-12)
-    # queda nas barreiras: V - phi_0 = E l1 eps_gas/eps1 e phi_n = E l2 eps_gas/eps2
+    # drop across the barriers: V - phi_0 = E l1 eps_gas/eps1 and phi_n = E l2 eps_gas/eps2
     assert 3e3 - phi[0] == pytest.approx(campo_vazio(3e3) * 1e-3 / 4.3, rel=1e-12)
     assert phi[-1] == pytest.approx(campo_vazio(3e3) * 2e-3 / 3.8, rel=1e-12)
 
 
 def test_formulacao_dae_com_barreiras_diferentes(pecas):
-    # a matriz e o lado direito usados pela DAE dão o mesmo potencial
+    # the matrix and the right-hand side used by the DAE give the same potential
     md = ModeloRapido(*pecas, **GEOM)
     rho = np.linspace(-1.0, 2.0, md.m) * 1e-3
     phi, _ = md.poisson(rho, 2e-6, -1e-6, 3e3)
@@ -79,10 +79,10 @@ def test_pressao_e_barreiras_pela_linha_de_comando(tmp_path):
 
 
 @pytest.mark.parametrize("extra, mensagem", [
-    (["--pressao", "0"], "--pressao"),
-    (["--espessura", "1e-3", "--espessura-dir", "-1"], "--espessura-dir"),
-    (["--espessura-dir", "1e-3"], "--espessura-dir"),
-    (["--espessura", "1e-3", "--eps-dieletrico-dir", "0.5"], "--eps-dieletrico-dir"),
+    (["--pressure", "0"], "--pressure"),
+    (["--thickness", "1e-3", "--thickness-right", "-1"], "--thickness-right"),
+    (["--thickness-right", "1e-3"], "--thickness-right"),
+    (["--thickness", "1e-3", "--eps-dielectric-right", "0.5"], "--eps-dielectric-right"),
 ])
 def test_geometria_invalida_e_recusada(tmp_path, extra, mensagem):
     r = _roda(tmp_path / "x", *extra)

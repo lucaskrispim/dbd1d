@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Íons de carga maior que 1 (Ar2+ duas vezes ionizado, N^2+...): a mobilidade do
-transporte.json é a medida do próprio íon (v = K E), então a deriva usa só o
-sinal da carga; a difusão de Einstein é mu k T/(|z| e), o Joule |z| e n mu E^2,
-e a carga z entra no Poisson, na carga superficial e no freio da parede.
-Química de teste: o argônio com a carga do Ar2+ trocada para +2."""
+"""Ions of charge greater than 1 (doubly ionised Ar2+, N^2+...): the mobility of
+transporte.json is the measured one of the ion itself (v = K E), so the drift uses
+only the sign of the charge; the Einstein diffusion is mu k T/(|z| e), the Joule
+heating |z| e n mu E^2, and the charge z enters Poisson, the surface charge and
+the wall brake. Test chemistry: argon with the charge of Ar2+ changed to +2."""
 import copy
 
 import numpy as np
@@ -44,7 +44,7 @@ def test_deriva_com_a_mobilidade_do_proprio_ion(modelos):
 
 
 def test_deriva_para_a_parede(modelos):
-    # campo +x: a deriva leva o íon à parede direita com mu E, não 2 mu E
+    # field +x: the drift takes the ion to the right wall with mu E, not 2 mu E
     _, dois = modelos
     k = dois.nomes.index("AR2^+")
     n, campo, mob, dif, temp = _estado(dois)
@@ -75,8 +75,8 @@ def test_joule_com_a_carga(modelos):
 
 
 def test_freio_da_parede_com_a_carga(modelos):
-    # campo +x: o positivo se afasta da parede esquerda, e o térmico que chega a
-    # ela é freado por exp(-|z| e E d/(k T)); na direita a deriva não depende de z
+    # field +x: the positive ion moves away from the left wall, and the thermal flux reaching
+    # it is braked by exp(-|z| e E d/(k T)); on the right the drift does not depend on z
     um, dois = modelos
     k = dois.nomes.index("AR2^+")
     out1 = um.fluxos(*_estado(um))[1]

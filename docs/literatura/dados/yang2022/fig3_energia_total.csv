@@ -1,4 +1,4 @@
-# Yang 2022 fig. 3: energia acoplada por pulso, incluindo os pulsos refletidos, medida em t = 200 ns; N2, 150 Torr; barras: desvio-padrão em 100 rajadas; mín. e máx.: extremos da barra de erro (barras claras incluídas), ou a borda do marcador quando não há barra visível; a barra pode se estender alguns pixels onde a curva do modelo, da mesma cor, cruza a coluna do ponto
+# Yang 2022 fig. 3: coupled energy per pulse, including the reflected pulses, measured at t = 200 ns; N2, 150 Torr; bars: standard deviation over 100 bursts; min and max: ends of the error bar (light bars included), or the edge of the marker when no bar is visible; the bar may extend a few pixels where the model curve, of the same colour, crosses the column of the point
 # pulso,E_mJ,E_min_mJ,E_max_mJ
 2,3.474,3.3744,3.5753
 5,3.4944,3.4018,3.5845

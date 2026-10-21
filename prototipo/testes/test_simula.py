@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Teste de ponta a ponta do simula.py: um caso pequeno roda, grava as saídas no
-formato do Fortran e a retomada a partir de um instante gravado reproduz a
-execução contínua até a tolerância do integrador (com a DAE, a execução
-contínua não reinicia o integrador nas saídas e a retomada reinicia)."""
+"""End-to-end test of simula.py: a small case runs, writes the outputs in the format
+of the Fortran code and the restart from a recorded instant reproduces the
+continuous run within the integrator tolerance (with the DAE, the continuous run
+does not restart the integrator at the outputs and the restart does)."""
 import json
 import subprocess
 import sys
@@ -15,8 +15,8 @@ from conftest import PROTOTIPO, RAIZ, quimica_do, precisa_caso
 sys.path.insert(0, str(RAIZ / "scripts"))
 from resumo import blocos  # noqa: E402
 
-BASE = ["--v-pico", "5e3", "--n-celulas", "20", "--agrupamento", "1.5", "--espessura", "1.75e-3",
-        "--energia", "--dt-saida", "2e-9", "--ne0", "1e9", "--neutro"]
+BASE = ["--v-peak", "5e3", "--cells", "20", "--clustering", "1.5", "--thickness", "1.75e-3",
+        "--energy", "--dt-output", "2e-9", "--ne0", "1e9", "--neutral"]
 
 
 def roda(destino, *extra):
@@ -32,13 +32,13 @@ DENSIDADES = ["E", "AR*", "AR^+", "AR2^+", "E/N"]
 
 
 def iguais(a, b, rtol, fator_atol):
-    """Compara coluna a coluna, com tolerância absoluta relativa ao máximo da coluna."""
+    """Compares column by column, with an absolute tolerance relative to the maximum of the column."""
     for j in range(a.shape[1]):
         np.testing.assert_allclose(a[:, j], b[:, j], rtol=rtol, atol=fator_atol * np.abs(b[:, j]).max())
 
 
 def colunas(d, nomes_col, k=-1):
-    """Colunas pelo nome no bloco k do perfil, só as células."""
+    """Columns by name in block k of the profile, cells only."""
     tb, nomes, linhas = list(blocos(d / "perfil.dat"))[k]
     a = np.array(linhas[1:-1])
     return np.column_stack([a[:, nomes.index(n)] for n in nomes_col])
@@ -52,16 +52,16 @@ def test_roda_grava_e_retoma(tmp_path):
     s = superficie(continua)
     assert s.shape == (5, 6)                               # t = 0, 2, 4, 6, 8 ns
     perfis = list(blocos(continua / "perfil.dat"))
-    assert len(perfis) == 5 and len(perfis[-1][2]) == 22   # 20 células e os dois nós das paredes
+    assert len(perfis) == 5 and len(perfis[-1][2]) == 22   # 20 cells and the two wall nodes
     np.testing.assert_allclose(superficie(resto)[-1], s[-1], rtol=1e-5, atol=1e-20)
     p_resto, p_cont = colunas(resto, DENSIDADES), colunas(continua, DENSIDADES)
     iguais(p_resto, p_cont, 1e-4, 1e-4)
 
 
 def test_dae_reproduz_o_caminho_original(tmp_path):
-    # mesma física pelos dois caminhos: jacobiano por diferenças finitas do scipy
-    # com o Poisson dentro do lado direito, e DAE com o potencial no estado e
-    # jacobiano estruturado; com tolerância apertada, as saídas coincidem
+    # same physics by the two paths: finite difference Jacobian of scipy
+    # with Poisson inside the right-hand side, and DAE with the potential in the state and
+    # structured Jacobian; with a tight tolerance, the outputs coincide
     fd, dae = tmp_path / "fd", tmp_path / "dae"
     roda(fd, "--t-end", "8e-9", "--jac", "fd", "--rtol", "1e-7")
     roda(dae, "--t-end", "8e-9", "--jac", "dae", "--rtol", "1e-7")
@@ -72,8 +72,8 @@ def test_dae_reproduz_o_caminho_original(tmp_path):
 
 
 def test_aquecimento_grava_e_retoma_a_temperatura(tmp_path):
-    # com --aquecimento a coluna Temperature começa em 300 K, só
-    # cresce com a descarga e é lida de volta na retomada
+    # with --heating the Temperature column starts at 300 K, only
+    # grows with the discharge and is read back on restart
     continua, parte, resto = tmp_path / "continua", tmp_path / "parte", tmp_path / "resto"
     roda(continua, "--t-end", "8e-9", "--rtol", "1e-7", "--aquecimento")
     roda(parte, "--t-end", "4e-9", "--rtol", "1e-7", "--aquecimento")
@@ -90,8 +90,8 @@ def test_aquecimento_grava_e_retoma_a_temperatura(tmp_path):
 
 
 def test_perfil_com_coeficientes_dos_eletrons_e_do_gas(tmp_path):
-    # como o perfil do Fortran: De, Me e ve = Me*E nas células e, com
-    # aquecimento, kappa e rho*cv
+    # as the profile of the Fortran code: De, Me and ve = Me*E in the cells and, with
+    # heating, kappa and rho*cv
     d = tmp_path / "c"
     roda(d, "--t-end", "2e-9", "--aquecimento")
     tb, nomes, linhas = list(blocos(d / "perfil.dat"))[-1]
@@ -104,20 +104,20 @@ def test_perfil_com_coeficientes_dos_eletrons_e_do_gas(tmp_path):
     np.testing.assert_allclose(ve, me * e_n * 1e-21 * n_gas, rtol=1e-10)
     t = a[:, nomes.index("Temperature")]
     np.testing.assert_allclose(a[:, nomes.index("diff T")], (0.0307313 * t + 10.006) * 1e-3, rtol=1e-12)
-    # frequência de colisão como o Fortran: (nu/N) da tabela vezes N total da
-    # célula (gás e todas as espécies); aqui pela energia média de Te
+    # collision frequency as the Fortran code: (nu/N) of the table times the total N of the
+    # cell (gas and every species); here from the mean energy of Te
     from tabela import E_NUN, TabelaEnergia
     tab = TabelaEnergia(RAIZ / "tabela_energia.dat")
     eps = 1.5 * 1.380649e-23 * a[:, nomes.index("Te")] / 1.602176634e-19
-    especies = nomes[nomes.index("Te") + 1:nomes.index("E/N")]           # todas, com o gás (AR)
+    especies = nomes[nomes.index("Te") + 1:nomes.index("E/N")]           # all, with the gas (AR)
     assert "AR" in especies
     n_total = sum(a[:, nomes.index(c)] for c in especies)                  # cm-3
     np.testing.assert_allclose(a[:, nomes.index("freq")], tab(eps)[:, E_NUN] * n_total, rtol=1e-6)
 
 
 def test_serie_temporal_numa_posicao(tmp_path):
-    # scripts/sonda.py: a série de uma coluna na célula mais próxima de x, como
-    # borda0.dat, centro.dat e borda1.dat do Fortran
+    # scripts/sonda.py: the series of a column at the cell closest to x, as
+    # borda0.dat, centro.dat and borda1.dat of the Fortran code
     from sonda import serie
     d = tmp_path / "c"
     roda(d, "--t-end", "4e-9")
@@ -131,47 +131,47 @@ def test_serie_temporal_numa_posicao(tmp_path):
 
 
 @pytest.mark.parametrize("extra, mensagem", [
-    (["--periodo", "0"], "periodo"),
-    (["--dt-saida", "0"], "dt-saida"),
-    (["--espessura", "-1e-3"], "espessura"),
-    (["--eps-dieletrico", "0.5"], "eps-dieletrico"),
-    (["--n-celulas", "2"], "n-celulas"),
-    (["--t-end", "5e-9", "--dt-saida", "2e-9"], "multiplo"),
+    (["--period", "0"], "period"),
+    (["--dt-output", "0"], "dt-output"),
+    (["--thickness", "-1e-3"], "thickness"),
+    (["--eps-dielectric", "0.5"], "eps-dielectric"),
+    (["--cells", "2"], "cells"),
+    (["--t-end", "5e-9", "--dt-output", "2e-9"], "multiple"),
     (["--gap", "0"], "gap"),
     (["--k0-ar-ion", "0"], "k0-ar-ion"),
-    (["--agrupamento", "-1"], "agrupamento"),
+    (["--clustering", "-1"], "clustering"),
     (["--eps-sec", "-1"], "eps-sec"),
-    (["--adaptativa", "--jac", "fd", "--dt-malha", "0"], "dt-malha"),
-    (["--retoma", "x", "abc"], "retoma"),
-    (["--retoma", "/nao/existe", "1e-9"], "retoma"),
+    (["--adaptive", "--jac", "fd", "--dt-mesh", "0"], "dt-mesh"),
+    (["--restart", "x", "abc"], "restart"),
+    (["--restart", "/nao/existe", "1e-9"], "restart"),
     (["--ne0", "-1"], "ne0"),
-    (["--transporte", "/nao/existe.json"], "transporte"),
+    (["--transport", "/nao/existe.json"], "transport"),
     (["--eps-gas", "0.5"], "eps-gas"),
-    # T_g inicial ou das paredes fora dos nós da tabela (de 300 a 1500 K no
-    # argônio): a tabela prenderia o nó extremo sem aviso
+    # initial or wall T_g outside the nodes of the table (from 300 to 1500 K in
+    # argon): the table would clamp at the end node without warning
     (["--t-gas", "250"], "t_nos.txt"),
     (["--aquecimento", "--t-parede", "2000"], "t_nos.txt"),
 ])
 def test_entrada_invalida_e_recusada(tmp_path, extra, mensagem):
-    # como entrada.f90: parâmetros sem sentido param a execução com mensagem
+    # as entrada.f90: meaningless parameters stop the run with a message
     r = subprocess.run([sys.executable, str(PROTOTIPO / "simula.py"), str(tmp_path / "x"), "--t-end", "2e-9", *extra],
                        capture_output=True, text=True, env={"OPENBLAS_NUM_THREADS": "1", "PATH": ""})
     assert r.returncode != 0
     assert mensagem in r.stderr + r.stdout
-    assert "Traceback" not in r.stderr               # recusa com mensagem, não com falha
+    assert "Traceback" not in r.stderr               # refused with a message, not with a crash
     assert not (tmp_path / "x" / "perfil.dat").exists()
 
 
 def test_parametros_gravados_e_mobilidades_configuraveis(tmp_path):
-    # a execução grava os parâmetros (como o entrada.nml no diretório do
-    # Fortran); as mobilidades iônicas do entrada.nml são opções
+    # the run records the parameters (as the entrada.nml in the directory of the
+    # Fortran code); the ion mobilities of entrada.nml are options
     d = tmp_path / "c"
     roda(d, "--t-end", "2e-9", "--k0-ar-ion", "1.5", "--en-aquecimento-ar-ion", "200",
          "--k0-ar2-ion", "1.9", "--t-parede", "310", "--aquecimento")
     p = json.loads((d / "parametros.json").read_text())
     assert p["argumentos"]["k0_ar_ion"] == 1.5 and p["argumentos"]["t_parede"] == 310.0
     assert p["argumentos"]["v_pico"] == 5e3
-    # tolerâncias padrão: rtol 1e-4 e atol 1e-10 (ver o teste de elétrons esgotados)
+    # default tolerances: rtol 1e-4 and atol 1e-10 (see the test of depleted electrons)
     assert (p["argumentos"]["rtol"], p["argumentos"]["atol"]) == (1e-4, 1e-10)
     assert p["modelo"]["eps_gas"] == 1.0
     mob = p["modelo"]["transporte"]
@@ -180,10 +180,10 @@ def test_parametros_gravados_e_mobilidades_configuraveis(tmp_path):
     for chave in ("commit", "numpy", "scipy", "python", "OPENBLAS_NUM_THREADS"):
         assert chave in p
     assert p["OPENBLAS_NUM_THREADS"] == "1"
-    # a temperatura da parede chega ao modelo (nós das paredes no perfil)
+    # the wall temperature reaches the model (wall nodes in the profile)
     tb, nomes, linhas = list(blocos(d / "perfil.dat"))[-1]
     assert linhas[0][nomes.index("Temperature")] == 310.0 and linhas[-1][nomes.index("Temperature")] == 310.0
-    # e as mobilidades chegam ao modelo: o Ar+ muda em relação ao padrão
+    # and the mobilities reach the model: Ar+ changes with respect to the default
     padrao = tmp_path / "padrao"
     roda(padrao, "--t-end", "2e-9", "--aquecimento")
     ar = [np.array(list(blocos(x / "perfil.dat"))[-1][2][1:-1]) for x in (d, padrao)]
@@ -197,9 +197,9 @@ def test_eletrodo_metalico_e_aceito(tmp_path):
 
 
 def test_parametros_com_malha_por_arquivo_e_identificacao_do_codigo(tmp_path):
-    # com --faces o número de células é o do arquivo; o caminho é gravado
-    # absoluto, com o sha256 do conteúdo; os dados e o código são identificados
-    # por sha256; os valores efetivos do modelo também vão para o registro
+    # with --faces the number of cells is that of the file; the path is recorded
+    # absolute, with the sha256 of the content; the data and the code are identified
+    # by sha256; the effective values of the model also go to the record
     import hashlib
     faces = np.linspace(0.0, 8e-4, 13)
     arq = tmp_path / "faces.txt"
@@ -212,18 +212,18 @@ def test_parametros_com_malha_por_arquivo_e_identificacao_do_codigo(tmp_path):
     assert p["sha256"]["faces"] == hashlib.sha256(arq.read_bytes()).hexdigest()
     for nome in ("tabela_energia.dat", "tabela_energia_tg.dat", "tabela_bolsig.dat", "zdplaskin_m.F90", "quimica.json",
                  "bolsigdb.dat", "transporte.json", "prototipo/modelo.py"):
-        # no pacote distribuído não há zdplaskin_m.F90 nem bolsigdb.dat: registra o que existe
+        # the distributed package has neither zdplaskin_m.F90 nor bolsigdb.dat: it records what exists
         if (RAIZ / nome).exists():
             assert p["sha256"][nome] == hashlib.sha256((RAIZ / nome).read_bytes()).hexdigest()
     assert p["modelo"]["transporte"]["AR^+"]["mobilidade"]["K0"] == 1.61 and p["modelo"]["n_gas"] > 2.4e19
-    assert p["argumentos"]["k0_ar_ion"] is None              # sem a opção, vale o transporte.json
+    assert p["argumentos"]["k0_ar_ion"] is None              # without the option, transporte.json applies
     assert "argv" in p and "cwd" in p
 
 
 @pytest.mark.parametrize("faces, mensagem", [([0.0, 4e-4, 8e-4], "faces"),
                                              ([0.0, 5e-4, 3e-4, 8e-4], "faces")])
 def test_malha_por_arquivo_invalida(tmp_path, faces, mensagem):
-    # menos de 3 células ou faces fora de ordem são recusadas
+    # fewer than 3 cells or faces out of order are refused
     arq = tmp_path / "faces.txt"
     np.savetxt(arq, faces)
     r = subprocess.run([sys.executable, str(PROTOTIPO / "simula.py"), str(tmp_path / "x"), "--t-end", "2e-9",
@@ -237,12 +237,12 @@ FORTRAN = ["Pos", "Temperature", "volt", "De", "Me", "veloc", "diff T", "rho cv"
 
 
 def test_perfil_com_as_colunas_do_fortran(tmp_path):
-    # mesmos nomes do saida.f90, sempre presentes (sem a CFL, que não se aplica
-    # ao integrador implícito); sem aquecimento a temperatura é a do gás; o gás
-    # de fundo aparece mesmo preso; nas linhas das paredes, como o Fortran, a
-    # temperatura e kappa da parede e rho cv da célula vizinha
-    # (--t-parede sem --aquecimento não tem efeito: as paredes ficam na
-    # temperatura do gás)
+    # same names as saida.f90, always present (without the CFL, which does not apply
+    # to the implicit integrator); without heating the temperature is that of the gas; the background
+    # gas appears even when fixed; in the wall lines, as the Fortran code, the
+    # temperature and kappa of the wall and rho cv of the neighbouring cell
+    # (--t-wall without --heating has no effect: the walls stay at the
+    # gas temperature)
     d = tmp_path / "c"
     roda(d, "--t-end", "2e-9", "--t-parede", "350")
     tb, nomes, linhas = list(blocos(d / "perfil.dat"))[-1]
@@ -260,8 +260,8 @@ def test_perfil_com_as_colunas_do_fortran(tmp_path):
 
 
 def test_estado_gravado_e_lido_sem_perda(tmp_path):
-    # o perfil guarda n_eps com a equação de energia: gravar e ler devolve o
-    # estado exato (antes a energia era refeita pela Te gravada, com perda)
+    # the profile keeps n_eps with the energy equation: writing and reading returns the
+    # exact state (before, the energy was rebuilt from the recorded Te, with loss)
     sys.path.insert(0, str(PROTOTIPO))
     from simula import estado_gravado, grava
     from jacobiano import ModeloRapido
@@ -287,10 +287,10 @@ def test_retomada_recusa_malha_diferente(tmp_path):
 
 
 def test_retomada_no_mesmo_diretorio_preserva_o_historico(tmp_path):
-    # retomada no meio: os registros posteriores a 4 ns são refeitos, não duplicados
-    # retomada no meio: os registros até 4 ns ficam intactos byte a byte, os
-    # posteriores são refeitos sem duplicar; os arquivos e os parâmetros
-    # anteriores ficam guardados até a nova execução terminar
+    # restart in the middle: the records after 4 ns are redone, not duplicated
+    # restart in the middle: the records up to 4 ns stay intact byte by byte, the
+    # later ones are redone without duplication; the previous files and parameters
+    # are kept until the new run finishes
     d = tmp_path / "a"
     roda(d, "--t-end", "8e-9")
     antes = (d / "perfil.dat").read_text().split("\n\n")
@@ -305,7 +305,7 @@ def test_retomada_no_mesmo_diretorio_preserva_o_historico(tmp_path):
 
 
 def test_retomada_no_mesmo_diretorio_que_falha_nao_perde_dados(tmp_path):
-    # retomada de um instante que não existe: nada muda no diretório
+    # restart from an instant that does not exist: nothing changes in the directory
     d = tmp_path / "a"
     roda(d, "--t-end", "4e-9")
     antes = {f: (d / f).read_text() for f in ("perfil.dat", "superficie.dat", "parametros.json")}
@@ -316,13 +316,13 @@ def test_retomada_no_mesmo_diretorio_que_falha_nao_perde_dados(tmp_path):
     assert {f: (d / f).read_text() for f in antes} == antes
 
 
-@pytest.mark.parametrize("origem, retomada, mensagem", [(["--aquecimento"], [], "aquecimento"),
-                                                         (["--gas-solto"], [], "gas-solto"),
-                                                         (["--forma", "degrau", "--subida", "1e-9"], [], "--forma"),
+@pytest.mark.parametrize("origem, retomada, mensagem", [(["--heating"], [], "heating"),
+                                                         (["--free-gas"], [], "free-gas"),
+                                                         (["--waveform", "step", "--rise", "1e-9"], [], "--waveform"),
                                                          (["--t-gas", "400"], [], "--t-gas")])
 def test_retomada_recusa_descartar_variaveis_da_origem(tmp_path, origem, retomada, mensagem):
-    # retomar sem --aquecimento (ou --gas-solto) de uma execução que o tinha
-    # descartaria a temperatura (ou o Ar) sem aviso
+    # restarting without --heating (or --free-gas) from a run that had it
+    # would discard the temperature (or the Ar) without warning
     roda(tmp_path / "a", "--t-end", "2e-9", *origem)
     r = subprocess.run([sys.executable, str(PROTOTIPO / "simula.py"), str(tmp_path / "b"), *BASE, "--t-end", "4e-9",
                         "--retoma", str(tmp_path / "a"), "2e-9", *retomada], capture_output=True, text=True,
@@ -340,8 +340,8 @@ def test_retomada_com_gas_solto(tmp_path):
 
 
 def test_estado_lido_do_perfil_do_fortran(tmp_path):
-    # o perfil do Fortran (referência de regressão, 100 células uniformes, campo
-    # local) é lido pelos nomes: as densidades das células voltam iguais
+    # the profile of the Fortran code (regression reference, 100 uniform cells, local
+    # field) is read by name: the densities of the cells come back equal
     sys.path.insert(0, str(PROTOTIPO))
     from simula import estado_gravado
     from modelo import Modelo
@@ -360,18 +360,18 @@ def test_estado_lido_do_perfil_do_fortran(tmp_path):
 
 
 def test_aviso_de_ionizacao_com_a_posicao(tmp_path):
-    # n_e/N acima de 1e-3 já no início: o aviso sai uma vez, com a posição
+    # n_e/N above 1e-3 already at the start: the warning appears once, with the position
     r = subprocess.run([sys.executable, str(PROTOTIPO / "simula.py"), str(tmp_path / "x"), "--t-end", "1e-12",
                         "--dt-saida", "1e-12", "--ne0", "3e16", "--neutro", "--n-celulas", "6"],
                        capture_output=True, text=True, env={"OPENBLAS_NUM_THREADS": "1", "PATH": ""})
-    assert r.stdout.count("AVISO: grau de ionizacao") == 1
-    # 6 células uniformes em 0,8 mm: a primeira (nó 2 do Fortran) em x = 66,67 um
-    assert "no 2 (x = 66.67 um)" in r.stdout
+    assert r.stdout.count("WARNING: ionization degree") == 1
+    # 6 uniform cells in 0.8 mm: the first (node 2 of the Fortran code) at x = 66.67 um
+    assert "node 2 (x = 66.67 um)" in r.stdout
 
 
 def test_avisos_verificados_a_cada_passo(tmp_path, monkeypatch):
-    # os avisos não esperam a próxima gravação: são verificados a cada passo
-    # aceito do integrador, inclusive entre as saídas
+    # the warnings do not wait for the next output: they are checked at every
+    # accepted step of the integrator, including between outputs
     sys.path.insert(0, str(PROTOTIPO))
     import simula
     instantes = []
@@ -384,11 +384,11 @@ def test_avisos_verificados_a_cada_passo(tmp_path, monkeypatch):
 
 
 def test_tolerancia_padrao_controla_os_eletrons_esgotados(tmp_path):
-    # campo local, 5 kV, 1600 células, até 25 ns: entre 20 e 25 ns ~700 células
-    # têm n_e entre 1e-8 e 1e-4 cm-3, semente da avalanche seguinte. Com atol de
-    # 1e-4 eles ficavam sem controle de erro e n_e saía até 5 vezes errado (40 a
-    # 85 vezes com 3200 células); com o padrão (rtol 1e-4, atol 1e-10) fica a
-    # 1% da integração apertada (rtol 1e-8, atol 1e-14)
+    # local field, 5 kV, 1600 cells, up to 25 ns: between 20 and 25 ns ~700 cells
+    # have n_e between 1e-8 and 1e-4 cm-3, seed of the next avalanche. With atol of
+    # 1e-4 they had no error control and n_e came out up to 5 times wrong (40 to
+    # 85 times with 3200 cells); with the default (rtol 1e-4, atol 1e-10) it stays within
+    # 1% of the tight integration (rtol 1e-8, atol 1e-14)
     caso = ["--v-pico", "5e3", "--espessura", "1.75e-3", "--n-celulas", "1600", "--t-end", "2.5e-8",
             "--dt-saida", "1e-9", "--aquecimento"]
     for nome, extra in (("padrao", []), ("apertado", ["--rtol", "1e-8", "--atol", "1e-14"])):
@@ -402,9 +402,9 @@ def test_tolerancia_padrao_controla_os_eletrons_esgotados(tmp_path):
 
 
 def test_arquivo_de_transporte_por_opcao(tmp_path):
-    # --transporte troca os dados de transporte: o valor chega ao modelo, o
-    # caminho e o sha256 do arquivo vão para o registro; espécie sem dados é
-    # recusada com a mensagem do modelo
+    # --transport replaces the transport data: the value reaches the model, the
+    # path and the sha256 of the file go to the record; a species without data is
+    # refused with the message of the model
     import hashlib
     dados = json.loads((RAIZ / "transporte.json").read_text())
     dados["AR2^+"]["mobilidade"]["K0"] = 2.5
@@ -421,30 +421,30 @@ def test_arquivo_de_transporte_por_opcao(tmp_path):
     r = subprocess.run([sys.executable, str(PROTOTIPO / "simula.py"), str(tmp_path / "u"), *BASE, "--t-end", "2e-9",
                         "--transporte", str(arq)], capture_output=True, text=True,
                        env={"OPENBLAS_NUM_THREADS": "1", "PATH": ""})
-    assert r.returncode != 0 and "erro: transporte: sem dados da espécie AR*" in r.stderr
+    assert r.returncode != 0 and "error: transport: no data for the species AR*" in r.stderr
     assert "Traceback" not in r.stderr
 
 
 def test_log_conta_temperatura_fora_da_tabela(tmp_path):
-    # T_g acima de 1500 K fica presa no último nó da tabela em T_g: o log conta
+    # T_g above 1500 K is clamped at the last node of the T_g table: the log counts it
     r = subprocess.run([sys.executable, str(PROTOTIPO / "simula.py"), str(tmp_path / "t"), *BASE, "--t-end", "2e-9"],
                        capture_output=True, text=True, env={"OPENBLAS_NUM_THREADS": "1", "PATH": ""})
     assert r.returncode == 0, r.stderr
     import re
-    assert re.search(r"avaliacoes fora da tabela \(acima/abaixo/T_g\) \d+/\d+/0 ", r.stdout), r.stdout[-500:]
+    assert re.search(r"out of table \(above/below/T_g\) \d+/\d+/0 ", r.stdout), r.stdout[-500:]
 
 
 def test_log_de_campo_local_conta_temperatura_fora_da_tabela(tmp_path):
     import re
-    base = [a for a in BASE if a != "--energia"]
+    base = [a for a in BASE if a != "--energy"]
     r = subprocess.run([sys.executable, str(PROTOTIPO / "simula.py"), str(tmp_path / "t"), *base, "--t-end", "2e-9"],
                        capture_output=True, text=True, env={"OPENBLAS_NUM_THREADS": "1", "PATH": ""})
     assert r.returncode == 0, r.stderr
-    assert re.search(r"avaliacoes fora da tabela \(acima/abaixo/T_g\) \d+/-/0 ", r.stdout), r.stdout[-500:]
+    assert re.search(r"out of table \(above/below/T_g\) \d+/-/0 ", r.stdout), r.stdout[-500:]
 
 
 def test_caso_na_raiz_e_o_padrao(tmp_path):
-    # --caso com a raiz do repositório é o mesmo que sem a opção
+    # --case with the root of the repository is the same as without the option
     roda(tmp_path / "a", "--t-end", "2e-9")
     roda(tmp_path / "b", "--t-end", "2e-9", "--caso", str(RAIZ))
     for nome in ("perfil.dat", "superficie.dat"):
@@ -475,9 +475,9 @@ def _copia_caso_n2(destino):
 
 @precisa_caso("n2")
 def test_composicao_do_bolsig_diferente_do_fundo_e_erro(tmp_path):
-    # a tabela só tem as perdas das espécies com fração positiva na
-    # composicao.txt; o modelo exclui as reações do fundo do gas.json: os dois
-    # precisam coincidir, senão perdas contadas duas vezes ou nenhuma
+    # the table has only the losses of the species with a positive fraction in
+    # composicao.txt; the model excludes the reactions of the background of gas.json: the two
+    # must coincide, otherwise losses are counted twice or not at all
     caso = _copia_caso_n2(tmp_path / "caso")
     (caso / "composicao.txt").write_text("N2 0.8\nO2 0.2\nN2^+ traco\n")
     r = subprocess.run([sys.executable, str(PROTOTIPO / "simula.py"), str(tmp_path / "x"), *BASE, "--t-end", "2e-9",
@@ -489,8 +489,8 @@ def test_composicao_do_bolsig_diferente_do_fundo_e_erro(tmp_path):
 
 @precisa_caso("n2")
 def test_caso_n2_roda_pelo_simula(tmp_path):
-    # o N2 sem código escrito para ele: 2 ns, com o perfil gravado com as
-    # espécies do caso e o N2+ inicial convertido em N4+
+    # N2 without code written for it: 2 ns, with the profile recorded with the
+    # species of the case and the initial N2+ converted into N4+
     r = subprocess.run([sys.executable, str(PROTOTIPO / "simula.py"), str(tmp_path / "x"), *BASE, "--t-end", "2e-9",
                         "--caso", str(RAIZ / "casos" / "n2")], capture_output=True, text=True,
                        env={"OPENBLAS_NUM_THREADS": "1", "PATH": ""})
@@ -504,8 +504,8 @@ def test_caso_n2_roda_pelo_simula(tmp_path):
 
 @precisa_caso("n2")
 def test_composicao_com_frações_diferentes_do_fundo_e_erro(tmp_path):
-    # numa mistura, a tabela do BOLSIG+ vale para as frações da composicao.txt;
-    # o gas.json precisa das mesmas
+    # in a mixture, the BOLSIG+ table holds for the fractions of composicao.txt;
+    # gas.json needs the same ones
     from simula import confere_composicao
     caso = _copia_caso_n2(tmp_path / "caso")
     (caso / "composicao.txt").write_text("N2 0.5\nN 0.5\nN2^+ traco\n")
@@ -513,14 +513,14 @@ def test_composicao_com_frações_diferentes_do_fundo_e_erro(tmp_path):
     g["fundo"] = {"N2": 0.75, "N": 0.25}
     (caso / "gas.json").write_text(json.dumps(g))
     msg = confere_composicao(caso)
-    assert msg is not None and "fração" in msg and "N2" in msg
+    assert msg is not None and "fraction" in msg and "N2" in msg
     g["fundo"] = {"N2": 0.5, "N": 0.5}
     (caso / "gas.json").write_text(json.dumps(g))
     assert confere_composicao(caso) is None
 
 
 def test_reflexao_de_eletrons_chega_ao_modelo(tmp_path):
-    # --reflexao-eletrons fica nos argumentos e no modelo gravado, e muda os elétrons
+    # --electron-reflection stays in the arguments and in the recorded model, and changes the electrons
     d, padrao = tmp_path / "r", tmp_path / "p"
     roda(d, "--t-end", "2e-9", "--reflexao-eletrons", "0.7")
     roda(padrao, "--t-end", "2e-9")
@@ -535,5 +535,17 @@ def test_reflexao_de_eletrons_fora_da_faixa_e_recusada(tmp_path):
     r = subprocess.run([sys.executable, str(PROTOTIPO / "simula.py"), str(tmp_path / "x"), "--t-end", "2e-9",
                         "--reflexao-eletrons", "1.0"], capture_output=True, text=True,
                        env={"OPENBLAS_NUM_THREADS": "1", "PATH": ""})
-    assert r.returncode != 0 and "--reflexao-eletrons" in r.stderr
+    assert r.returncode != 0 and "--electron-reflection" in r.stderr
     assert "Traceback" not in r.stderr
+
+
+def test_nomes_antigos_das_opcoes_continuam_aceitos(tmp_path):
+    # the options have English names; the Portuguese ones of earlier versions
+    # still work and give the same result
+    novo, antigo = tmp_path / "novo", tmp_path / "antigo"
+    roda(novo, "--t-end", "2e-9", "--waveform", "sine", "--pressure", "9e4", "--gamma", "0.07")
+    roda(antigo, "--t-end", "2e-9", "--forma", "seno", "--pressao", "9e4", "--gama", "0.07")
+    for nome in ("superficie.dat", "perfil.dat"):
+        assert (novo / nome).read_text() == (antigo / nome).read_text()
+    a = json.loads((antigo / "parametros.json").read_text())["argumentos"]
+    assert (a["pressao"], a["gama"], a["forma"]) == (9e4, 0.07, "seno")

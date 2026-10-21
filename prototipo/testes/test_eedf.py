@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""EEDF gravada (Q15): o gerador grava a EEDF do BOLSIG+ em nós da tabela de
-energia (tabela_eedf.dat), e o simula.py grava, como o Fortran
-(eedf_borda0.dat, eedf_centro.dat, eedf_borda1.dat), a EEDF interpolada pela
-energia média da célula nos nós 2, n/2 e n-1. Normalização do BOLSIG+:
-integral de sqrt(u) f du = 1, e a energia média é integral de u^(3/2) f du."""
+"""Recorded EEDF (Q15): the generator writes the BOLSIG+ EEDF at nodes of the energy
+table (tabela_eedf.dat), and simula.py writes, as the Fortran code
+(eedf_borda0.dat, eedf_centro.dat, eedf_borda1.dat), the EEDF interpolated by the
+mean energy of the cell at nodes 2, n/2 and n-1. BOLSIG+ normalisation:
+integral of sqrt(u) f du = 1, and the mean energy is the integral of u^(3/2) f du."""
 import subprocess
 import sys
 
@@ -16,8 +16,8 @@ sys.path.insert(0, str(RAIZ / "scripts"))
 
 
 def momentos(u, f):
-    # ln f linear entre os pontos e exponencial de 0 ao primeiro, integrado em
-    # grade fina (independente de momentos_da_eedf: 200 subdivisões)
+    # ln f linear between the points and exponential from 0 to the first, integrated on a
+    # fine grid (independent of momentos_da_eedf: 200 subdivisions)
     ln_f = np.log(f)
     b = (ln_f[1] - ln_f[0]) / (u[1] - u[0])
     uf = np.concatenate([np.linspace(0.0, u[0], 400)[:-1],
@@ -32,14 +32,14 @@ def test_tabela_da_eedf_normalizada_e_coerente_com_a_energia_media():
     from tabela import TabelaEEDF, TabelaEnergia
     te = TabelaEnergia(RAIZ / "tabela_energia.dat")
     tab = TabelaEEDF(RAIZ / "tabela_eedf.dat")
-    assert len(tab.eps) >= 300      # todos abaixo de 0,1 Td, 10 por década acima
+    assert len(tab.eps) >= 300      # all below 0.1 Td, 10 per decade above
     for k in range(len(tab.eps)):
         u, f = tab.u[k], tab.f[k]
         norma, media = momentos(u, f)
-        # com ln f linear e o trecho inicial exponencial: medido até 0,3% na
-        # norma e 0,36% na energia média (5000 Td, grade grossa)
+        # with ln f linear and the initial stretch exponential: measured up to 0.3% in the
+        # norm and 0.36% in the mean energy (5000 Td, coarse grid)
         assert norma == pytest.approx(1.0, rel=5e-3)
-        # a energia média do nó é a da tabela de energia no mesmo E/N
+        # the mean energy of the node is that of the energy table at the same E/N
         assert tab.eps[k] == pytest.approx(np.interp(np.log(tab.e_n[k]), np.log(te.e_n), te.eps), rel=1e-6)
         assert media / norma == pytest.approx(tab.eps[k], rel=5e-3)
 
@@ -47,7 +47,7 @@ def test_tabela_da_eedf_normalizada_e_coerente_com_a_energia_media():
 def test_eedf_interpolada_tem_a_energia_media_pedida():
     from tabela import TabelaEEDF
     tab = TabelaEEDF(RAIZ / "tabela_eedf.dat")
-    # medido: até 0,36% (perto de 2 eV)
+    # measured: up to 0.36% (near 2 eV)
     for eps in np.geomspace(0.04, 30.0, 400):
         u, f = tab(eps)
         norma, media = momentos(u, f)
@@ -55,10 +55,10 @@ def test_eedf_interpolada_tem_a_energia_media_pedida():
 
 
 def test_interpolacao_reproduz_um_no_retirado():
-    # tirando o nó k, a EEDF interpolada entre os vizinhos na energia média dele
-    # reproduz a energia média e a forma no miolo (f acima de 1e-4 do máximo);
-    # fora dos nós de 2 a 5 Td (início das inelásticas, a cauda acima de 11,55 eV
-    # muda de forma)
+    # removing node k, the EEDF interpolated between the neighbours at its mean energy
+    # reproduces the mean energy and the shape in the bulk (f above 1e-4 of the maximum);
+    # outside the nodes from 2 to 5 Td (onset of the inelastic processes, the tail above 11.55 eV
+    # changes shape)
     from tabela import TabelaEEDF
     tab = TabelaEEDF(RAIZ / "tabela_eedf.dat")
     for k in range(5, len(tab.eps) - 5, 3):
@@ -91,7 +91,7 @@ def test_simula_grava_a_eedf_nos_tres_nos(tmp_path):
         for (t, nomes, linhas), (tp, nomes_p, linhas_p) in zip(registros, perfis):
             assert nomes == ["Energy", "EEDF"] and t == tp
             u, f = np.array(linhas).T
-            # nó do Fortran (1 = parede): a linha no-1 do perfil
+            # node of the Fortran code (1 = wall): the line no-1 of the profile
             eps = linhas_p[no - 1][nomes_p.index("n_eps")] / linhas_p[no - 1][nomes_p.index("E")]
             norma, media = momentos(u, f)
             assert media / norma == pytest.approx(min(max(eps, 0.0388), 1e3), rel=1.5e-2)
@@ -99,8 +99,8 @@ def test_simula_grava_a_eedf_nos_tres_nos(tmp_path):
 
 @pytest.mark.parametrize("m, esperado", [(20, (0, 9, 19)), (21, (0, 9, 20)), (6, (0, 2, 5))])
 def test_celulas_da_eedf_sao_os_nos_do_fortran(m, esperado):
-    # saida.f90 grava a EEDF nos nós 2, n/2 (divisão inteira) e n-1, com n = m + 2
-    # nós contando as paredes (nó 1); a célula do nó k é a de índice k - 2
+    # saida.f90 writes the EEDF at nodes 2, n/2 (integer division) and n-1, with n = m + 2
+    # nodes counting the walls (node 1); the cell of node k has index k - 2
     sys.path.insert(0, str(PROTOTIPO))
     from simula import celulas_da_eedf
 

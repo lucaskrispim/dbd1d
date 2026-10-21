@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Propriedades do gás de fundo por caso (gas.json): gás de fundo, c_v,
-condutividade térmica e íon do plasma inicial. O padrão (gas.json na raiz) é o
-argônio, com os valores que estavam no código."""
+"""Properties of the background gas per case (gas.json): background gas, c_v,
+thermal conductivity and ion of the initial plasma. The default (gas.json at the
+root) is argon, with the values that were in the code."""
 import copy
 import json
 
@@ -32,8 +32,8 @@ def test_padrao_e_o_argonio(pecas):
 
 
 def test_cv_do_gas_entra_no_aquecimento(pecas, gas):
-    # dT/dt é a potência dividida por cv N k_B: com cv = 2,5 (molecular), 1,5/2,5
-    # da do argônio, com as mesmas fontes
+    # dT/dt is the power divided by cv N k_B: with cv = 2.5 (molecular), 1.5/2.5
+    # of that of argon, with the same sources
     md_ar = Modelo(*pecas, n_celulas=6, aquecimento=True, v_pico=3e3, espessura=1.75e-3)
     gas["cv_por_kb"] = 2.5
     md_mol = Modelo(*pecas, n_celulas=6, aquecimento=True, v_pico=3e3, espessura=1.75e-3, gas=gas)
@@ -61,8 +61,8 @@ def test_ion_inicial_do_gas(pecas, gas):
 @pytest.mark.parametrize("mudanca, mensagem", [
     (lambda g: g.pop("cv_por_kb"), "cv_por_kb"),
     (lambda g: g.update(cv_por_kb=-1.0), "cv_por_kb"),
-    (lambda g: g.update(fundo={"AR": 0.8, "AR*": 0.3}), "soma"),
-    (lambda g: g.update(fundo={"AR": 1.2, "AR*": -0.2}), "positiva"),
+    (lambda g: g.update(fundo={"AR": 0.8, "AR*": 0.3}), "add up"),
+    (lambda g: g.update(fundo={"AR": 1.2, "AR*": -0.2}), "positive"),
     (lambda g: g.update(fundo={"XE": 1.0}), "XE"),
     (lambda g: g.update(ion_inicial="AR*"), "ion_inicial"),
     (lambda g: g.update(condutividade={"tipo": "outra"}), "condutividade")])
@@ -73,10 +73,10 @@ def test_gas_invalido_e_erro(pecas, gas, mudanca, mensagem):
         Modelo(*pecas, n_celulas=4, gas=g)
 
 
-# -------------------------------------------------- gás de fundo em mistura
+# -------------------------------------------------- mixed background gas
 def test_mistura_no_fundo(pecas, gas):
-    # fundo Ar 0,8 + Ar* 0,2: as duas saem do transporte e entram na química com
-    # a fração vezes N
+    # background Ar 0.8 + Ar* 0.2: both leave the transport and enter the chemistry with
+    # the fraction times N
     gas["fundo"] = {"AR": 0.8, "AR*": 0.2}
     md = Modelo(*pecas, n_celulas=4, gas=gas)
     assert "AR" not in md.nomes and "AR*" not in md.nomes
@@ -88,8 +88,8 @@ def test_mistura_no_fundo(pecas, gas):
 
 
 def test_mistura_tira_do_fundo_a_energia_das_colisoes(pecas, gas):
-    # com Ar* no fundo, as colisões com Ar* já estão na potência tabelada da
-    # mistura: a energia por reação delas é zero
+    # with Ar* in the background, the collisions with Ar* are already in the tabulated power of the
+    # mixture: their energy per reaction is zero
     from tabela import TabelaEnergiaTg
     te = TabelaEnergiaTg(RAIZ / "tabela_energia_tg.dat")
     so_ar = Modelo(*pecas, n_celulas=4, tabela_energia=te)
@@ -100,8 +100,8 @@ def test_mistura_tira_do_fundo_a_energia_das_colisoes(pecas, gas):
 
 
 def test_massa_da_troca_elastica_na_mistura(pecas_n2):
-    # 1/M = soma de x_i/M_i (aproximação: pesa pela fração, não pela frequência
-    # de colisão de cada gás)
+    # 1/M = sum of x_i/M_i (approximation: weighted by the fraction, not by the collision
+    # frequency of each gas)
     gas = json.loads((N2 / "gas.json").read_text())
     gas.pop("calor", None)
     gas["fundo"] = {"N2": 0.75, "N": 0.25}
@@ -112,7 +112,7 @@ def test_massa_da_troca_elastica_na_mistura(pecas_n2):
     assert md.m_fundo == pytest.approx(esperado, rel=1e-12)
 
 
-# -------------------------------------------------- calor das reações (gas.json)
+# -------------------------------------------------- heat of the reactions (gas.json)
 N2 = RAIZ / "casos" / "n2"
 ENTALPIAS_N2 = {"N2": 0.0, "N": 4.88, "N2(A)": 6.17, "N2(B)": 7.35, "N2(A')": 8.40, "N2(C)": 11.03,
                 "N^+": 19.41, "N2^+": 15.58, "N3^+": 18.0, "N4^+": 14.5}
@@ -137,17 +137,17 @@ def test_calor_de_cada_reacao_pelas_entalpias(pecas_n2):
     q = md.q
     def calor(reacao):
         return md.calor_reacao[q.reacoes.index(reacao)]
-    assert calor("N2(A)+N2=>N2+N2") == pytest.approx(6.17)             # extinção
-    assert calor("N2^++E=>N+N") == pytest.approx(15.58 - 2 * 4.88)     # recombinação dissociativa
+    assert calor("N2(A)+N2=>N2+N2") == pytest.approx(6.17)             # quenching
+    assert calor("N2^++E=>N+N") == pytest.approx(15.58 - 2 * 4.88)     # dissociative recombination
     assert calor("N2^++N2+N2=>N4^++N2") == pytest.approx(15.58 - 14.5)
-    assert calor("N2(A)=>N2") == 0.0                                    # radiativa: o fóton sai
-    assert calor("bolsig:N2->N2(B3)") == 0.0                            # energia dos elétrons, já em P_inel
+    assert calor("N2(A)=>N2") == 0.0                                    # radiative: the photon leaves
+    assert calor("bolsig:N2->N2(B3)") == 0.0                            # electron energy, already in P_inel
 
 
 def test_calor_das_reacoes_entra_no_aquecimento(pecas_n2):
-    # dT/dt com calor = sem calor + soma das taxas vezes o calor de cada reação,
-    # dividido por cv N k_B (em campo local; com --energia entra também a energia
-    # média dos elétrons consumidos)
+    # dT/dt with heat = without heat + sum of the rates times the heat of each reaction,
+    # divided by cv N k_B (in local field; with --energy the mean energy of the
+    # consumed electrons also enters)
     sem = _modelo_n2(pecas_n2, None)
     com = _modelo_n2(pecas_n2, {"entalpias": ENTALPIAS_N2})
     y = sem.estado_inicial(n_e0=1e12, neutro=True)
@@ -170,20 +170,20 @@ def test_calor_das_reacoes_entra_no_aquecimento(pecas_n2):
 def test_entalpia_faltando_e_erro(pecas_n2):
     ent = dict(ENTALPIAS_N2)
     del ent["N4^+"]
-    with pytest.raises(ErroGas, match=r"entalpia.*N4\^\+"):
+    with pytest.raises(ErroGas, match=r"enthalpy.*N4\^\+"):
         _modelo_n2(pecas_n2, {"entalpias": ent})
 
 
 def test_com_energia_os_eletrons_consumidos_levam_a_energia_media_ao_gas(pecas_n2):
-    # com --energia, a energia média dos elétrons perdidos em reações comuns
-    # (que d_energia retira) também vira calor do gás
+    # with --energy, the mean energy of the electrons lost in common reactions
+    # (which d_energia removes) also becomes gas heat
     from tabela import TabelaEnergiaTg
     te = TabelaEnergiaTg(N2 / "tabela_energia_tg.dat")
     sem = _modelo_n2(pecas_n2, None, tabela_energia=te)
     com = _modelo_n2(pecas_n2, {"entalpias": ENTALPIAS_N2}, tabela_energia=te)
     y = sem.estado_inicial(n_e0=1e12, neutro=True)
     z = y[:-2].reshape(sem.n_var, sem.m)
-    z[sem.n_esp] = 1e12 * 1.5                                     # n_eps: energia média de 1,5 eV
+    z[sem.n_esp] = 1e12 * 1.5                                     # n_eps: mean energy of 1.5 eV
     d_sem = sem.rhs(2.5e-8, y)[:-2].reshape(sem.n_var, sem.m)[sem.i_t]
     d_com = com.rhs(2.5e-8, y)[:-2].reshape(com.n_var, com.m)[com.i_t]
     n = com.separa(y)[0]
@@ -198,7 +198,7 @@ def test_com_energia_os_eletrons_consumidos_levam_a_energia_media_ao_gas(pecas_n
 
 
 def test_calor_rapido_dos_eletrons_entra_no_aquecimento(pecas_n2, tmp_path):
-    # tabela de calor rápido (P/N constante, eV cm3/s): o gás recebe P N n_e
+    # fast heat table (constant P/N, eV cm3/s): the gas receives P N n_e
     from tabela import TabelaEnergiaTg
     linhas = ["# T_g, E/N, energia media, P_rapido/N"]
     for tg in (300.0, 1500.0):
@@ -223,8 +223,8 @@ def test_processos_rapidos_sem_tabela_e_erro(pecas_n2):
 
 
 def test_caso_n2_monta_com_o_proprio_calor(pecas_n2):
-    # o gas.json do caso tem entalpia para todas as espécies e a tabela de calor
-    # rápido gerada; o calor rápido da tabela é positivo em campo de descarga
+    # the gas.json of the case has the enthalpy of every species and the generated fast
+    # heat table; the fast heat of the table is positive in a discharge field
     from tabela import TabelaEnergiaTg
     gas = json.loads((N2 / "gas.json").read_text())
     tab = TabelaEnergiaTg(N2 / "tabela_calor_tg.dat")
@@ -237,5 +237,5 @@ def test_caso_n2_monta_com_o_proprio_calor(pecas_n2):
 
 def test_mesmo_gas_duas_vezes_no_fundo_e_erro(pecas, gas):
     gas["fundo"] = {"AR": 0.5, "ar": 0.5}
-    with pytest.raises(ErroGas, match="duas vezes"):
+    with pytest.raises(ErroGas, match="twice"):
         Modelo(*pecas, n_celulas=4, gas=gas)

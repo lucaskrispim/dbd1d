@@ -1,16 +1,17 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Dados do gás e do transporte do caso de ar seco com argônio (N2 78%, O2 21%,
-Ar 1%), para testar a ferramenta numa mistura nova; não servem a um estudo do
-ar. Condutividade da mistura pela teoria cinética (Cantera, GRI-Mech 3.0); cv
-pela fração (2,5 k_B para N2 e O2, 1,5 para Ar); mobilidades e difusões por
-ferramentas/caso.py estima. O que a estimativa não cobre:
-- difusão de O3, NO3 e N2O5 (fora do GRI-Mech): a do O2 para o O3 e a do NO2
-  para os outros dois;
-- perda na parede (não se estima): dos casos existentes (amonia_sun2022 para
-  N2(v), excitados do N2, N, N(2D), N(2P); raiz para Ar*) e, para o oxigênio e os
-  NOx, valores de teste: excitados de vida curta 1, O2(a1) 1e-4, O2(b1) 1e-2,
-  O2(v) como N2(v), O 1e-3, moléculas estáveis 0.
-Uso (com o Cantera): python3 casos/ar_n2_o2/gera_dados.py
+"""Gas and transport data of the case of dry air with argon (N2 78%, O2 21%,
+Ar 1%), to test the tool on a new mixture; not meant for a study of air.
+Conductivity of the mixture by kinetic theory (Cantera, GRI-Mech 3.0); cv by
+fraction (2.5 k_B for N2 and O2, 1.5 for Ar); mobilities and diffusions by
+ferramentas/caso.py estimate. What the estimate does not cover:
+- diffusion of O3, NO3 and N2O5 (outside GRI-Mech): that of O2 for O3 and that
+  of NO2 for the other two;
+- wall loss (not estimated): from the existing cases (amonia_sun2022 for N2(v),
+  excited states of N2, N, N(2D), N(2P); root for Ar*) and, for oxygen and the
+  NOx, test values: short-lived excited states 1, O2(a1) 1e-4, O2(b1) 1e-2,
+  O2(v) as N2(v), O 1e-3, stable molecules 0.
+Usage (with Cantera): python3 casos/ar_n2_o2/gera_dados.py
+The "fonte" strings are data written to the JSON files and stay as they are there.
 """
 import json
 import pathlib
@@ -71,4 +72,4 @@ for nome, e in t.items():
         nota = "perda na parede: valor de teste"
     e["fonte"] = (e.get("fonte", "") + "; " + nota).lstrip("; ")
 (AQUI / "transporte.json").write_text(json.dumps(t, ensure_ascii=False, indent=2) + "\n")
-print("gas.json e transporte.json gravados")
+print("gas.json and transporte.json written")

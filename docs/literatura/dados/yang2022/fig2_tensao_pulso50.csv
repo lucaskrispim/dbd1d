@@ -1,4 +1,4 @@
-# Yang 2022 fig. 2(a): tensão medida no pulso 50 de uma rajada de 150, N2, 150 Torr, 100 kHz; mediana por coluna, que corta o pico estreito: pico pela borda da linha 26.2 kV em 6.6 ns
+# Yang 2022 fig. 2(a): voltage measured in pulse 50 of a burst of 150, N2, 150 Torr, 100 kHz; median per column, which cuts the narrow peak: peak from the edge of the line 26.2 kV at 6.6 ns
 # t_ns,V_kV
 -7.393,0.22277
 -5.0584,0.14851

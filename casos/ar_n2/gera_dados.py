@@ -1,10 +1,11 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Dados do gás e do transporte do caso Ar:N2 90:10: condutividade da mistura
-pela teoria cinética (Cantera e GRI-Mech 3.0), cv de 0,9 x 1,5 + 0,1 x 2,5 k_B,
-mobilidades e difusões estimadas por ferramentas/caso.py estima (Langevin com a
-lei de Blanc e teoria cinética) e a perda na parede dos neutros dos casos do
-argônio e do N2 (é propriedade da superfície, não do gás).
-Uso (com o Cantera): python3 casos/ar_n2/gera_dados.py
+"""Gas and transport data of the case Ar:N2 90:10: conductivity of the mixture by
+kinetic theory (Cantera and GRI-Mech 3.0), cv of 0.9 x 1.5 + 0.1 x 2.5 k_B,
+mobilities and diffusions estimated by ferramentas/caso.py estimate (Langevin with
+Blanc's law and kinetic theory) and the wall loss of the neutrals from the argon
+and N2 cases (it is a property of the surface, not of the gas).
+Usage (with Cantera): python3 casos/ar_n2/gera_dados.py
+The "fonte" strings are data written to the JSON files and stay as they are there.
 """
 import json
 import pathlib
@@ -47,4 +48,4 @@ for nome, faltando in faltam.items():
         t[nome]["perda_na_parede"] = origem["perda_na_parede"]
         t[nome]["fonte"] = t[nome].get("fonte", "") + "; perda na parede do caso de um gás só (propriedade da superfície)"
 (AQUI / "transporte.json").write_text(json.dumps(t, ensure_ascii=False, indent=2) + "\n")
-print("gas.json e transporte.json gravados; faltavam:", faltam)
+print("gas.json and transporte.json written; missing:", faltam)

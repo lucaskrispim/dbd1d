@@ -1,4 +1,4 @@
-# Yang 2022 fig. 2(b): potência instantânea no pulso 50; só a forma: a integral desta curva dá 3,7 mJ em 200 ns, 11 % acima da curva de energia (3,3 mJ, o valor do texto)
+# Yang 2022 fig. 2(b): instantaneous power in pulse 50; shape only: the integral of this curve gives 3.7 mJ in 200 ns, 11% above the energy curve (3.3 mJ, the value of the text)
 # t_ns,P_MW
 1.5564,0.019934
 1.9455,0.036545

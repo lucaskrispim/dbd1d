@@ -1,12 +1,11 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Geração automática contra o próprio ZDPlasKin: para mecanismos conhecidos e
-modificações deles, a ferramenta (ferramentas/caso.py) gera o zdplaskin_m.F90
-pelo pré-processador; a sonda ferramentas/sonda_zdplaskin.f90, compilada contra
-esse arquivo, deixa o ZDPlasKin e o BOLSIG+ calcularem as taxas das reações e as
-fontes das espécies em vários estados; o protótipo, lendo o mesmo arquivo e com
-as mesmas entradas (T_g, E/N, T_e, densidades e taxas do BOLSIG+), tem de
-reproduzir cada taxa e cada fonte. Nenhum valor esperado é escrito à mão:
-quem diz o certo é o ZDPlasKin."""
+"""Automatic generation against ZDPlasKin itself: for known mechanisms and
+modifications of them, the tool (ferramentas/caso.py) generates zdplaskin_m.F90
+with the preprocessor; the probe ferramentas/sonda_zdplaskin.f90, compiled against
+that file, lets ZDPlasKin and BOLSIG+ compute the reaction rates and the species
+sources in several states; the prototype, reading the same file and with the same
+inputs (T_g, E/N, T_e, densities and BOLSIG+ rates), must reproduce each rate and
+each source. No expected value is written by hand: ZDPlasKin says what is right."""
 import shutil
 import subprocess
 import sys
@@ -33,7 +32,7 @@ OPCOES = ["-O2", "-ffp-contract=off", "-w"]
 
 @pytest.fixture(scope="module")
 def dvode(tmp_path_factory):
-    """dvode_f90_m compilado uma vez (o .o e o .mod)."""
+    """dvode_f90_m compiled once (the .o and the .mod)."""
     d = tmp_path_factory.mktemp("dvode")
     subprocess.run(["gfortran", *OPCOES, "-J", str(d), "-c", str(TERCEIROS["dvode"]), "-o", str(d / "dvode.o")],
                    check=True, capture_output=True)
@@ -41,8 +40,8 @@ def dvode(tmp_path_factory):
 
 
 def _prepara(destino, origem, trocas=(), acrescimos=()):
-    """Pasta de caso com o kinet.inp de origem modificado: trocas (velho, novo)
-    que precisam casar uma vez, e linhas acrescentadas antes do END final."""
+    """Case folder with the original kinet.inp modified: replacements (old, new)
+    that must match once, and lines added before the final END."""
     destino.mkdir()
     for nome in ("bolsigdb.dat", "composicao.txt"):
         shutil.copy(origem / nome, destino / nome)
@@ -59,8 +58,8 @@ def _prepara(destino, origem, trocas=(), acrescimos=()):
 
 
 def _estados(q, pasta):
-    """Três estados: o gás da composicao.txt a ~2,4e19 cm-3 e as demais
-    espécies de 1e9 a 1e13, em T_g e E/N diferentes."""
+    """Three states: the gas of composicao.txt at ~2.4e19 cm-3 and the other
+    species from 1e9 to 1e13, at different T_g and E/N."""
     fundo = {}
     for linha in (pasta / "composicao.txt").read_text().splitlines():
         p = linha.split()
@@ -116,7 +115,7 @@ def test_n2_como_esta(tmp_path, dvode):
 
 
 def test_amonia_de_sun_como_esta(tmp_path, dvode):
-    # 38 espécies, 492 reações, variáveis locais, ANY_NEUTRAL e @M expandidos
+    # 38 species, 492 reactions, local variables, ANY_NEUTRAL and @M expanded
     q = _confere(_prepara(tmp_path / "amonia", AMONIA), dvode)
     assert len(q.reacoes) == 492
 
@@ -141,8 +140,8 @@ def test_amonia_de_sun_como_esta(tmp_path, dvode):
        "N3^+ + N       => N2^+ + N2        !   6.6d-11 * (Tgas/300.0d0)**(3/2) + 1.0d-12*(7/2)")], []),
     ("reacao_retirada",
      [("N2(B)  + N2    => N2 + N2          !   2.0d-12\n", "")], []),
-    # como no kinet.inp de Sun: ANY_NEUTRAL só na taxa; o pré-processador
-    # declara a variável e chama ZDPlasKin_get_density_total
+    # as in the kinet.inp of Sun: ANY_NEUTRAL only in the rate; the preprocessor
+    # declares the variable and calls ZDPlasKin_get_density_total
     ("any_neutral",
      [("N2(a') + N2    => N2 + N2(B)       !   1.9d-13",
        "N2(a') + N2    => N2 + N2(B)       !   1.9d-13 * ANY_NEUTRAL / 2.5d19")], []),
@@ -152,14 +151,14 @@ def test_n2_modificado(tmp_path, dvode, nome, trocas, acrescimos):
 
 
 def test_mistura_nova_ar_n2(tmp_path, dvode):
-    # mistura que não existia: os mecanismos do argônio e do N2 juntos, com
-    # reações cruzadas (casos/ar_n2/monta.py), Ar:N2 90:10
+    # a mixture that did not exist: the argon and N2 mechanisms together, with
+    # cross reactions (casos/ar_n2/monta.py), Ar:N2 90:10
     q = _confere(_prepara(tmp_path / "ar_n2", RAIZ / "casos" / "ar_n2"), dvode)
     assert {"AR^+", "N2^+", "AR*", "N2(C)"} <= {e.upper() for e in q.especies}
 
 
 def test_ar_seco_com_argonio(tmp_path, dvode):
-    # o mecanismo N2-O2 do ZDPlasKin (íons negativos, NxOy, blocos @B/@R,
-    # DENSITY no BOLSIG+) com o argônio e reações cruzadas (casos/ar_n2_o2/monta.py)
+    # the N2-O2 mechanism of ZDPlasKin (negative ions, NxOy, @B/@R blocks,
+    # DENSITY in BOLSIG+) with argon and cross reactions (casos/ar_n2_o2/monta.py)
     q = _confere(_prepara(tmp_path / "ar_n2_o2", RAIZ / "casos" / "ar_n2_o2"), dvode)
     assert len(q.reacoes) == 667 and "O2^+N2" in {e.upper() for e in q.especies}

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Testes do modelo acoplado (operadores e sistema), com respostas deduzidas à mão."""
+"""Tests of the coupled model (operators and system), with answers derived by hand."""
 import numpy as np
 import pytest
 from scipy.integrate import solve_ivp
@@ -23,11 +23,11 @@ def test_bernoulli():
 
 
 def test_scharfetter_gummel_exato_para_perfil_de_equilibrio(pecas):
-    # com mobilidade, difusão e campo uniformes, n = exp(w x/D) tem fluxo
-    # nulo em toda face interna: o esquema SG é exato para ele, em malha agrupada
+    # with uniform mobility, diffusion and field, n = exp(w x/D) has zero
+    # flux at every inner face: the SG scheme is exact for it, on a clustered mesh
     md = Modelo(*pecas, n_celulas=40, agrupamento=2.0)
     mu, dd, e = 0.03, 0.2, 2.0e4
-    w = -mu * e                      # elétrons
+    w = -mu * e                      # electrons
     n = np.zeros((md.n_esp, md.m))
     n[md.i_e] = np.exp(w * md.xc / dd)
     campo = np.full(md.m + 1, e)
@@ -47,15 +47,15 @@ def test_poisson_linear_na_malha_agrupada(pecas):
 
 
 def test_poisson_com_dieletrico_e_capacitores_em_serie(pecas):
-    # sem carga: D contínuo, E_gas = V/(L + 2*espessura/eps_d)
+    # without charge: continuous D, E_gas = V/(L + 2*thickness/eps_d)
     md = Modelo(*pecas, n_celulas=40, agrupamento=2.0, espessura=1.75e-3)
     _, campo = md.poisson(np.zeros(md.m), 0.0, 0.0, 1.0e3)
     np.testing.assert_allclose(campo, 1.0e3 / (md.L + 2.0 * 1.75e-3 / 4.8), rtol=1e-10)
 
 
 def test_carga_total_conservada(pecas):
-    # transporte, paredes, emissão secundária e química: a taxa de variação da
-    # carga do gás mais a das superfícies é zero
+    # transport, walls, secondary emission and chemistry: the rate of change of the
+    # charge of the gas plus that of the surfaces is zero
     md = Modelo(*pecas, n_celulas=30, agrupamento=1.5, espessura=1.75e-3, v_pico=5.0e3)
     gerador = np.random.default_rng(3)
     n = 10.0 ** gerador.uniform(8, 13, size=(md.n_esp, md.m))
@@ -68,14 +68,14 @@ def test_carga_total_conservada(pecas):
 
 
 def test_relaxacao_de_maxwell(pecas):
-    # plasma uniforme e quase neutro com perturbação de carga sin(k x), k = pi/L,
-    # eletrodos aterrados. Linearizando (mobilidades e difusões de campo nulo),
-    # a carga relaxa com taxa nu (1 + eps), nu = e(mu_e n_e + mu_i n_i)/eps0 e
-    # eps = (D_e + D_i) k^2/nu ~ (lambda_D k)^2, até o patamar de Boltzmann
-    # eps/(1 + eps): depois de t = 2/nu, R = [eps + exp(-2(1 + eps))]/(1 + eps).
-    # A perturbação de 1e-6 dá campo abaixo do primeiro nó da tabela, onde os
-    # coeficientes são constantes (com 1e-4 o campo chega a 2e-3 Td, onde mu_e
-    # varia 27%, região de Ramsauer, e a linearização falha)
+    # uniform quasi-neutral plasma with a charge perturbation sin(k x), k = pi/L,
+    # grounded electrodes. Linearising (zero-field mobilities and diffusions),
+    # the charge relaxes at the rate nu (1 + eps), nu = e(mu_e n_e + mu_i n_i)/eps0 and
+    # eps = (D_e + D_i) k^2/nu ~ (lambda_D k)^2, down to the Boltzmann plateau
+    # eps/(1 + eps): after t = 2/nu, R = [eps + exp(-2(1 + eps))]/(1 + eps).
+    # The perturbation of 1e-6 gives a field below the first node of the table, where the
+    # coefficients are constant (with 1e-4 the field reaches 2e-3 Td, where mu_e
+    # varies by 27%, Ramsauer region, and the linearisation fails)
     md = Modelo(*pecas, n_celulas=60, v_pico=0.0)
     n0 = 1.0e11
     n = np.zeros((md.n_esp, md.m))
@@ -101,9 +101,9 @@ def test_relaxacao_de_maxwell(pecas):
 
 
 def test_fluxo_de_parede_freado(pecas):
-    # elétrons uniformes com Te = 1e5 K e campo E = +1e6 V/m (deriva para -x):
-    # a parede esquerda recebe n*(v_term/2 + mu*E); a direita, de onde a deriva
-    # se afasta, só n*f*v_term/2 com f = exp(-e*E*(h/2)/(k*Te))
+    # uniform electrons with Te = 1e5 K and field E = +1e6 V/m (drift towards -x):
+    # the left wall receives n*(v_term/2 + mu*E); the right one, from which the drift
+    # moves away, only n*f*v_term/2 with f = exp(-e*E*(h/2)/(k*Te))
     md = Modelo(*pecas, n_celulas=40, agrupamento=1.5)
     n0, mu, te, e = 1.0e10, 0.03, 1.0e5, 1.0e6
     n = np.zeros((md.n_esp, md.m))
@@ -122,9 +122,9 @@ def test_fluxo_de_parede_freado(pecas):
 
 
 def test_mobilidades_ionicas_medidas(pecas):
-    # Ar+ em Ar: fórmula de Frost com K0 = 1,61 cm2/(V s) e campo de
-    # aquecimento de 210 Td (Golyatina e Maiorov, Plasma Phys. Rep. 43, 75,
-    # 2017; Ellis et al. 1976 medem 1,53); Ar2+: K0 = 1,95 cm2/(V s) (Phys. Rev.
+    # Ar+ in Ar: Frost formula with K0 = 1.61 cm2/(V s) and heating field of
+    # 210 Td (Golyatina and Maiorov, Plasma Phys. Rep. 43, 75,
+    # 2017; Ellis et al. 1976 measure 1.53); Ar2+: K0 = 1.95 cm2/(V s) (Phys. Rev.
     # 160, 130, 1967), constante. Mobilidade = K0*N0/N.
     md = Modelo(*pecas, n_celulas=4)
     n0 = 2.6867811e19
@@ -138,13 +138,13 @@ def test_mobilidades_ionicas_medidas(pecas):
 
 
 def test_ordem_do_scharfetter_gummel_com_coeficientes_variaveis(pecas):
-    # solução manufaturada: n(x), D(x) e mu(x) suaves, campo uniforme, malha
-    # agrupada; a divergência do fluxo discreto nas células internas (longe das
-    # paredes, cujo fluxo é a condição de contorno) converge para a exata com
-    # ordem perto de 2 ao dobrar as células
-    # campo de 1e6 V/m: a deriva (~200 m/s) domina a difusão (~60 m/s), para que
-    # um erro de primeira ordem na mobilidade das faces apareça; o número de
-    # Péclet de malha fica abaixo de 0,1
+    # manufactured solution: smooth n(x), D(x) and mu(x), uniform field, clustered
+    # mesh; the divergence of the discrete flux in the inner cells (away from the
+    # walls, whose flux is the boundary condition) converges to the exact one with
+    # order near 2 when the cells are doubled
+    # field of 1e6 V/m: the drift (~200 m/s) dominates the diffusion (~60 m/s), so that
+    # a first order error in the face mobility shows up; the mesh Peclet
+    # number stays below 0.1
     L = 8.0e-4
     k = 2 * np.pi / L
     e = 1.0e6
@@ -157,7 +157,7 @@ def test_ordem_do_scharfetter_gummel_com_coeficientes_variaveis(pecas):
         dD = -0.05 * 0.5 * k * np.sin(k * x)
         mu = 2.0e-4 * (1.0 + 0.3 * np.sin(k * x))
         dmu = 2.0e-4 * 0.3 * k * np.cos(k * x)
-        # íon (carga +1): Gamma = -D n' + mu E n
+        # ion (charge +1): Gamma = -D n' + mu E n
         dG = -(dD * dn + D * d2n) + e * (dmu * n + mu * dn)
         return n, D, mu, dG
 
@@ -195,7 +195,7 @@ def test_sem_freio_a_parede_recebe_o_fluxo_termico_inteiro(pecas):
 
 
 def test_aviso_de_grau_de_ionizacao(pecas):
-    # como no Fortran: com o gás preso, avisa quando n_e/N passa de 1e-3
+    # as in the Fortran code: with fixed gas, it warns when n_e/N exceeds 1e-3
     md = Modelo(*pecas, n_celulas=10)
     y = md.estado_inicial(1.0)
     assert md.celula_muito_ionizada(y) is None
@@ -205,8 +205,8 @@ def test_aviso_de_grau_de_ionizacao(pecas):
 
 
 def test_frost_sempre_com_as_particulas_pesadas_da_celula(pecas):
-    # como ions.f90:59-60, mesmo com o gás preso e sem aquecimento:
-    # mu = K0 (N0/N_pes)/sqrt(1 + (E/N_pes)/210 Td)
+    # as ions.f90:59-60, even with fixed gas and without heating:
+    # mu = K0 (N0/N_heavy)/sqrt(1 + (E/N_heavy)/210 Td)
     md = Modelo(*pecas, n_celulas=4)
     n = np.zeros((md.n_esp, md.m))
     n[md.nomes.index("AR*")] = 1.0e17
@@ -219,10 +219,10 @@ def test_frost_sempre_com_as_particulas_pesadas_da_celula(pecas):
 
 
 def test_densidade_do_gas_coerente_com_a_temperatura(pecas):
-    # a 1 atm: N = p/(k_B T); dar a temperatura muda a densidade padrão
+    # at 1 atm: N = p/(k_B T); giving the temperature changes the default density
     md = Modelo(*pecas, n_celulas=4, t_gas=600.0)
     assert md.n_gas == pytest.approx(101325.0 / (1.380649e-23 * 600.0) * 1e-6, rel=1e-15)
-    # e a difusão do Ar* (DK do Fortran, com o k_B de 1,38e-23 de termico.f90)
+    # and the diffusion of Ar* (DK of the Fortran code, with the k_B of 1.38e-23 of termico.f90)
     # sai a 1 atm: (17e-6/p)(T/273)^1,9
     p = md.n_gas * 1e6 * 1.38e-23 * 600.0 / 101325.0
     assert md.difusao[md.nomes.index("AR*")] == pytest.approx(17e-6 / p * (600.0 / 273.0) ** 1.9, rel=1e-14)
@@ -230,7 +230,7 @@ def test_densidade_do_gas_coerente_com_a_temperatura(pecas):
 
 def test_frequencia_de_colisao_com_o_n_total(pecas):
     # como quimica.f90:97: (nu/N) da tabela vezes a soma de todas as densidades
-    # da célula (gás, Ar*, íons e elétrons)
+    # of the cell (gas, Ar*, ions and electrons)
     md = Modelo(*pecas, n_celulas=4)
     n = np.zeros((md.n_esp, md.m))
     n[md.nomes.index("AR*")] = 0.1 * md.n_gas
@@ -253,8 +253,8 @@ def test_mobilidades_ionicas_pelo_construtor(pecas):
 
 
 def test_aviso_de_temperatura_do_gas(pecas):
-    # com aquecimento: primeira célula acima de 1000 K (onde a tabela a 300 K e o
-    # kappa extrapolado deixam de valer); None se não há
+    # with heating: first cell above 1000 K (where the 300 K table and the
+    # extrapolated kappa stop being valid); None if there is none
     md = Modelo(*pecas, n_celulas=5, aquecimento=True)
     y = md.estado_inicial(1.0)
     assert md.celula_quente(y) is None

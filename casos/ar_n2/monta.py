@@ -1,16 +1,16 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Caso Ar:N2 90:10 montado dos dois mecanismos do repositório, para testar a
-ferramenta numa mistura nova: o kinet.inp junta as espécies, os processos do
-BOLSIG+ e as reações do argônio (raiz) e do N2 (casos/n2), mais três reações
-cruzadas; o bolsigdb.dat junta os dois bancos de seções de choque.
+"""Case Ar:N2 90:10 assembled from the two mechanisms of the repository, to test
+the tool on a new mixture: kinet.inp joins the species, the BOLSIG+ processes and
+the reactions of argon (root) and N2 (casos/n2), plus three cross reactions;
+bolsigdb.dat joins the two cross-section databases.
 
-Reações cruzadas, com coeficientes típicos da literatura (aqui servem ao teste
-da ferramenta, não a um estudo do Ar:N2):
-  Ar^+ + N2 => N2^+ + Ar        1,0e-11 cm3/s (troca de carga)
-  Ar* + N2 => Ar + N2(C)        3,0e-11 cm3/s (transferência de energia)
-  Ar2^+ + N2 => N2^+ + Ar + Ar  1,0e-11 cm3/s
+Cross reactions, with typical coefficients from the literature (here they serve
+the test of the tool, not a study of Ar:N2):
+  Ar^+ + N2 => N2^+ + Ar        1.0e-11 cm3/s (charge exchange)
+  Ar* + N2 => Ar + N2(C)        3.0e-11 cm3/s (energy transfer)
+  Ar2^+ + N2 => N2^+ + Ar + Ar  1.0e-11 cm3/s
 
-Uso: python3 casos/ar_n2/monta.py   (grava kinet.inp, bolsigdb.dat e composicao.txt aqui)
+Usage: python3 casos/ar_n2/monta.py   (writes kinet.inp, bolsigdb.dat and composicao.txt here)
 """
 import pathlib
 import re
@@ -20,7 +20,7 @@ RAIZ = AQUI.parent.parent
 
 
 def bloco(texto, nome):
-    """Linhas entre NOME e o END seguinte."""
+    """Lines between NAME and the next END."""
     m = re.search(rf"^{nome}\s*\n(.*?)^END", texto, re.S | re.M)
     return [l for l in m.group(1).splitlines() if l.strip() and not l.strip().startswith("#")]
 
@@ -69,4 +69,4 @@ END
 (AQUI / "bolsigdb.dat").write_text((RAIZ / "bolsigdb.dat").read_text().rstrip() + "\n\n"
                                    + (RAIZ / "casos" / "n2" / "bolsigdb.dat").read_text())
 (AQUI / "composicao.txt").write_text("Ar 0.9\nN2 0.1\nAr* traco\nN2^+ traco\n")
-print(f"{len(especies)} espécies, BOLSIG: {' '.join(bolsig)}")
+print(f"{len(especies)} species, BOLSIG: {' '.join(bolsig)}")

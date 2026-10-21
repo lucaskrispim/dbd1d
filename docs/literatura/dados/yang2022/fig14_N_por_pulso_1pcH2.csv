@@ -1,4 +1,4 @@
-# Yang 2022 fig. 14(a): N produzido por pulso (barras grandes: diferença de medidas próximas); o ponto do pulso 110, sob a curva do modelo, não é separado; mín. e máx.: extremos da barra de erro (barras claras incluídas), ou a borda do marcador quando não há barra visível; a barra pode se estender alguns pixels onde a curva do modelo, da mesma cor, cruza a coluna do ponto
+# Yang 2022 fig. 14(a): N produced per pulse (large bars: difference of nearby measurements); the point of pulse 110, under the model curve, is not separated; min and max: ends of the error bar (light bars included), or the edge of the marker when no bar is visible; the bar may extend a few pixels where the model curve, of the same colour, crosses the column of the point
 # pulso,dN_cm3,dN_min_cm3,dN_max_cm3
 10,1.0649e+13,1.0207e+13,1.1084e+13
 20,9.2018e+12,8.1608e+12,9.4275e+12

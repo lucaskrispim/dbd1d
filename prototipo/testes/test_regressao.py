@@ -1,16 +1,16 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Regressão do protótipo contra referências gravadas (G34) e determinismo,
-como make regressao e N5 no Fortran. Dois casos curtos (alvos do Makefile):
-com a equação de energia e em campo local (que usa a tabela em E/N). As
-referências ficam em referencias/prototipo_curto e prototipo_curto_lfa e são
-refeitas com make referencia-regressao-prototipo, que grava a diferença medida
-contra a anterior em mudanca.txt (commit próprio).
+"""Regression of the prototype against recorded references (G34) and determinism,
+as make regressao and N5 in the Fortran code. Two short cases (Makefile targets):
+with the energy equation and in local field (which uses the table in E/N). The
+references are in referencias/prototipo_curto and prototipo_curto_lfa and are
+rebuilt with make referencia-regressao-prototipo, which writes the difference
+measured against the previous one in mudanca.txt (own commit).
 
-Tolerância: com as mesmas versões de Python, numpy e scipy da referência,
-1e-9; com outras, 2e-3. Com as tolerâncias antigas do integrador (rtol e atol
-1e-4) o último bit chegava a uns 4e-4 nas densidades (medido com n_e0
-perturbado em 1e-15); com o atol novo (1e-10) é de 9e-5. Um gama 1% diferente
-muda 1e-2: 2e-3 separa os dois."""
+Tolerance: with the same versions of Python, numpy and scipy as the reference,
+1e-9; with others, 2e-3. With the old tolerances of the integrator (rtol and atol
+1e-4) the last bit reached about 4e-4 in the densities (measured with n_e0
+perturbed by 1e-15); with the new atol (1e-10) it is 9e-5. A gamma 1% different
+changes 1e-2: 2e-3 separates the two."""
 import json
 import platform
 import subprocess
@@ -26,7 +26,7 @@ AMBIENTE = {"OPENBLAS_NUM_THREADS": "1", "PATH": ""}
 
 
 def caso(nome):
-    """Argumentos do caso pela variável do Makefile."""
+    """Arguments of the case from the Makefile variable."""
     texto = (RAIZ / "Makefile").read_text().replace("\\\n", " ")
     linha = next(l for l in texto.splitlines() if l.startswith(nome + " ") or l.startswith(nome + "="))
     return linha.split("=", 1)[1].split()
@@ -55,7 +55,7 @@ def test_caso_curto_igual_a_referencia(tmp_path, variavel, referencia):
     r = subprocess.run([sys.executable, str(RAIZ / "scripts" / "compara.py"), str(ref), str(tmp_path / "c"),
                         "--tol", str(tol), "--estrito"], capture_output=True, text=True, env=AMBIENTE)
     assert r.returncode == 0, f"{r.stdout}\nversões diferentes da referência: {diferentes}"
-    # o caso de campo local cobre a tabela em E/N (Q3)
+    # the local field case covers the table in E/N (Q3)
     assert ("--energia" in caso(variavel)) == (variavel == "CURTO_PROTOTIPO")
 
 

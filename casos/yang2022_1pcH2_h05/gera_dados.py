@@ -1,11 +1,12 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Dados do gás e do transporte do caso yang2022_1pcH2 (N2:H2 99:1, 150 Torr, Yang et al.
-2022), pelo mesmo método do caso xu2025 (copiado dele): condutividade e difusão pela teoria cinética (Cantera e
-GRI-Mech 3.0), perdas na parede como em biblioteca/transporte.json (entradas
-"em N2+H2") e mobilidades pela lei de Blanc com as frações 0,25 e 0,75.
-Uso (num Python com o Cantera): python3 gera_dados.py
-Grava gas.json e transporte.json nesta pasta; a massa vem depois de
-ferramentas/caso.py transporte.
+"""Gas and transport data of the case yang2022_1pcH2 (N2:H2 99:1, 150 Torr, Yang et al.
+2022), by the same method as the case xu2025 (copied from it): conductivity and diffusion by kinetic theory
+(Cantera and GRI-Mech 3.0), wall losses as in biblioteca/transporte.json (entries
+"em N2+H2") and mobilities by Blanc's law with the fractions 0.25 and 0.75 (here 0.99 and 0.01).
+Usage (in a Python with Cantera): python3 gera_dados.py
+Writes gas.json and transporte.json in this folder; the mass comes afterwards from
+ferramentas/caso.py transport. The "fonte" strings are data written to the JSON
+files and stay as they are there.
 """
 import json
 import pathlib
@@ -40,7 +41,7 @@ gas = {
 }
 (AQUI / "gas.json").write_text(json.dumps(gas, ensure_ascii=False, indent=2) + "\n")
 
-# difusão de traço na mistura: 1/D = soma x_j/D_kj, a 1 atm; expoente de 250 a 1000 K
+# trace diffusion in the mixture: 1/D = sum x_j/D_kj, at 1 atm; exponent from 250 to 1000 K
 iN2, iH2 = g.species_index("N2"), g.species_index("H2")
 def difusao(esp):
     k = g.species_index(esp)
@@ -82,4 +83,4 @@ for chave, ent in bib.items():
             novo["fonte"] = "lei de Blanc em N2:H2 99:1 com o limite de Langevin nos dois gases (estimativa)"
     transporte[esp] = novo
 (AQUI / "transporte.json").write_text(json.dumps(transporte, ensure_ascii=False, indent=2) + "\n")
-print("gas.json e transporte.json gravados;", len(transporte) - 1, "espécies")
+print("gas.json and transporte.json written;", len(transporte) - 1, "species")

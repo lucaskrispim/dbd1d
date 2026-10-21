@@ -1,13 +1,13 @@
 ! SPDX-License-Identifier: GPL-3.0-or-later
-! Sonda do ZDPlasKin gerado para um caso (ferramentas/caso.py zdplaskin): para
-! cada estado de estados.txt (T_g em K, E/N em Td e a densidade de cada espécie
-! em cm-3, na ordem de species_name), deixa o ZDPlasKin e o BOLSIG+ calcularem
-! tudo e grava em sonda.txt, uma linha por estado: T_g, E/N, T_e (K), a
-! densidade total de neutros (ALL_NEUTRAL), as taxas do BOLSIG+ na ordem de
-! bolsig_pointer, a taxa de cada reação (cm-3/s) e a fonte de cada espécie
-! (cm-3/s). O protótipo, com as mesmas entradas, tem de reproduzir as taxas e
-! as fontes (prototipo/testes/test_geracao_zdplaskin.py).
-! Rodar na pasta do caso (o BOLSIG+ lê o bolsigdb.dat de lá), com stdin fechado.
+! Probe of the ZDPlasKin module generated for a case (ferramentas/caso.py
+! zdplaskin): for each state of estados.txt (T_g in K, E/N in Td and the density of
+! each species in cm-3, in the order of species_name), lets ZDPlasKin and BOLSIG+
+! compute everything and writes sonda.txt, one line per state: T_g, E/N, T_e (K),
+! the total density of neutrals (ALL_NEUTRAL), the BOLSIG+ rates in the order of
+! bolsig_pointer, the rate of each reaction (cm-3/s) and the source of each species
+! (cm-3/s). The simulator, with the same inputs, must reproduce the rates and the
+! sources (prototipo/testes/test_geracao_zdplaskin.py).
+! Run in the case folder (BOLSIG+ reads bolsigdb.dat from there), with stdin closed.
 program sonda_zdplaskin
     use ZDPlasKin
     implicit none

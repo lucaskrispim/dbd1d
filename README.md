@@ -14,9 +14,11 @@ complete model (species, reactions, electron coefficients, transport) without ed
   Jacobian;
 - applied voltage: sine, step, trapezoidal pulse train or a tabulated measured pulse repeated
   periodically;
-- optional electron reflection at the walls (`--reflexao-eletrons`, Hagelaar et al. 2000).
+- optional electron reflection at the walls (`--electron-reflection`, Hagelaar et al. 2000).
 
-The source is commented in Portuguese; this file and the article are in English.
+Options, messages and comments are in English. Identifiers, file names and the keys of the data
+files keep their original Portuguese names, and the earlier Portuguese option names (`--pressao`,
+`--forma seno`, ...) are still accepted as aliases.
 
 ## Installation
 
@@ -32,7 +34,7 @@ package `poppler-utils`); without it, its four vector tests are skipped.
 
 Tested with numpy 2.2 and 2.5, scipy 1.15 and 1.18. The integrator builds on the internal BDF
 implementation of scipy (`scipy.integrate._ivp`), so scipy is bounded below 1.19 until a newer
-version is tested. In this package 370 tests pass and 96 are
+version is tested. In this package 371 tests pass and 109 are
 skipped, each with the reason: they generate cases (ZDPlasKin and BOLSIG+ needed) or use the
 gas mixtures whose mechanisms and cross sections we cannot redistribute (`casos/LEIAME.md`). With
 `ZDPLASKIN_DIR` set and those cases rebuilt, they run too.
@@ -50,18 +52,18 @@ mean power 0.647 W (measured 0.559 W) and current peak of about 24 mA at 19.6 µ
 ## Running
 
 ```
-python3 prototipo/simula.py OUTPUT_DIR [--caso casos/NAME] --gap 3e-3 --espessura 1e-3 \
-    --eps-dieletrico 4.2 --pressao 1e4 --forma seno --periodo 4e-5 --v-pico 1800 \
-    --energia --t-end 4e-4 --dt-saida 5e-8
+python3 prototipo/simula.py OUTPUT_DIR [--case casos/NAME] --gap 3e-3 --thickness 1e-3 \
+    --eps-dielectric 4.2 --pressure 1e4 --waveform sine --period 4e-5 --v-peak 1800 \
+    --energy --t-end 4e-4 --dt-output 5e-8
 python3 prototipo/simula.py --help
 ```
 
-`--t-end` must be a whole number of `--dt-saida` intervals.
+`--t-end` must be a whole number of `--dt-output` intervals.
 
 Output: `superficie.dat` (applied voltage, potentials and surface charge of both barriers) and
 `perfil.dat` (profiles of every species, fields, electron energy and gas temperature), plus
 `parametros.json` with the arguments, the sha256 of every input and the code version. A run can be
-resumed from any saved instant with `--retoma DIR T`, repeating the options of the original run
+resumed from any saved instant with `--restart DIR T`, repeating the options of the original run
 (the program refuses a different mesh, case or voltage form).
 
 ## Data

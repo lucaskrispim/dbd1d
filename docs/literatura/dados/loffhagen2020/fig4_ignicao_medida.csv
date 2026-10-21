@@ -1,4 +1,4 @@
-# Loffhagen 2020 fig. 4: tensão de ignição medida (amplitude da senoide), Ar com x ppm de TMS
+# Loffhagen 2020 fig. 4: measured ignition voltage (amplitude of the sine), Ar with x ppm of TMS
 # x_ppm,Ui_kV,Ui_min_kV,Ui_max_kV
 0,3.019,2.865,3.174
 5,2.703,2.695,2.714

@@ -1,4 +1,4 @@
-# Yang 2022 fig. 9: N(4S) medido por TALIF 100 µs depois de cada pulso, rajada em N2, 150 Torr; mín. e máx.: extremos da barra de erro (barras claras incluídas), ou a borda do marcador quando não há barra visível; a barra pode se estender alguns pixels onde a curva do modelo, da mesma cor, cruza a coluna do ponto
+# Yang 2022 fig. 9: N(4S) measured by TALIF 100 us after each pulse, burst in N2, 150 Torr; min and max: ends of the error bar (light bars included), or the edge of the marker when no bar is visible; the bar may extend a few pixels where the model curve, of the same colour, crosses the column of the point
 # pulso,N_cm3,N_min_cm3,N_max_cm3
 10,6.3633e+14,4.7896e+14,6.7946e+14
 20,1.1783e+15,1.1027e+15,1.2252e+15

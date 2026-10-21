@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Testes da equação de energia dos elétrons (aproximação da energia média local)."""
+"""Tests of the electron energy equation (local mean energy approximation)."""
 import numpy as np
 import pytest
 
@@ -27,7 +27,7 @@ def test_tabela_por_energia_reproduz_os_nos(pecas):
 
 
 def test_potencia_tabelada_igual_ao_ganho_de_campo_local(pecas):
-    # em regime, a potência absorvida por N é mu*N*(E/N)**2 em cada linha
+    # in steady state, the power absorbed per N is mu*N*(E/N)**2 in each row
     te = pecas[2]
     ganho = te.valores[:, E_MUN] * (te.e_n * 1e-17) ** 2
     np.testing.assert_allclose(te.valores[:, E_POT], ganho, rtol=1e-6)
@@ -35,12 +35,12 @@ def test_potencia_tabelada_igual_ao_ganho_de_campo_local(pecas):
 
 @pytest.mark.parametrize("e_n", [30.0, 100.0, 300.0, 1000.0, 3000.0])
 def test_avalanche_uniforme_mantem_a_energia_de_campo_local(pecas, e_n):
-    # plasma e campo uniformes com eps = eps(E/N): a energia média não varia,
-    # contando a diluição pelos elétrons que a ionização cria,
+    # uniform plasma and field with eps = eps(E/N): the mean energy does not change,
+    # counting the dilution by the electrons that ionisation creates,
     #   d(eps)/dt = (d(n_eps)/dt - eps d(n_e)/dt) / n_e = 0.
-    # A potência P/N do BOLSIG+ é a que o campo entrega e inclui o crescimento
-    # k_ion*eps; como perda só entram P_el + P_inel. Com eps 10% acima a
-    # energia cai, 10% abaixo ela sobe.
+    # The BOLSIG+ power P/N is the one the field delivers and includes the growth
+    # k_ion*eps; only P_el + P_inel enter as loss. With eps 10% above the
+    # energy falls, 10% below it rises.
     md = modelo(pecas, n_celulas=40)
     campo = np.full(md.m + 1, e_n * 1e-21 * md.n_gas * 1e6)
     n = np.zeros((md.n_esp, md.m))
@@ -58,16 +58,16 @@ def test_avalanche_uniforme_mantem_a_energia_de_campo_local(pecas, e_n):
         eps = eps0 * fator
         escala = n[md.i_e, c] * md.n_gas * extra["pot"][c]
         taxas.append((d_eps[c] - eps * d_ne[c]) / escala)
-    # resíduo medido abaixo de 4e-5 de P acima de 10 Td (interpolação e ruído do
-    # BOLSIG+); o defeito corrigido (Q1) dava 0,37% a 30 Td e 7% a 100 Td
+    # residual measured below 4e-5 of P above 10 Td (interpolation and noise of
+    # BOLSIG+); the corrected defect (Q1) gave 0.37% at 30 Td and 7% at 100 Td
     assert abs(taxas[0]) < 2e-4
     assert taxas[1] < 0.0 < taxas[2]
 
 
 def test_potencias_da_tabela_de_energia(pecas):
-    # P_inel é a soma limiar*k dos processos do gás de fundo no bolsigdb.dat (sem
-    # superelástica nem Ar*), e P - P_el - P_inel = k_ion*eps: a tabela vem do
-    # modelo de crescimento temporal do BOLSIG+, que a perda do fluido pressupõe
+    # P_inel is the sum threshold*k of the processes of the background gas in bolsigdb.dat (without
+    # superelastic nor Ar*), and P - P_el - P_inel = k_ion*eps: the table comes from the
+    # temporal growth model of BOLSIG+, which the loss of the fluid assumes
     linhas = (RAIZ / "bolsigdb.dat").read_text().splitlines()
     limiar = {}
     for i, l in enumerate(linhas):
@@ -85,10 +85,10 @@ def test_potencias_da_tabela_de_energia(pecas):
 
 
 def test_fluxo_de_energia_na_parede(pecas):
-    # elétrons com eps = 15 eV (Te = 10 eV) e campo +1e6 V/m: na parede
-    # esquerda (deriva para ela) saem 5/2 kTe por elétron do fluxo térmico (fluxo
-    # de energia (5/6) v_term n_eps, Hagelaar et al. 2000) mais
-    # mu_eps*E*n_eps; na direita só o térmico freado. Sem íons, sem secundários.
+    # electrons with eps = 15 eV (Te = 10 eV) and field +1e6 V/m: at the left
+    # wall (drift towards it) 5/2 kTe per electron of the thermal flux leave (energy
+    # flux (5/6) v_term n_eps, Hagelaar et al. 2000) plus
+    # mu_eps*E*n_eps; on the right only the braked thermal flux. No ions, no secondaries.
     md = modelo(pecas, n_celulas=40, agrupamento=1.5)
     n0, eps, e = 1.0e10, 15.0, 1.0e6
     n = np.zeros((md.n_esp, md.m))
@@ -106,9 +106,9 @@ def test_fluxo_de_energia_na_parede(pecas):
 
 
 def test_energia_no_lado_direito(pecas):
-    # a linha da energia no lado direito é -div(Gamma_eps) + ganho - perda +
-    # colisões com Ar* - energia dos elétrons recombinados, com o ganho calculado pelos fluxos de elétrons das faces
-    # e a perda pelas potências elástica e inelástica da tabela
+    # the energy row of the right-hand side is -div(Gamma_eps) + gain - loss +
+    # collisions with Ar* - energy of the recombined electrons, with the gain computed from the electron fluxes at the faces
+    # and the loss from the elastic and inelastic powers of the table
     md = modelo(pecas, n_celulas=30, agrupamento=1.5, espessura=1.75e-3, v_pico=5.0e3)
     gerador = np.random.default_rng(5)
     n = 10.0 ** gerador.uniform(9, 12, size=(md.n_esp, md.m))
@@ -126,7 +126,7 @@ def test_energia_no_lado_direito(pecas):
                                  - 4.3 * k[md.q.reacoes.index("bolsig:AR*->AR^+")])
     v = md.tab_e(extra["eps"])
     perda = v[:, E_PEL] + v[:, E_PINEL]
-    # recombinação: cada elétron perdido leva a energia média
+    # recombination: each lost electron carries the mean energy
     eps = extra["eps"]
     te = (2.0 / 3.0) * eps * 1.602176634e-19 / 1.380649e-23
     ne, ar1, ar2 = n[md.i_e], n[md.nomes.index("AR^+")], n[md.nomes.index("AR2^+")]
@@ -138,9 +138,9 @@ def test_energia_no_lado_direito(pecas):
 
 
 def test_fluxo_de_energia_interno_exato_no_equilibrio(pecas):
-    # com mu_eps e D_eps uniformes e campo uniforme, n_eps = exp(-mu_eps*E*x/D_eps)
-    # (deriva dos elétrons para -x equilibrada pela difusão) tem fluxo de energia
-    # nulo em toda face interna, também na malha agrupada
+    # with uniform mu_eps and D_eps and uniform field, n_eps = exp(-mu_eps*E*x/D_eps)
+    # (electron drift towards -x balanced by diffusion) has zero energy flux
+    # at every inner face, also on the clustered mesh
     md = modelo(pecas, n_celulas=40, agrupamento=2.0)
     mu, dd, e = 0.04, 0.3, 2.0e4
     n_eps = np.exp(-mu * e * md.xc / dd)
@@ -155,9 +155,9 @@ def test_fluxo_de_energia_interno_exato_no_equilibrio(pecas):
 
 
 def test_energia_media_sem_eletrons_e_a_de_campo_local(pecas):
-    # onde não há elétrons (n_e nulo ou levemente negativo por arredondamento do
-    # integrador) a razão n_eps/n_e não tem sentido: a energia média é a de
-    # campo local; com elétrons abundantes, é n_eps/n_e
+    # where there are no electrons (n_e zero or slightly negative by rounding of the
+    # integrator) the ratio n_eps/n_e makes no sense: the mean energy is that of the
+    # local field; with abundant electrons, it is n_eps/n_e
     md = modelo(pecas, n_celulas=4)
     e_n = np.array([30.0, 30.0, 30.0, 30.0])
     n = np.zeros((md.n_esp, 4))
@@ -170,9 +170,9 @@ def test_energia_media_sem_eletrons_e_a_de_campo_local(pecas):
 
 
 def test_ganho_de_energia_na_celula_da_parede(pecas):
-    # plasma e campo uniformes: o trabalho do campo por elétron é o mesmo em toda
-    # célula, inclusive nas das paredes. O fluxo de absorção na face da parede é
-    # dominado pela agitação térmica, que o campo não realiza, e não pode entrar
+    # uniform plasma and field: the work of the field per electron is the same in every
+    # cell, including the wall cells. The absorption flux at the wall face is
+    # dominated by thermal motion, which the field does not perform, and cannot enter
     # no ganho
     md = modelo(pecas, n_celulas=40)
     e_n = 50.0
@@ -188,7 +188,7 @@ def test_ganho_de_energia_na_celula_da_parede(pecas):
 
 
 def test_fora_da_tabela_e_contado(pecas):
-    # E/N ou energia média fora da faixa da tabela usam o extremo e são contados
+    # E/N or mean energy outside the range of the table use the end value and are counted
     tab, tab_e = pecas[1], pecas[2]
     tab.fora = tab_e.fora = 0
     tab(np.array([1.0, 1.0e4, 2.0e4]))
@@ -197,10 +197,10 @@ def test_fora_da_tabela_e_contado(pecas):
 
 
 def test_energia_das_colisoes_com_o_ar_metaestavel(pecas):
-    # o BOLSIG+ do Fortran recebe a mistura Ar e Ar* (bloco BOLSIG do kinet.inp);
-    # a tabela é de Ar puro, então a potência tabelada não tem as colisões com
-    # Ar*: a superelástica Ar* + e -> Ar + e devolve 11,5 eV ao elétron e a
-    # ionização em etapas e + Ar* -> Ar+ custa 4,3 eV (limiares do bolsigdb.dat)
+    # the BOLSIG+ of the Fortran code receives the mixture Ar and Ar* (BOLSIG block of kinet.inp);
+    # the table is for pure Ar, so the tabulated power lacks the collisions with
+    # Ar*: the superelastic Ar* + e -> Ar + e returns 11.5 eV to the electron and the
+    # stepwise ionisation e + Ar* -> Ar+ costs 4.3 eV (thresholds of bolsigdb.dat)
     q = pecas[0]
     dE = q.energia_eletronica(RAIZ / "bolsigdb.dat", "AR")
     esperado = {"bolsig:AR*->AR": 11.5, "bolsig:AR*->AR^+": -4.3}
@@ -229,9 +229,9 @@ def test_ganho_superelastico_na_equacao_de_energia(pecas):
 
 
 def test_recombinacao_tira_a_energia_dos_eletrons(pecas):
-    # cada elétron que some na recombinação (Ar2+ + e -> Ar* + Ar, Ar+ + 2e ->
-    # Ar + e, e + Ar2+ -> 2Ar) leva a energia média: d(n_eps) ganha -eps*taxa.
-    # Taxas pelas expressões do kinet.inp, com Te = (2/3) eps
+    # each electron that vanishes in recombination (Ar2+ + e -> Ar* + Ar, Ar+ + 2e ->
+    # Ar + e, e + Ar2+ -> 2Ar) carries the mean energy: d(n_eps) gains -eps*rate.
+    # Rates from the expressions of kinet.inp, with Te = (2/3) eps
     md = modelo(pecas, n_celulas=10)
     campo = np.zeros(md.m + 1)
     eps = 2.0
@@ -255,8 +255,8 @@ def test_recombinacao_tira_a_energia_dos_eletrons(pecas):
 
 
 def test_fora_da_tabela_contado_antes_de_prender(pecas):
-    # a energia média é presa à faixa da tabela, mas a ocorrência tem de ser
-    # contada antes, acima e abaixo (I3; o Fortran conta os dois lados)
+    # the mean energy is clamped to the range of the table, but the occurrence must be
+    # counted before, above and below (I3; the Fortran code counts both sides)
     md = modelo(pecas, n_celulas=4)
     n = np.zeros((md.n_esp, md.m))
     n[md.i_e] = 1.0e10
@@ -266,8 +266,8 @@ def test_fora_da_tabela_contado_antes_de_prender(pecas):
     assert tab.fora == md.m
     md.energia_media(n, n[md.i_e] * 0.5 * tab.eps[0], np.zeros(md.m))
     assert tab.fora_abaixo == md.m
-    # sem elétrons, ou com poucos (1 cm-3, ruído do integrador), a energia
-    # média não é definida e nada é contado
+    # without electrons, or with few (1 cm-3, integrator noise), the mean
+    # energy is not defined and nothing is counted
     tab.fora = tab.fora_abaixo = 0
     md.energia_media(np.zeros((md.n_esp, md.m)), np.zeros(md.m), np.zeros(md.m))
     poucos = np.zeros((md.n_esp, md.m))
@@ -277,10 +277,10 @@ def test_fora_da_tabela_contado_antes_de_prender(pecas):
 
 
 def test_energia_dos_eletrons_secundarios_na_parede(pecas):
-    # sem elétrons e sem campo, a única energia que cruza a face da parede é a
-    # dos secundários: eps_sec por elétron, gama por íon que chega, e os íons
-    # chegam com n v_térm/2 (Ar2+ com o dobro da massa); entra no gás (sinal +x
-    # na esquerda, -x na direita)
+    # without electrons and without field, the only energy crossing the wall face is that
+    # of the secondaries: eps_sec per electron, gamma per arriving ion, and the ions
+    # arrive with n v_th/2 (Ar2+ with twice the mass); it enters the gas (sign +x
+    # on the left, -x on the right)
     md = modelo(pecas, n_celulas=10, gama_sec=0.1, eps_sec=4.0)
     n = np.zeros((md.n_esp, md.m))
     n[md.nomes.index("AR^+")] = 2e9
@@ -298,9 +298,9 @@ def test_energia_dos_eletrons_secundarios_na_parede(pecas):
 
 
 def test_ganho_do_terceiro_eletron_na_recombinacao_a_tres_corpos(pecas):
-    # Ar+ + e + e -> Ar + e: com ganho_tres_corpos = G, o elétron que sobra
-    # recebe G eV por evento (hipótese limite: 15,76 eV, captura no fundamental;
-    # padrão 0). A diferença no lado direito é G k8 ne^2 n_Ar+
+    # Ar+ + e + e -> Ar + e: with ganho_tres_corpos = G, the remaining electron
+    # receives G eV per event (limiting hypothesis: 15.76 eV, capture into the ground state;
+    # default 0). The difference in the right-hand side is G k8 ne^2 n_Ar+
     eps = 0.2
     d = {}
     for g in (0.0, 15.76):
@@ -319,8 +319,8 @@ def test_ganho_do_terceiro_eletron_na_recombinacao_a_tres_corpos(pecas):
 
 
 def test_fora_da_tabela_nos_estados_gravados(pecas):
-    # contagem por estado (para o log das saídas): células acima e abaixo da
-    # faixa da tabela, só onde há elétrons bastantes (n_e > 10 cm-3)
+    # count per state (for the output log): cells above and below the
+    # range of the table, only where there are enough electrons (n_e > 10 cm-3)
     md = modelo(pecas, n_celulas=5)
     n = np.zeros((md.n_var, md.m))
     n[md.i_e] = [1e10, 1e10, 1e10, 1.0, 0.0]

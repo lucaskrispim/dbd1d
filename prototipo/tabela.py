@@ -1,11 +1,11 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Tabela dos coeficientes dos elétrons em E/N (tabela_bolsig.dat), com a mesma
-interpolação do módulo Fortran tabela: linear em (ln E/N, ln valor), ou em
-(ln E/N, valor) quando um dos nós vale zero, e valores presos nos extremos.
+"""Tables of the electron coefficients. Tabela: versus E/N (tabela_bolsig.dat),
+linear in (ln E/N, ln value), or in (ln E/N, value) when a node is zero, with
+values held at the ends.
 
-Colunas: Te (K), mu*N (1/(cm V s)), D*N (1/(cm s)), nu/N (cm3/s), Pel/N
-(eV cm3/s) e as taxas de impacto eletrônico (cm3/s), na ordem de
-bolsig_pointer do ZDPlasKin.
+Columns: Te (K), mu*N (1/(cm V s)), D*N (1/(cm s)), nu/N (cm3/s), Pel/N
+(eV cm3/s) and the electron impact rate coefficients (cm3/s), in the order of
+bolsig_pointer of ZDPlasKin.
 """
 import pathlib
 
@@ -27,12 +27,12 @@ class Tabela:
         positivo = self.valores > 0.0
         self.ln_valores = np.where(positivo, np.log(np.where(positivo, self.valores, 1.0)), 0.0)
         self.positivo = positivo
-        # avaliações acima do maior E/N da tabela (usam o último nó)
+        # evaluations above the largest E/N of the table (they use the last node)
         self.fora = 0
 
     def __call__(self, e_n, t_gas=None):
-        """Valores (células, colunas) em e_n (Td), vetor; a temperatura do gás
-        não entra (tabela a 300 K)."""
+        """Values (cells, columns) at e_n (Td), a vector; the gas temperature does
+        not enter (table at 300 K)."""
         e_n = np.atleast_1d(np.asarray(e_n, dtype=float))
         self.fora += int(np.count_nonzero(e_n > self.e_n[-1]))
         x = np.log(np.clip(e_n, self.e_n[0], self.e_n[-1]))
@@ -45,18 +45,18 @@ class Tabela:
         return np.where(ambos, log_interp, lin_interp)
 
 
-# colunas de tabela_energia.dat depois de E/N
-# (E_POT é a potência que o campo entrega, que no modelo de crescimento
-# temporal do BOLSIG+ inclui k_ion*eps; a perda por colisões é E_PEL + E_PINEL;
-# E_NUN é a frequência de colisão por N)
+# columns of tabela_energia.dat after E/N
+# (E_POT is the power delivered by the field, which in the temporal growth model
+# of BOLSIG+ includes k_ion*eps; the collisional loss is E_PEL + E_PINEL; E_NUN
+# is the collision frequency per N)
 EPS, E_MUN, E_DN, E_MUEN, E_DEN, E_POT, E_PEL, E_PINEL, E_NUN, E_K0 = range(10)
 
 
 class TabelaEnergia:
-    """Coeficientes dos elétrons em função da energia média (eV), de
-    tabela_energia.dat, para a equação de energia dos elétrons. Interpolação
-    linear em (ln eps, ln valor), ou em (ln eps, valor) quando um dos nós vale
-    zero; fora da faixa, valores presos nos extremos."""
+    """Electron coefficients versus the mean energy (eV), from
+    tabela_energia.dat, for the electron energy equation. Interpolation linear in
+    (ln eps, ln value), or in (ln eps, value) when a node is zero; outside the
+    range, values held at the ends."""
 
     def __init__(self, arquivo=None, dados=None):
         if dados is None:
@@ -66,19 +66,19 @@ class TabelaEnergia:
         self.e_n = dados[:, 0]
         self.eps = dados[:, 1]
         if np.any(np.diff(self.eps) <= 0.0):
-            raise ValueError("energia media nao monotona em tabela_energia.dat")
+            raise ValueError("mean energy not monotonic in tabela_energia.dat")
         self.valores = dados[:, 1:]
         self.ln_eps = np.log(self.eps)
         self.positivo = self.valores > 0.0
         self.ln_valores = np.where(self.positivo, np.log(np.where(self.positivo, self.valores, 1.0)), 0.0)
-        # avaliações acima da maior energia da tabela (usam o último nó) e
-        # abaixo da menor
+        # evaluations above the largest energy of the table (they use the last
+        # node) and below the smallest
         self.fora = 0
         self.fora_abaixo = 0
 
     def __call__(self, eps, t_gas=None):
-        """Coeficientes (células, colunas) nas energias médias dadas; a
-        temperatura do gás não entra (tabela a 300 K)."""
+        """Coefficients (cells, columns) at the given mean energies; the gas
+        temperature does not enter (table at 300 K)."""
         eps = np.atleast_1d(np.asarray(eps, dtype=float))
         self.fora += int(np.count_nonzero(eps > self.eps[-1] * (1.0 + 1e-12)))
         x = np.log(np.clip(eps, self.eps[0], self.eps[-1]))
@@ -90,27 +90,28 @@ class TabelaEnergia:
         return np.where(ambos, log_interp, lin_interp)
 
     def energia_de_campo_local(self, e_n, t_gas=None):
-        """Energia média de regime no E/N dado (aproximação de campo local)."""
+        """Steady-state mean energy at the given E/N (local field approximation)."""
         e_n = np.clip(np.atleast_1d(e_n), self.e_n[0], self.e_n[-1])
         return np.exp(np.interp(np.log(e_n), np.log(self.e_n), self.ln_eps))
 
     def limites(self, t_gas):
-        """Menor e maior energia média da tabela em cada célula."""
+        """Smallest and largest mean energy of the table in each cell."""
         forma = np.shape(np.atleast_1d(t_gas))
         return np.full(forma, self.eps[0]), np.full(forma, self.eps[-1])
 
 
 class TabelaEnergiaTg:
-    """Coeficientes dos elétrons por energia média e temperatura do gás, de
-    tabela_energia_tg.dat (blocos por T_g, gerados pelo BOLSIG+ com a T_g do
-    bloco; lacuna G4). Em cada nó de T_g, a interpolação em energia média da
-    TabelaEnergia; entre os nós, linear em T_g. A menor energia média de cada
-    nó é a de 1e-4 Td, ~(3/2) k T_g, e o piso entre nós é interpolado em T_g.
-    Para os pisos dos dois nós casarem com o piso local, cada nó k é avaliado
-    em eps + (piso_k - piso(T)) piso(T)/eps: o deslocamento leva o piso local ao
-    do nó e some em energia alta; sem ele, perto do piso a perda elástica
-    interpolada passava de 10 vezes a do BOLSIG+ (revisão). Fora da faixa de
-    T_g, os valores do nó extremo (contados em fora_t)."""
+    """Electron coefficients versus mean energy and gas temperature, from
+    tabela_energia_tg.dat (blocks per T_g, generated by BOLSIG+ with the T_g of
+    the block). At each T_g node, the mean energy interpolation of
+    TabelaEnergia; between nodes, linear in T_g. The smallest mean energy of each
+    node is that of 1e-4 Td, ~(3/2) k T_g, and the floor between nodes is
+    interpolated in T_g. For the floors of the two nodes to match the local
+    floor, each node k is evaluated at eps + (floor_k - floor(T)) floor(T)/eps:
+    the shift takes the local floor to that of the node and vanishes at high
+    energy; without it, near the floor the interpolated elastic loss exceeded
+    that of BOLSIG+ by a factor of 10. Outside the T_g range, the values of the
+    edge node (counted in fora_t)."""
 
     def __init__(self, arquivo):
         linhas = [l.split() for l in pathlib.Path(arquivo).read_text().splitlines()
@@ -118,7 +119,7 @@ class TabelaEnergiaTg:
         dados = np.array([[float(x) for x in l] for l in linhas])
         self.t_gas = np.unique(dados[:, 0])
         self.blocos = [TabelaEnergia(dados=dados[dados[:, 0] == t, 1:]) for t in self.t_gas]
-        # compatibilidade com a TabelaEnergia: energias do nó de 300 K
+        # compatibility with TabelaEnergia: energies of the first node
         self.e_n, self.eps = self.blocos[0].e_n, self.blocos[0].eps
         self.eps_min = np.array([b.eps[0] for b in self.blocos])
         self.eps_max = np.array([b.eps[-1] for b in self.blocos])
@@ -135,8 +136,8 @@ class TabelaEnergiaTg:
         return a, w
 
     def _em_t(self, f, x, t_gas):
-        """(1 - w) f(a, x) + w f(a+1, x) por célula, só nos nós usados; f
-        recebe o índice do nó, os valores e a seleção de células."""
+        """(1 - w) f(a, x) + w f(a+1, x) per cell, only at the nodes used; f
+        receives the index of the node, the values and the selection of cells."""
         x = np.atleast_1d(np.asarray(x, dtype=float))
         a, w = self._pesos(t_gas, x.size)
         saida = None
@@ -169,12 +170,13 @@ class TabelaEnergiaTg:
 
 
 class TabelaEEDF:
-    """EEDF do BOLSIG+ em nós da tabela de energia (tabela_eedf.dat), para
-    diagnóstico: devolve a EEDF numa energia média dada. A interpolação entre os
-    dois nós vizinhos é na variável reduzida x = u/eps, com g(x) = eps^(3/2)
-    f(x eps), linear em (ln eps, ln g) e com ln g extrapolado linearmente além da
-    grade de cada nó; a forma de uma maxwelliana sai exata. A EEDF interpolada é
-    renormalizada (integral de sqrt(u) f du = 1). Fora da faixa, o nó extremo."""
+    """EEDF of BOLSIG+ at nodes of the energy table (tabela_eedf.dat), for
+    diagnostics: returns the EEDF at a given mean energy. The interpolation
+    between the two neighbouring nodes is in the reduced variable x = u/eps, with
+    g(x) = eps^(3/2) f(x eps), linear in (ln eps, ln g) and with ln g linearly
+    extrapolated beyond the grid of each node; the shape of a Maxwellian comes out
+    exact. The interpolated EEDF is renormalized (integral of sqrt(u) f du = 1).
+    Outside the range, the edge node."""
 
     def __init__(self, arquivo):
         blocos, atual = [], []
@@ -195,7 +197,7 @@ class TabelaEEDF:
         self.ln_eps = np.log(self.eps)
 
     def _ln_g(self, k, x):
-        """ln g do nó k em x, com extrapolação linear nas duas pontas."""
+        """ln g of node k at x, with linear extrapolation at both ends."""
         xk = self.u[k] / self.eps[k]
         lg = 1.5 * self.ln_eps[k] + np.log(self.f[k])
         r = np.interp(x, xk, lg)
@@ -216,9 +218,9 @@ class TabelaEEDF:
 
 
 def momentos_da_eedf(u, f, sub=20):
-    """Integrais de sqrt(u) f du e de u^(3/2) f du (norma e energia média) com
-    ln f linear entre os pontos da grade (subdivididos) e, de 0 ao primeiro ponto,
-    ln f extrapolado linearmente (f exponencial, exata para a maxwelliana)."""
+    """Integrals of sqrt(u) f du and of u^(3/2) f du (norm and mean energy) with
+    ln f linear between the grid points (subdivided) and, from 0 to the first
+    point, ln f linearly extrapolated (exponential f, exact for a Maxwellian)."""
     trapezio = getattr(np, "trapezoid", None) or np.trapz
     ln_f = np.log(f)
     inclinacao = (ln_f[1] - ln_f[0]) / (u[1] - u[0])
@@ -234,12 +236,12 @@ def momentos_da_eedf(u, f, sub=20):
 
 
 class TabelaTg:
-    """Coeficientes de campo local (colunas da Tabela) por E/N e temperatura do
-    gás, montados dos blocos de tabela_energia_tg.dat (lacuna G4 em campo
-    local): em cada nó de T_g, a interpolação da Tabela em E/N; entre os nós,
-    linear em T_g no mesmo E/N. Te vem da energia média, (2/3) eps/k; as outras
-    colunas são as do BOLSIG+ (a 300 K, idênticas às da tabela_bolsig.dat).
-    Fora da faixa de T_g, o nó extremo (contado em fora_t)."""
+    """Local field coefficients (columns of Tabela) versus E/N and gas
+    temperature, built from the blocks of tabela_energia_tg.dat: at each T_g
+    node, the interpolation of Tabela in E/N; between nodes, linear in T_g at the
+    same E/N. Te comes from the mean energy, (2/3) eps/k; the other columns are
+    those of BOLSIG+ (at 300 K, identical to those of tabela_bolsig.dat). Outside
+    the T_g range, the edge node (counted in fora_t)."""
 
     KB_EV = 1.380649e-23 / 1.602176634e-19
 
@@ -251,7 +253,7 @@ class TabelaTg:
         self.blocos = []
         for t in self.t_gas:
             d = dados[dados[:, 0] == t, 1:]
-            # E/N, Te, mu*N, D*N, nu/N, Pel/N, taxas (ordem da Tabela)
+            # E/N, Te, mu*N, D*N, nu/N, Pel/N, rates (order of Tabela)
             lfa = np.column_stack([d[:, 0], d[:, 1 + EPS] / (1.5 * self.KB_EV), d[:, 1 + E_MUN],
                                    d[:, 1 + E_DN], d[:, 1 + E_NUN], d[:, 1 + E_PEL], d[:, 1 + E_K0:]])
             self.blocos.append(Tabela(dados=lfa))

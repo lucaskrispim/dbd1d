@@ -1,4 +1,4 @@
-# Yang 2022 fig. 7: N2(A, v1) medido por TDLAS, rajada de 150 pulsos em N2, 150 Torr; envoltória de cima e de baixo (o sinal oscila a cada pulso de 10 µs); a de cima é aproximada onde o modelo, desenhado por cima em azul semitransparente, encobre o topo da curva medida
+# Yang 2022 fig. 7: N2(A, v1) measured by TDLAS, burst of 150 pulses in N2, 150 Torr; upper and lower envelope (the signal oscillates at every 10 us pulse); the upper one is approximate where the model, drawn on top in semi-transparent blue, hides the top of the measured curve
 # t_us,max_cm3,min_cm3
 -38.766,0,-4.896e+11
 -35.074,0,-4.896e+11

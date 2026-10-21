@@ -1,13 +1,13 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""C1: colapso junto ao cátodo em campo local (ACHADOS, "Colapso junto ao
-cátodo em campo local"). No caso de 5 kV com quartzo e aquecimento, com 100
-células, a coluna de plasma em campo local avança até o cátodo e a célula da
-parede dispara (n_e/N acima de 1). Retomando o mesmo estado aos 65 ns, com a
-coluna ainda a 170 µm da parede, o colapso acontece também sem emissão
-secundária, e com a equação de energia não acontece: a coluna para a mais de
-20 µm do cátodo. Se o campo local deixar de colapsar, o registro precisa ser
-revisto; se a energia colapsar, o modelo de produção perdeu a validade nesse
-caso."""
+"""C1: collapse next to the cathode in local field (ACHADOS, "Colapso junto ao
+cátodo em campo local"). In the 5 kV case with quartz and heating, with 100
+cells, the plasma column in local field advances to the cathode and the wall cell
+blows up (n_e/N above 1). Restarting the same state at 65 ns, with the column
+still 170 µm from the wall, the collapse also happens without secondary emission,
+and with the energy equation it does not happen: the column stops more than
+20 µm from the cathode. If the local field stops collapsing, the record must be
+revised; if the energy model collapses, the production model lost its validity
+in this case."""
 import subprocess
 import sys
 
@@ -21,8 +21,8 @@ from resumo import blocos  # noqa: E402
 
 CASO = ["--v-pico", "5e3", "--espessura", "1.75e-3", "--n-celulas", "100", "--dt-saida", "1e-9",
         "--aquecimento", "--eps-gas", "1.000516"]
-N_GAS = 101325.0 / (1.380649e-23 * 300.0) * 1e-6     # cm-3, gás preso a 300 K
-AVISO = "grau de ionizacao acima de 1e-3"
+N_GAS = 101325.0 / (1.380649e-23 * 300.0) * 1e-6     # cm-3, gas held at 300 K
+AVISO = "ionization degree above 1e-3"
 
 
 def roda(destino, *extra):
@@ -39,7 +39,7 @@ def origem(tmp_path_factory):
 
 
 def ionizacao_maxima(d):
-    """Maior n_e/N em todas as células e instantes gravados e a posição (m) dele."""
+    """Largest n_e/N over all cells and recorded instants and its position (m)."""
     melhor = (0.0, 0.0)
     for _, nomes, linhas in blocos(d / "perfil.dat"):
         a = np.array(linhas[1:-1])
@@ -55,7 +55,7 @@ def test_colapso_catodico(tmp_path, origem, extra, colapsa):
     assert (AVISO in r.stdout) == colapsa, r.stdout[-2000:]
     x, pos = ionizacao_maxima(tmp_path)
     if colapsa:
-        assert f"{AVISO} em t" in r.stdout and " no 2 (" in r.stdout     # na célula da parede
+        assert f"{AVISO} at t" in r.stdout and " node 2 (" in r.stdout     # in the wall cell
         assert x > 0.1
     else:
         assert r.returncode == 0, r.stdout[-2000:] + r.stderr[-2000:]

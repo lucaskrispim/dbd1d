@@ -1,47 +1,49 @@
 ! SPDX-License-Identifier: GPL-3.0-or-later
-! Gera tabela_energia.dat: os coeficientes dos elétrons do BOLSIG+ (via
-! ZDPlasKin) para a aproximação da energia média local (equação de energia dos
-! elétrons), de 1e-4 a 5000 Td (100
-! pontos por década), gás a 300 K, elétrons e Ar* desprezíveis. A simulação
-! interpola pela energia média; E/N fica na primeira coluna para conferência.
-! Colunas: E/N (Td), energia média (eV), mu*N (1/(cm V s)), D*N (1/(cm s)),
-! mu_eps*N (1/(cm V s)), D_eps*N (1/(cm s)), potência que o campo entrega por N
-! (eV cm3/s; no modelo de crescimento temporal do BOLSIG+ ela é a perda por
-! colisões mais k_ion*eps, a energia dos elétrons criados), potência elástica e
-! potência inelástica por N (eV cm3/s; a soma das duas é a perda por colisões),
-! frequência de colisão por N (cm3/s) e as taxas de impacto eletrônico
-! (cm3/s), na ordem de bolsig_pointer.
-! Grava também tabela_eedf.dat, a EEDF do BOLSIG+ (energia em eV, f em
-! eV^-3/2, normalizada com a integral de sqrt(u) f du = 1) em todos os nós
-! abaixo de 0,1 Td (região de Ramsauer, onde a forma muda depressa) e em um de
-! cada dez acima (10 por década): um bloco por nó, com a linha E/N e energia média e as
-! linhas u e f, separados por linha vazia. A EEDF é pedida depois dos
-! coeficientes, para não mudar a ordem da varredura do BOLSIG+ (que parte da
-! solução anterior).
-! Grava ainda tabela_energia_tg.dat, as mesmas colunas com a temperatura do gás
-! na frente, em blocos de T_g (nós em t_nos, de 300 a 1500 K, ou os do arquivo opcional
-! t_nos.txt do caso; o primeiro é a varredura de
-! tabela_energia.dat, feita antes de qualquer outra para não mudá-la), e
-! tabela_energia_tg_conferencia.dat, blocos em T_g no meio de intervalos (425, 650,
-! 1125 e 1375 K) e um a 300 K
-! com E/N a meio passo dos nós, só para testar a interpolação. A densidade do gás fica a de 300 K: os coeficientes gravados
-! são reduzidos por N.
-! O topo de E/N é 5000 Td, ou o valor (Td) do arquivo opcional en_max.txt do caso:
-! com N2:H2 25:75 o BOLSIG+ cai com falha de segmentação perto de 4300 Td.
-! A composição do gás vem de composicao.txt no diretório de execução, uma linha
-! por espécie: NOME FRACAO (fração do gás, a 1 atm e 300 K) ou NOME traco
-! (1 cm-3, como os elétrons); sem o arquivo, argônio puro com Ar+ como traço.
-! O número de taxas é o de processos do BOLSIG+ do caso (size(bolsig_pointer)),
-! e o cabeçalho traz os nomes das reações bolsig: do kinet.inp, na mesma ordem.
-! Com calor_rapido.txt (NOME_DO_PROCESSO LIMIAR_EV por linha, escrito por
-! ferramentas/caso.py calor), grava tabela_calor_tg.dat: T_g, E/N, energia média e
-! a potência por N desses processos, nos nós de T_g: a bruta, soma de k*limiar
-! (eV cm3/s), vezes (1 - (3/2) k T_g / energia média) (o saldo com a desexcitação,
-! que zera com os elétrons térmicos, como na perda elástica) e limitada pela perda
-! inelástica total do BOLSIG+ (o gás não recebe mais do que os elétrons perdem).
-! Rodar com make tabela-energia ou ferramentas/caso.py tabelas (stdin fechado:
-! falha do BOLSIG+ aborta). Antes de cada chamada ao BOLSIG+, o ponto (T_g, E/N)
-! vai para progresso_tabelas.txt: numa queda, ferramentas/caso.py sabe onde foi.
+! Generates tabela_energia.dat: the electron coefficients of BOLSIG+ (through
+! ZDPlasKin) for the local mean energy approximation (electron energy equation),
+! from 1e-4 to 5000 Td (100 points per decade), gas at 300 K, electrons and
+! excited states negligible. The simulation interpolates in the mean energy; E/N
+! is in the first column for reference.
+! Columns: E/N (Td), mean energy (eV), mu*N (1/(cm V s)), D*N (1/(cm s)),
+! mu_eps*N (1/(cm V s)), D_eps*N (1/(cm s)), power delivered by the field per N
+! (eV cm3/s; in the temporal growth model of BOLSIG+ it is the collisional loss
+! plus k_ion*eps, the energy of the created electrons), elastic power and
+! inelastic power per N (eV cm3/s; their sum is the collisional loss), collision
+! frequency per N (cm3/s) and the electron impact rate coefficients (cm3/s), in
+! the order of bolsig_pointer.
+! Also writes tabela_eedf.dat, the EEDF of BOLSIG+ (energy in eV, f in eV^-3/2,
+! normalized with the integral of sqrt(u) f du = 1) at every node below 0.1 Td
+! (Ramsauer region, where the shape changes quickly) and at one in ten above (10
+! per decade): one block per node, with the line E/N and mean energy and the
+! lines u and f, separated by an empty line. The EEDF is requested after the
+! coefficients, so as not to change the order of the BOLSIG+ sweep (which starts
+! from the previous solution).
+! Also writes tabela_energia_tg.dat, the same columns with the gas temperature
+! in front, in blocks of T_g (nodes in t_nos, from 300 to 1500 K, or those of the
+! optional file t_nos.txt of the case; the first is the sweep of
+! tabela_energia.dat, done before any other so as not to change it), and
+! tabela_energia_tg_conferencia.dat, blocks at T_g in the middle of intervals
+! (425, 650, 1125 and 1375 K) and one at 300 K with E/N half a step from the
+! nodes, only to test the interpolation. The gas density stays that of 300 K: the
+! written coefficients are reduced by N.
+! The top of E/N is 5000 Td, or the value (Td) of the optional file en_max.txt of
+! the case: with N2:H2 25:75 BOLSIG+ crashes with a segmentation fault near 4300 Td.
+! The gas composition comes from composicao.txt in the working directory, one line
+! per species: NAME FRACTION (fraction of the gas, at 1 atm and 300 K) or NAME
+! traco (1 cm-3, as the electrons); without the file, pure argon with Ar+ as trace.
+! The number of rate coefficients is that of the BOLSIG+ processes of the case
+! (size(bolsig_pointer)), and the header carries the names of the bolsig:
+! reactions of kinet.inp, in the same order.
+! With calor_rapido.txt (PROCESS_NAME THRESHOLD_EV per line, written by
+! ferramentas/caso.py heat), writes tabela_calor_tg.dat: T_g, E/N, mean energy and
+! the power per N of these processes, at the T_g nodes: the raw one, sum of
+! k*threshold (eV cm3/s), times (1 - (3/2) k T_g / mean energy) (the balance with
+! de-excitation, which vanishes for thermal electrons, as in the elastic loss) and
+! limited by the total inelastic loss of BOLSIG+ (the gas does not receive more
+! than the electrons lose).
+! Run with ferramentas/caso.py tables (stdin closed: a failure of BOLSIG+ aborts).
+! Before each call to BOLSIG+, the point (T_g, E/N) goes to progresso_tabelas.txt:
+! after a crash, ferramentas/caso.py knows where it happened.
 program gera_tabela_energia
     use ZDPlasKin
     implicit none
@@ -50,7 +52,7 @@ program gera_tabela_energia
     real(kind=8) :: e_n_max=5.0d3
     real(kind=8),allocatable :: t_nos(:)
     integer,parameter :: por_decada=100
-    real(kind=8),parameter :: n_ar=101325.0d0/(1.380649d-23*300.0d0)*1.0d-6   ! cm-3, gás a 1 atm e 300 K
+    real(kind=8),parameter :: n_ar=101325.0d0/(1.380649d-23*300.0d0)*1.0d-6   ! cm-3, gas at 1 atm and 300 K
     real(kind=8),parameter :: t_nos_padrao(15)=[300.0d0,325.0d0,350.0d0,375.0d0,400.0d0,450.0d0,500.0d0,550.0d0, &
                                          600.0d0,700.0d0,800.0d0,900.0d0,1000.0d0,1250.0d0,1500.0d0]
     real(kind=8),parameter :: t_conf(5)=[300.0d0,425.0d0,650.0d0,1125.0d0,1375.0d0]
@@ -77,20 +79,21 @@ program gera_tabela_energia
     m=nint(log10(e_n_max/e_n_min)*real(por_decada,kind=8))+1
     open(newunit=u,file='tabela_energia.dat',status='replace',action='write')
     open(newunit=ue,file='tabela_eedf.dat',status='replace',action='write')
-    write(ue,'(a,i0,a)')"# EEDF do BOLSIG+ (ZDPlasKin), gas a ",nint(t_nos(1))," K, um bloco por no: E/N (Td) e energia media (eV);"
-    write(ue,'(a)')"# depois energia u (eV) e f (eV^-3/2), normalizada com a integral de sqrt(u) f du = 1"
-    write(u,'(a,i0,a)')"# coeficientes dos eletrons do BOLSIG+ (ZDPlasKin) por energia media, gas a ",nint(t_nos(1))," K"
-    write(u,'(a)')"# E/N (Td), energia media (eV), mu*N, D*N, mu_eps*N, D_eps*N, P/N, Pel/N, Pinel/N, nu/N"// &
+    write(ue,'(a,i0,a)')"# EEDF of BOLSIG+ (ZDPlasKin), gas at ",nint(t_nos(1)), &
+        " K, one block per node: E/N (Td) and mean energy (eV);"
+    write(ue,'(a)')"# then energy u (eV) and f (eV^-3/2), normalized with the integral of sqrt(u) f du = 1"
+    write(u,'(a,i0,a)')"# electron coefficients of BOLSIG+ (ZDPlasKin) versus mean energy, gas at ",nint(t_nos(1))," K"
+    write(u,'(a)')"# E/N (Td), mean energy (eV), mu*N, D*N, mu_eps*N, D_eps*N, P/N, Pel/N, Pinel/N, nu/N"// &
                   trim(nomes)
     open(newunit=ut,file='tabela_energia_tg.dat',status='replace',action='write')
     open(newunit=uc,file='tabela_energia_tg_conferencia.dat',status='replace',action='write')
-    write(ut,'(a)')"# coeficientes dos eletrons do BOLSIG+ (ZDPlasKin) por temperatura do gas e energia media;"
-    write(ut,'(a)')"# T_g (K) e depois as colunas de tabela_energia.dat; um bloco por T_g"
-    write(uc,'(a)')"# como tabela_energia_tg.dat, em T_g fora dos nos, para conferir a interpolacao"
+    write(ut,'(a)')"# electron coefficients of BOLSIG+ (ZDPlasKin) versus gas temperature and mean energy;"
+    write(ut,'(a)')"# T_g (K) and then the columns of tabela_energia.dat; one block per T_g"
+    write(uc,'(a)')"# as tabela_energia_tg.dat, at T_g outside the nodes, to check the interpolation"
     if(nr > 0)then
         open(newunit=ur,file='tabela_calor_tg.dat',status='replace',action='write')
-        write(ur,'(a)')"# calor rapido: T_g (K), E/N (Td), energia media (eV), potencia por N dos processos de "// &
-                       "calor_rapido.txt (eV cm3/s): soma de k*limiar vezes (1 - Tg/Te), limitada por Pinel/N"
+        write(ur,'(a)')"# fast heating: T_g (K), E/N (Td), mean energy (eV), power per N of the processes of "// &
+                       "calor_rapido.txt (eV cm3/s): sum of k*threshold times (1 - Tg/Te), limited by Pinel/N"
     end if
     do it=1,size(t_nos)+size(t_conf)
     if(it <= size(t_nos))then
@@ -100,8 +103,8 @@ program gera_tabela_energia
     end if
     do i=1,m
         e_n=e_n_min*10.0d0**(real(i-1,kind=8)/real(por_decada,kind=8))
-        ! o bloco de conferência a 300 K fica a meio passo dos nós em E/N: mede
-        ! o erro da interpolação em energia média (lacuna V61)
+        ! the check block at 300 K lies half a step from the nodes in E/N: it
+        ! measures the error of the interpolation in mean energy
         if(it == size(t_nos)+1)e_n=e_n*10.0d0**(0.5d0/real(por_decada,kind=8))
         call ZDPlasKin_reset()
         call ZDPlasKin_set_config(SILENCE_MODE=.true.)
@@ -113,7 +116,7 @@ program gera_tabela_energia
             if(fracao(j) < 0.0d0)call ZDPlasKin_set_density(trim(especie(j)),1.0d0)
         end do
         call ZDPlasKin_set_conditions(GAS_TEMPERATURE=tg,REDUCED_FIELD=e_n)
-        ! ponto corrente, para a ferramenta de caso saber onde o BOLSIG+ caiu
+        ! current point, for the case tool to know where BOLSIG+ crashed
         open(newunit=up,file='progresso_tabelas.txt',status='replace',action='write')
         write(up,'(2es24.16)')tg,e_n
         close(up)
@@ -124,7 +127,7 @@ program gera_tabela_energia
         do j=1,nk
             k(j)=bolsig_rates(bolsig_pointer(j))
         end do
-        ! energia média = (3/2) k Te; D do ZDPlasKin vem dividido pela densidade
+        ! mean energy = (3/2) k Te; D of ZDPlasKin comes divided by the density
         if(it == 1)write(u,'(*(es24.16))')e_n,1.5d0*te*ev_por_k,mun,d*n_ar,mueps,deps,pot,pel,pinel,nun,k
         if(nr > 0 .and. it <= size(t_nos))then
             if(rap_k(1) == 0)call liga_calor_rapido()
@@ -165,7 +168,7 @@ program gera_tabela_energia
     write(*,'(a,i0,a,i0,a)')"tabela_energia.dat: ",m," pontos, ",nk," taxas"
 contains
     subroutine le_calor_rapido()
-        ! calor_rapido.txt: NOME LIMIAR por linha; sem o arquivo, nenhum processo
+        ! calor_rapido.txt: NAME THRESHOLD per line; without the file, no process
         character(len=200) :: linha
         integer :: uf, ios
         logical :: existe
@@ -191,7 +194,7 @@ contains
     end subroutine le_calor_rapido
 
     subroutine liga_calor_rapido()
-        ! índice de cada processo entre as colisões do BOLSIG+ (depois da primeira chamada)
+        ! index of each process among the collisions of BOLSIG+ (after the first call)
         character(len=200) :: nome
         integer :: a, b
         do a=1,nr
@@ -207,8 +210,8 @@ contains
     end subroutine liga_calor_rapido
 
     subroutine le_t_nos()
-        ! t_nos.txt: nós de T_g (K), um por linha, crescentes; sem o arquivo, de 300 a 1500 K.
-        ! O primeiro nó é o da varredura gravada em tabela_energia.dat.
+        ! t_nos.txt: T_g nodes (K), one per line, increasing; without the file, 300 to 1500 K.
+        ! The first node is that of the sweep written in tabela_energia.dat.
         integer :: uf, ios
         real(kind=8) :: x
         logical :: existe
@@ -225,12 +228,12 @@ contains
             t_nos=[t_nos,x]
         end do
         close(uf)
-        if(size(t_nos) < 2)stop "t_nos.txt: pelo menos dois nós de T_g"
-        if(any(t_nos(2:) <= t_nos(:size(t_nos)-1)))stop "t_nos.txt: nós de T_g precisam ser crescentes"
+        if(size(t_nos) < 2)stop "t_nos.txt: at least two T_g nodes"
+        if(any(t_nos(2:) <= t_nos(:size(t_nos)-1)))stop "t_nos.txt: T_g nodes must increase"
     end subroutine le_t_nos
 
     subroutine le_en_max()
-        ! en_max.txt: o topo de E/N da tabela, em Td (sem o arquivo, 5000)
+        ! en_max.txt: the top of E/N of the table, in Td (without the file, 5000)
         integer :: uf
         logical :: existe
         inquire(file='en_max.txt',exist=existe)
@@ -238,12 +241,12 @@ contains
         open(newunit=uf,file='en_max.txt',status='old',action='read')
         read(uf,*)e_n_max
         close(uf)
-        if(e_n_max <= 1.0d0)stop "en_max.txt: topo de E/N precisa passar de 1 Td"
+        if(e_n_max <= 1.0d0)stop "en_max.txt: the top of E/N must exceed 1 Td"
     end subroutine le_en_max
 
     subroutine le_composicao()
-        ! composicao.txt: NOME FRACAO ou NOME traco; sem o arquivo, Ar com Ar+ de traço.
-        ! A soma das frações não é renormalizada: o gás é n_ar vezes a soma.
+        ! composicao.txt: NAME FRACTION or NAME traco; without the file, Ar with Ar+ as trace.
+        ! The sum of the fractions is not renormalized: the gas is n_ar times the sum.
         character(len=200) :: linha, valor
         integer :: uf, ios, n
         logical :: existe
@@ -261,7 +264,7 @@ contains
             if(ios /= 0)exit
             if(len_trim(linha) == 0 .or. linha(1:1) == '#')cycle
             n=n+1
-            ! dois campos separados por espaço (nomes podem ter vírgula)
+            ! two fields separated by a space (names may contain commas)
             linha=adjustl(linha)
             nomes=linha(1:index(linha,' ')-1)
             valor=adjustl(linha(index(linha,' '):))
@@ -274,6 +277,6 @@ contains
             end if
         end do
         close(uf)
-        if(n == 0)stop "composicao.txt sem especies"
+        if(n == 0)stop "composicao.txt without species"
     end subroutine le_composicao
 end program gera_tabela_energia

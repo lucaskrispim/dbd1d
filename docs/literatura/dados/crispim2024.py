@@ -1,16 +1,16 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Extração dos dados de comparação das figuras 7 a 10 de Crispim et al. 2024,
-Phys. Scr. 99 065521: parâmetros de enxame de elétrons em argônio contra E/N,
-medidos ou calculados por outros autores (cada série com a fonte original
-citada na legenda). Figuras vetoriais do gnuplot, páginas 12 e 13 do PDF.
+"""Extraction of the comparison data of figures 7 to 10 of Crispim et al. 2024,
+Phys. Scr. 99 065521: electron swarm parameters in argon versus E/N, measured or
+computed by other authors (each series with the original source cited in the
+legend). Vector gnuplot figures, pages 12 and 13 of the PDF.
 
-Os eixos são logarítmicos. A calibração usa dois traços de década de cada eixo
-(pt), achados pelo padrão dos traços secundários (o do 2 fica a log10(2) de
-década do traço da década anterior). A moldura nem sempre cai numa década: na
-fig. 8 o 1e1 está 5,4 pt abaixo do topo, na fig. 9 o 1e3 está 4,9 pt antes da
-borda direita.
+The axes are logarithmic. The calibration uses two decade ticks of each axis
+(pt), found by the pattern of the minor ticks (the one of 2 lies log10(2) of a
+decade after the tick of the previous decade). The frame does not always fall on
+a decade: in fig. 8 the 1e1 is 5.4 pt below the top, in fig. 9 the 1e3 is 4.9 pt
+before the right edge.
 
-Uso: python3 docs/literatura/dados/crispim2024.py  (grava em crispim2024/)
+Usage: python3 docs/literatura/dados/crispim2024.py  (writes to crispim2024/)
 """
 import sys
 from pathlib import Path
@@ -24,44 +24,44 @@ import digitaliza as dg  # noqa: E402
 PDF = RAIZ / "docs" / "artigos" / "Crispim_2024_Phys._Scr._99_065521.pdf"
 SAIDA = Path(__file__).with_name("crispim2024")
 
-# figura: página, moldura (pt), (c, valor) de dois traços de década em x e em y, caixa da legenda, grandeza
+# figure: page, frame (pt), (c, value) of two decade ticks in x and in y, legend box, quantity
 FIGURAS = {
     "fig7": (12, (221.6, 77.6, 481.7, 266.3), ((221.6, 1e-4), (481.7, 1e3)), ((266.3, 1e-4), (77.6, 1e1)),
-             (440.0, 195.0, 482.0, 262.0), "velocidade de deriva dos elétrons, 1e5 m/s"),
+             (440.0, 195.0, 482.0, 262.0), "electron drift velocity, 1e5 m/s"),
     "fig8": (12, (219.5, 377.4, 481.6, 567.5), ((219.5, 1e-5), (481.6, 1e3)), ((567.5, 1e-4), (382.8, 1e1)),
-             (440.0, 500.0, 482.0, 567.0), "D_e/μ_e, eV"),
+             (440.0, 500.0, 482.0, 567.0), "D_e/mu_e, eV"),
     "fig9": (13, (222.2, 72.8, 486.5, 264.5), ((222.2, 1e-3), (481.6, 1e3)), ((264.5, 1e23), (99.1, 1e26)),
-             (330.0, 75.0, 487.0, 135.0), "μ_e N, (m V s)^-1"),
+             (330.0, 75.0, 487.0, 135.0), "mu_e N, (m V s)^-1"),
     "fig10b": (13, (367.1, 365.5, 537.6, 489.2), ((367.1, 1e-1), (537.6, 1e3)), ((489.2, 1e-1), (370.2, 1e1)),
-               (440.0, 455.0, 538.0, 490.0), "energia média dos elétrons, eV"),
+               (440.0, 455.0, 538.0, 490.0), "electron mean energy, eV"),
 }
-# série: figura, cor, 'traco' ou 'preenchimento', número de pontos do subcaminho, fonte
+# series: figure, colour, 'traco' (stroke) or 'preenchimento' (fill), number of points of the subpath, source
 SERIES = [
-    ("fig7_pack_phelps_1961_medida", "fig7", (1.0, 0.08, 0.58), "traco", 2, "J L Pack e A V Phelps 1961, medida"),
-    ("fig7_ellis_1976_medida", "fig7", (0.0, 0.0, 0.0), "traco_x", 2, "H W Ellis 1976, medida"),
+    ("fig7_pack_phelps_1961_medida", "fig7", (1.0, 0.08, 0.58), "traco", 2, "J L Pack and A V Phelps 1961, measured"),
+    ("fig7_ellis_1976_medida", "fig7", (0.0, 0.0, 0.0), "traco_x", 2, "H W Ellis 1976, measured"),
     ("fig7_kucukarpaci_lucas_1981_medida", "fig7", (1.0, 0.55, 0.0), "preenchimento", 5,
-     "H N Kucukarpaci e J Lucas 1981, medida"),
-    ("fig7_nielsen_1936_medida", "fig7", (0.42, 0.35, 0.8), "preenchimento", 4, "R A Nielsen 1936, medida"),
+     "H N Kucukarpaci and J Lucas 1981, measured"),
+    ("fig7_nielsen_1936_medida", "fig7", (0.42, 0.35, 0.8), "preenchimento", 4, "R A Nielsen 1936, measured"),
     ("fig8_warren_parker_1962_77K_medida", "fig8", (0.0, 0.29, 0.02), "preenchimento", 5,
-     "Warren e Parker 1962, 77 K, medida"),
+     "Warren and Parker 1962, 77 K, measured"),
     ("fig8_townsend_bailey_1922_288K_medida", "fig8", (0.0, 1.0, 0.0), "preenchimento", 5,
-     "Townsend e Bailey 1922, 288 K, medida"),
+     "Townsend and Bailey 1922, 288 K, measured"),
     ("fig8_townsend_bailey_1922_77K_medida", "fig8", (0.29, 0.0, 0.51), "preenchimento", 5,
-     "Townsend e Bailey 1922, 77 K, medida"),
+     "Townsend and Bailey 1922, 77 K, measured"),
     ("fig9_kucukarpaci_lucas_1981_medida", "fig9", (0.0, 1.0, 0.87), "preenchimento", 5,
-     "H N Kucukarpaci e J Lucas 1981, medida"),
-    ("fig9_robertson_1977_medida", "fig9", (0.0, 0.0, 0.0), "preenchimento_losango", 5, "A G Robertson et al. 1977, medida"),
-    ("fig9_pack_1992_medida", "fig9", (0.0, 0.04, 1.0), "traco", 2, "Pack et al. 1992, medida"),
-    ("fig9_errett_1951_medida", "fig9", (0.65, 0.04, 0.61), "traco", 2, "Errett 1951, medida"),
-    ("fig10b_escada_2007_calculada", "fig10b", (0.0, 0.75, 1.0), "preenchimento", 5, "J Escada et al. 2007, calculada"),
-    ("fig10b_benhenni_2005_calculada", "fig10b", (0.0, 1.0, 0.0), "preenchimento", 5, "M Benhenni et al. 2005, calculada"),
+     "H N Kucukarpaci and J Lucas 1981, measured"),
+    ("fig9_robertson_1977_medida", "fig9", (0.0, 0.0, 0.0), "preenchimento_losango", 5, "A G Robertson et al. 1977, measured"),
+    ("fig9_pack_1992_medida", "fig9", (0.0, 0.04, 1.0), "traco", 2, "Pack et al. 1992, measured"),
+    ("fig9_errett_1951_medida", "fig9", (0.65, 0.04, 0.61), "traco", 2, "Errett 1951, measured"),
+    ("fig10b_escada_2007_calculada", "fig10b", (0.0, 0.75, 1.0), "preenchimento", 5, "J Escada et al. 2007, computed"),
+    ("fig10b_benhenni_2005_calculada", "fig10b", (0.0, 1.0, 0.0), "preenchimento", 5, "M Benhenni et al. 2005, computed"),
 ]
 
 
 def centros(tr, moldura, legenda, cor, tipo, n):
-    """Centros dos marcadores de uma série: subcaminhos pequenos da cor, do
-    tipo e com o número de pontos dados; marcadores feitos de vários traços
-    (× e *) contam uma vez; os da legenda ficam de fora."""
+    """Centres of the markers of a series: small subpaths of the given colour,
+    type and number of points; markers made of several strokes (x and *) count
+    once; those of the legend are left out."""
     out = []
     for t in tr:
         p = t["p"]
@@ -71,7 +71,7 @@ def centros(tr, moldura, legenda, cor, tipo, n):
         if tipo.startswith("traco"):
             if not dg._mesma_cor(t["traco"], cor, 0.02):
                 continue
-            # o × do Ellis em preto: só as diagonais (os traços de escala são horizontais ou verticais)
+            # the black x of Ellis: only the diagonals (the ticks are horizontal or vertical)
             if tipo == "traco_x" and (tam.min() < 1.0):
                 continue
         else:
@@ -98,9 +98,9 @@ def main():
         c = c[np.argsort(c[:, 0])]
         en, v = ex.valor(c[:, 0]), ey.valor(c[:, 1])
         np.savetxt(SAIDA / f"{nome}.csv", np.column_stack([en, v]), fmt="%.5g", delimiter=",", comments="# ",
-                   header=f"Crispim 2024 {fig}: {grandeza} em argônio; {fonte} (como reproduzida na figura)\n"
+                   header=f"Crispim 2024 {fig}: {grandeza} in argon; {fonte} (as reproduced in the figure)\n"
                           "EN_Td,valor")
-        print(f"{nome}: {len(c)} pontos, E/N de {en.min():.3g} a {en.max():.3g} Td")
+        print(f"{nome}: {len(c)} points, E/N from {en.min():.3g} to {en.max():.3g} Td")
 
 
 if __name__ == "__main__":

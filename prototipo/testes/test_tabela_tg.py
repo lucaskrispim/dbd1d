@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Tabela de energia com a temperatura do gás (lacuna G4): os coeficientes dos
-elétrons do BOLSIG+ por energia média e por T_g, de tabela_energia_tg.dat. O
-Fortran passa a T_g local ao BOLSIG+; o protótipo usava a tabela a 300 K, e
-com o gás quente a perda elástica (fonte do aquecimento) e o piso da energia
-média dos elétrons ((3/2) k T_g) saíam errados nos campos fracos."""
+"""Energy table with the gas temperature (gap G4): the BOLSIG+ electron
+coefficients per mean energy and per T_g, from tabela_energia_tg.dat. The Fortran
+code passes the local T_g to BOLSIG+; the prototype used the table at 300 K, and
+with hot gas the elastic loss (source of the heating) and the floor of the
+electron mean energy ((3/2) k T_g) came out wrong at weak fields."""
 import numpy as np
 import pytest
 
@@ -29,7 +29,7 @@ def test_nos_de_temperatura(tab):
 
 
 def test_bloco_de_300_k_e_a_tabela_atual(tab, tab300):
-    # mesma varredura do BOLSIG+: a 300 K a tabela nova reproduz a atual bit a bit
+    # same BOLSIG+ scan: at 300 K the new table reproduces the current one bit for bit
     eps = np.geomspace(0.03, 60.0, 400)
     assert np.array_equal(tab(eps, np.full(eps.size, 300.0)), tab300(eps))
     assert np.array_equal(tab.limites(np.array([300.0]))[0], [tab300.eps[0]])
@@ -37,14 +37,14 @@ def test_bloco_de_300_k_e_a_tabela_atual(tab, tab300):
 
 @pytest.mark.parametrize("t_gas", [600.0, 1000.0, 1500.0])
 def test_piso_da_energia_media_e_a_do_gas(tab, t_gas):
-    # com campo de 1e-4 Td os elétrons ficam na temperatura do gás
+    # with a field of 1e-4 Td the electrons stay at the gas temperature
     eps_min = tab.limites(np.array([t_gas]))[0][0]
     assert eps_min == pytest.approx(1.5 * KB_EV * t_gas, rel=1e-2)
 
 
 def test_perda_elastica_depende_da_temperatura_do_gas(tab):
-    # na mesma energia média, o gás mais quente devolve energia aos elétrons:
-    # a perda elástica cai, e muito quando eps se aproxima de (3/2) k T_g
+    # at the same mean energy, hotter gas gives energy back to the electrons:
+    # the elastic loss falls, strongly when eps approaches (3/2) k T_g
     eps = np.array([0.1])
     p300 = tab(eps, np.array([300.0]))[0, E_PEL]
     p600 = tab(eps, np.array([600.0]))[0, E_PEL]
@@ -53,13 +53,13 @@ def test_perda_elastica_depende_da_temperatura_do_gas(tab):
 
 @pytest.mark.parametrize("t_gas", [300.0, 425.0, 650.0, 1125.0, 1375.0])
 def test_interpolacao_contra_o_bolsig_fora_dos_nos(tab, t_gas):
-    # blocos de conferência do gerador fora dos nós (a 300 K, com E/N a meio
-    # passo dos nós: só a interpolação em energia média, lacuna V61), em toda a
-    # faixa acima do piso, inclusive perto dele, onde a perda elástica vai a
-    # zero: mobilidade e frequência de colisão a 1%, perda elástica a 2%, k0 e
-    # k1 a 1,5%, k2 a 1%; o k3 (Ar* -> Ar+) a 1% fora de 0,45 a 0,7 Td (1,7 a
-    # 2,0 eV), onde a energia média do BOLSIG+ cresce de forma irregular entre
-    # nós, e a 10% ali
+    # check blocks of the generator off the nodes (at 300 K, with E/N half a
+    # step from the nodes: only the interpolation in mean energy, gap V61), over the whole
+    # range above the floor, including near it, where the elastic loss goes to
+    # zero: mobility and collision frequency to 1%, elastic loss to 2%, k0 and
+    # k1 to 1.5%, k2 to 1%; k3 (Ar* -> Ar+) to 1% outside 0.45 to 0.7 Td (1.7 to
+    # 2.0 eV), where the BOLSIG+ mean energy grows irregularly between
+    # nodes, and to 10% there
     from tabela import E_K0, E_MUN, E_NUN
     conf = TabelaEnergiaTg(RAIZ / "tabela_energia_tg_conferencia.dat")
     bloco = conf.blocos[list(conf.t_gas).index(t_gas)]
@@ -86,7 +86,7 @@ def pecas():
 
 
 def _estado(md, eps, t_gas):
-    """Estado com elétrons e Ar+ a 1e10 cm-3, energia média eps e gás a t_gas."""
+    """State with electrons and Ar+ at 1e10 cm-3, mean energy eps and gas at t_gas."""
     y = md.estado_inicial(n_e0=1e10, neutro=True)
     n = y[:-2].reshape(md.n_var, md.m)
     n[md.n_esp] = 1e10 * eps
@@ -96,8 +96,8 @@ def _estado(md, eps, t_gas):
 
 @pytest.mark.parametrize("t_gas", [300.0, 320.0])
 def test_modelo_igual_ao_de_300_k_com_o_gas_a_300_k(pecas, tab, tab300, t_gas):
-    # com o gás a 300 K a tabela nova dá o mesmo lado direito que a de 300 K,
-    # bit a bit; a 320 K, diferente
+    # with the gas at 300 K the new table gives the same right-hand side as the 300 K one,
+    # bit for bit; at 320 K, a different one
     from modelo import Modelo
     md_novo = Modelo(*pecas, n_celulas=6, v_pico=3e3, espessura=1.75e-3, aquecimento=True, tabela_energia=tab)
     md_velho = Modelo(*pecas, n_celulas=6, v_pico=3e3, espessura=1.75e-3, aquecimento=True, tabela_energia=tab300)
@@ -107,7 +107,7 @@ def test_modelo_igual_ao_de_300_k_com_o_gas_a_300_k(pecas, tab, tab300, t_gas):
 
 
 def test_modelo_usa_a_temperatura_local_do_gas(pecas, tab):
-    # a perda elástica e o piso da energia média seguem a T_g de cada célula
+    # the elastic loss and the floor of the mean energy follow the T_g of each cell
     from modelo import Modelo
     md = Modelo(*pecas, n_celulas=4, aquecimento=True, tabela_energia=tab)
     y = _estado(md, 0.3, 300.0)
@@ -115,14 +115,14 @@ def test_modelo_usa_a_temperatura_local_do_gas(pecas, tab):
     tg = np.array([300.0, 600.0, 1000.0, 1500.0])
     _, _, _, _, _, extra = md.coeficientes(np.zeros(md.m), n, md.energia_do_estado(y), t_gas=tg)
     np.testing.assert_allclose(extra["pel"], tab(np.full(4, 0.3), tg)[:, E_PEL], rtol=1e-9)
-    # elétrons abaixo do piso de 600 K sobem ao piso local, ~(3/2) k T_g
+    # electrons below the 600 K floor rise to the local floor, ~(3/2) k T_g
     eps = md.energia_media(n, n[md.i_e] * 0.02, np.zeros(md.m), tg)
     np.testing.assert_allclose(eps, tab.limites(tg)[0], rtol=1e-12)
     assert eps[1] == pytest.approx(1.5 * KB_EV * 600.0, rel=1e-2)
 
 
 def test_coeficientes_prendem_a_energia_no_piso_local(pecas, tab):
-    # pelo caminho do lado direito: elétrons frios sobem ao piso da T_g local
+    # through the right-hand side: cold electrons rise to the floor of the local T_g
     from modelo import Modelo
     md = Modelo(*pecas, n_celulas=4, aquecimento=True, tabela_energia=tab)
     y = _estado(md, 0.3, 300.0)
@@ -133,9 +133,9 @@ def test_coeficientes_prendem_a_energia_no_piso_local(pecas, tab):
 
 
 def test_abaixo_do_piso_os_eletrons_ganham_energia_do_gas(pecas, tab):
-    # elétrons mais frios que o gás (gás aquecendo depressa, ou elétrons que
-    # chegam a uma célula mais quente): a perda elástica fica negativa, com a
-    # relaxação (2m/M)(nu/N)(eps - piso) além do valor no piso
+    # electrons colder than the gas (gas heating fast, or electrons that
+    # reach a hotter cell): the elastic loss becomes negative, with the
+    # relaxation (2m/M)(nu/N)(eps - floor) beyond the value at the floor
     from modelo import ME, Modelo
     from tabela import E_NUN, E_PINEL
     md = Modelo(*pecas, n_celulas=4, aquecimento=True, tabela_energia=tab)
@@ -151,12 +151,12 @@ def test_abaixo_do_piso_os_eletrons_ganham_energia_do_gas(pecas, tab):
     np.testing.assert_allclose(extra["pel"][:2], esperado[:2], rtol=1e-6)
     assert np.all(extra["pel"][:2] < 0.0)
     np.testing.assert_allclose(extra["perda"][:2], extra["pel"][:2] + v[:2, E_PINEL], rtol=1e-9)
-    assert extra["pel"][2] == pytest.approx(v[2, E_PEL], rel=1e-6)     # no piso, o valor da tabela
+    assert extra["pel"][2] == pytest.approx(v[2, E_PEL], rel=1e-6)     # at the floor, the value of the table
     assert extra["pel"][3] > 0.0
 
 
 def test_jacobiano_estruturado_com_o_gas_quente(tab):
-    # o jacobiano estruturado pega a dependência dos coeficientes em T_g
+    # the structured Jacobian captures the dependence of the coefficients on T_g
     from jacobiano import ModeloRapido
     from quimica_zdp import Quimica
     from tabela import Tabela
@@ -175,7 +175,7 @@ def test_jacobiano_estruturado_com_o_gas_quente(tab):
     assert np.max(np.abs(J - J_ref) * peso / escala) < 1e-4
 
 
-# ------------------------------------------- campo local com T_g (G4 em campo local)
+# ------------------------------------------- local field with T_g (G4 in local field)
 @pytest.fixture(scope="module")
 def tab_lfa():
     from tabela import TabelaTg
@@ -183,7 +183,7 @@ def tab_lfa():
 
 
 def test_campo_local_a_300_k_e_a_tabela_atual(tab_lfa):
-    # a 300 K, as colunas da tabela_bolsig.dat (Te volta da energia média: 2e-16)
+    # at 300 K, the columns of tabela_bolsig.dat (Te back from the mean energy: 2e-16)
     from tabela import TE, Tabela
     velha = Tabela(RAIZ / "tabela_bolsig.dat")
     e_n = np.geomspace(1e-3, 3000.0, 500)
@@ -194,12 +194,12 @@ def test_campo_local_a_300_k_e_a_tabela_atual(tab_lfa):
 
 @pytest.mark.parametrize("t_gas", [300.0, 425.0, 650.0, 1125.0, 1375.0])
 def test_campo_local_contra_o_bolsig_fora_dos_nos(tab_lfa, t_gas):
-    # mesmos blocos de conferência, por E/N: mobilidade e frequência de colisão
-    # a 1%; difusão e perda elástica a 2% (até 1,5% e 0,8% medidos, abaixo de
-    # 0,1 Td, com elétrons térmicos, no intervalo de 1000 a 1250 K); taxas a
-    # 1,5%; o k3 entre 0,4 e 0,7 Td a 5% (até 3,1% medido a 1125 e 1375 K e
-    # 0,13% a 300 K: a irregularidade do BOLSIG+ nessa faixa muda de posição
-    # entre nós de T_g, e a interpolação linear em T_g não a acompanha)
+    # same check blocks, per E/N: mobility and collision frequency
+    # to 1%; diffusion and elastic loss to 2% (up to 1.5% and 0.8% measured, below
+    # 0.1 Td, with thermal electrons, in the range from 1000 to 1250 K); rates to
+    # 1.5%; k3 between 0.4 and 0.7 Td to 5% (up to 3.1% measured at 1125 and 1375 K and
+    # 0.13% at 300 K: the BOLSIG+ irregularity in that range moves
+    # between T_g nodes, and the linear interpolation in T_g does not follow it)
     from tabela import DN, K0, MUN, NUN, PEL
     conf = TabelaEnergiaTg(RAIZ / "tabela_energia_tg_conferencia.dat")
     b = conf.blocos[list(conf.t_gas).index(t_gas)]
@@ -232,7 +232,7 @@ def test_modelo_de_campo_local_usa_a_temperatura_do_gas(pecas, tab_lfa):
 
 
 def test_eedf_de_campo_local_usa_a_temperatura_do_gas(pecas, tab_lfa, tab):
-    # a EEDF gravada em campo local sai da energia de campo local na T_g da célula
+    # the EEDF recorded in local field comes from the local field energy at the T_g of the cell
     from modelo import Modelo
     from simula import energia_da_eedf
     md = Modelo(pecas[0], tab_lfa, n_celulas=4, aquecimento=True)
@@ -243,7 +243,7 @@ def test_eedf_de_campo_local_usa_a_temperatura_do_gas(pecas, tab_lfa, tab):
 
 @pytest.mark.parametrize("t_gas", [425.0, 650.0, 1125.0, 1375.0])
 def test_energia_de_campo_local_com_a_temperatura(tab, t_gas):
-    # energia média de regime por E/N e T_g contra os blocos de conferência
+    # steady mean energy per E/N and T_g against the check blocks
     conf = TabelaEnergiaTg(RAIZ / "tabela_energia_tg_conferencia.dat")
     b = conf.blocos[list(conf.t_gas).index(t_gas)]
     sel = (b.e_n > 1e-3) & (b.e_n < 3000.0)

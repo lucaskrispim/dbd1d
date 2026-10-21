@@ -1,22 +1,23 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Monte Carlo de enxame de elétrons em argônio, para conferir a aproximação de
-dois termos do BOLSIG+ (e portanto a tabela_bolsig.dat) com as mesmas seções de
-choque (bolsigdb.dat).
+"""Monte Carlo electron swarm in argon, to check the two-term approximation of
+BOLSIG+ (and hence tabela_bolsig.dat) with the same cross sections (bolsigdb.dat,
+which is not distributed: download the SIGLO argon set from LXCat).
 
-Uso:
-    python3 ferramentas/enxame_mc.py maxwell         # verificação com solução exata
-    python3 ferramentas/enxame_mc.py comparar        # MC contra a tabela, 100 a 2000 Td
-    python3 ferramentas/enxame_mc.py conferir 1000   # outra semente, relaxação 3x mais longa
+Usage:
+    python3 ferramentas/enxame_mc.py maxwell         # verification with an exact solution
+    python3 ferramentas/enxame_mc.py compare         # MC against the table, 100 to 2000 Td
+    python3 ferramentas/enxame_mc.py check 1000      # another seed, 3 times longer relaxation
+(the Portuguese names comparar and conferir are also accepted)
 
-Modelo: campo uniforme, gás frio em repouso (a tabela é a 300 K; o efeito só
-aparece abaixo de ~10 Td), espalhamento isotrópico, voos livres exatos com
-colisões nulas (sem passo de tempo). A comparação vai de 100 a 2000 Td: abaixo disso a energia
-relaxa só por colisões elásticas (perda 2m/M ~ 3e-5 por colisão) e exigiria
-milhões de passos. A seção elástica de transferência de momento é a efetiva menos as
-inelásticas, como o BOLSIG+ trata o bloco EFFECTIVE. Na ionização, a energia
-que sobra é repartida ao acaso entre os dois elétrons. A população cresce no
-tempo (crescimento temporal) e é reamostrada ao acaso para manter o tamanho, o
-que não altera as médias.
+Model: uniform field, cold gas at rest (the table is at 300 K; the effect appears
+only below ~10 Td), isotropic scattering, exact free flights with null
+collisions (no time step). The comparison goes from 100 to 2000 Td: below that
+the energy relaxes only by elastic collisions (loss 2m/M ~ 3e-5 per collision)
+and would need millions of steps. The elastic momentum transfer cross section is
+the effective one minus the inelastic ones, as BOLSIG+ treats the EFFECTIVE
+block. In ionization, the remaining energy is shared at random between the two
+electrons. The population grows in time (temporal growth) and is resampled at
+random to keep its size, which does not change the averages.
 """
 import pathlib
 import sys
@@ -26,12 +27,12 @@ import numpy as np
 Q = 1.602176634e-19        # C
 ME = 9.1093837015e-31      # kg
 KB = 1.380649e-23          # J/K
-N_GAS = 101325.0 / (KB * 300.0)   # m-3, a densidade da tabela
+N_GAS = 101325.0 / (KB * 300.0)   # m-3, the density of the table
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 
 
 def le_secoes(arquivo):
-    """Blocos do formato LXCat: devolve {(tipo, reação): (parâmetro, energia eV, seção m2)}."""
+    """Blocks of the LXCat format: returns {(type, reaction): (parameter, energy eV, cross section m2)}."""
     linhas = arquivo.read_text().splitlines()
     secoes = {}
     i = 0
@@ -40,14 +41,14 @@ def le_secoes(arquivo):
         if tipo in ("EFFECTIVE", "ELASTIC", "EXCITATION", "IONIZATION", "ATTACHMENT"):
             reacao = linhas[i + 1].strip()
             if tipo == "ATTACHMENT":
-                # sem linha de parâmetro no formato LXCat
+                # no parameter line in the LXCat format
                 parametro, j = 0.0, i + 2
             else:
-                # o número pode vir colado na barra: "2.9e-1/threshold energy"
+                # the number can be glued to the slash: "2.9e-1/threshold energy"
                 try:
                     parametro = float(linhas[i + 2].split("/")[0].split()[0])
                 except (ValueError, IndexError):
-                    raise ValueError(f"{arquivo}: {tipo} {reacao} sem a linha do parâmetro") from None
+                    raise ValueError(f"{arquivo}: {tipo} {reacao} without the parameter line") from None
                 j = i + 3
             while not linhas[j].startswith("-----"):
                 j += 1
@@ -64,7 +65,7 @@ def le_secoes(arquivo):
 
 
 class Gas:
-    """Seções do argônio fundamental: elástica, excitação agrupada e ionização."""
+    """Cross sections of ground state argon: elastic, lumped excitation and ionization."""
 
     def __init__(self, secoes):
         razao, e_ef, s_ef = secoes[("EFFECTIVE", "Ar")]
@@ -85,7 +86,7 @@ class Gas:
 
 
 class Maxwell:
-    """Frequência de colisão elástica constante nu0: sigma = nu0/(N v)."""
+    """Constant elastic collision frequency nu0: sigma = nu0/(N v)."""
 
     def __init__(self, nu0, razao_massa):
         self.nu0 = nu0
@@ -107,16 +108,16 @@ def isotropico(n, gerador):
 
 def enxame(gas, e_n_td, n_eletrons=20000, nu_max=None, voos_relax=2000, voos_media=4000, semente=1,
            energia_inicial=1.0):
-    """Médias estacionárias por voos livres exatos com colisões nulas: velocidade
-    de deriva (m/s), energia média (eV) e coeficientes de taxa (m3/s) de
-    excitação e ionização. Cada elétron sorteia o tempo de voo com a frequência
-    máxima nu_max; o voo é integrado analiticamente e a colisão é real com
-    probabilidade nu(eps)/nu_max. As médias são temporais, somadas sobre os voos:
-    <eps> = soma(int eps dt)/soma(t), deriva = soma(dz)/soma(t) e
-    k = (colisões)/(N soma(t))."""
+    """Steady-state averages by exact free flights with null collisions: drift
+    velocity (m/s), mean energy (eV) and rate coefficients (m3/s) of excitation
+    and ionization. Each electron draws its flight time with the maximum
+    frequency nu_max; the flight is integrated analytically and the collision is
+    real with probability nu(eps)/nu_max. The averages are temporal, summed over
+    the flights: <eps> = sum(int eps dt)/sum(t), drift = sum(dz)/sum(t) and
+    k = (collisions)/(N sum(t))."""
     gerador = np.random.default_rng(semente)
     campo = e_n_td * 1e-21 * N_GAS                       # V/m
-    acel = Q * campo / ME                                # elétrons acelerados em +z
+    acel = Q * campo / ME                                # electrons accelerated towards +z
     if nu_max is None:
         e_teste = np.geomspace(1e-3, 1.0e4, 6000)
         s = sum(gas.secoes(e_teste))
@@ -131,7 +132,7 @@ def enxame(gas, e_n_td, n_eletrons=20000, nu_max=None, voos_relax=2000, voos_med
         velocidade = np.linalg.norm(v, axis=1)
         energia = 0.5 * ME * velocidade ** 2 / Q
         if energia.max() > 1.0e4:
-            raise SystemExit("energia acima da faixa das secoes; aumente o limite de nu_max")
+            raise SystemExit("energy above the range of the cross sections; raise nu_max")
         s_el, s_ex, s_io = gas.secoes(energia)
         r = gerador.random(len(v)) * nu_max / (N_GAS * velocidade)
         el = r < s_el
@@ -145,7 +146,7 @@ def enxame(gas, e_n_td, n_eletrons=20000, nu_max=None, voos_relax=2000, voos_med
             soma["n_exc"] += int(ex.sum())
             soma["n_ion"] += int(io.sum())
         nova_energia = energia.copy()
-        # elástica isotrópica: perde 2(m/M)(1 - cos chi) da energia
+        # isotropic elastic collision: loses 2(m/M)(1 - cos chi) of the energy
         dirs = isotropico(len(v), gerador)
         cos_chi = np.sum(dirs * v, axis=1) / np.maximum(velocidade, 1e-30)
         nova_energia[el] = energia[el] * (1.0 - 2.0 * gas.razao_massa * (1.0 - cos_chi[el]))
@@ -156,8 +157,8 @@ def enxame(gas, e_n_td, n_eletrons=20000, nu_max=None, voos_relax=2000, voos_med
         colidiu = el | ex | io
         modulo = np.sqrt(2.0 * np.maximum(nova_energia[colidiu], 0.0) * Q / ME)
         v[colidiu] = dirs[colidiu] * modulo[:, None]
-        # o elétron criado na ionização substitui um elétron sorteado ao acaso
-        # (população de tamanho fixo, crescimento temporal)
+        # the electron created in ionization replaces a randomly drawn electron
+        # (population of fixed size, temporal growth)
         if io.any():
             v_novo = isotropico(io.sum(), gerador) * np.sqrt(2.0 * sobra * (1.0 - fracao) * Q / ME)[:, None]
             v[gerador.choice(len(v), io.sum(), replace=False)] = v_novo
@@ -167,8 +168,8 @@ def enxame(gas, e_n_td, n_eletrons=20000, nu_max=None, voos_relax=2000, voos_med
 
 
 def maxwell():
-    """Frequência constante: mu = e/(m nu0) e <eps> = M e^2 E^2/(2 m^2 nu0^2) (gás
-    frio), para qualquer razão de massas; m/M = 1e-3 para relaxar em poucos passos."""
+    """Constant frequency: mu = e/(m nu0) and <eps> = M e^2 E^2/(2 m^2 nu0^2) (cold
+    gas), for any mass ratio; m/M = 1e-3 to relax in a few steps."""
     nu0 = 1.0e12
     razao = 1.0e-3
     gas = Maxwell(nu0, razao)
@@ -178,10 +179,10 @@ def maxwell():
     energia = (1.0 / razao) * (Q * campo) ** 2 / (2.0 * ME * nu0 ** 2) / Q
     r = enxame(gas, e_n, nu_max=nu0, voos_relax=20000, voos_media=20000, n_eletrons=5000,
                energia_inicial=energia)
-    print(f"deriva:  MC {r['vz']:.4e}  exata {vd:.4e}  desvio {r['vz'] / vd - 1:+.2%}")
-    print(f"energia: MC {r['energia']:.4e}  exata {energia:.4e}  desvio {r['energia'] / energia - 1:+.2%}")
+    print(f"drift:   MC {r['vz']:.4e}  exact {vd:.4e}  deviation {r['vz'] / vd - 1:+.2%}")
+    print(f"energy:  MC {r['energia']:.4e}  exact {energia:.4e}  deviation {r['energia'] / energia - 1:+.2%}")
     ok = abs(r["vz"] / vd - 1) < 0.02 and abs(r["energia"] / energia - 1) < 0.02
-    print("verificação:", "ok" if ok else "FALHA")
+    print("verification:", "ok" if ok else "FAILED")
     return ok
 
 
@@ -213,11 +214,11 @@ def comparar(lista=(100.0, 200.0, 300.0, 600.0, 1000.0, 2000.0), fator_relax=1, 
 
 
 if __name__ == "__main__":
-    modo = sys.argv[1] if len(sys.argv) > 1 else "comparar"
+    modo = sys.argv[1] if len(sys.argv) > 1 else "compare"
     if modo == "maxwell":
         sys.exit(0 if maxwell() else 1)
-    if modo == "conferir":
-        # mesma E/N com outra semente e relaxação 3 vezes mais longa
+    if modo in ("check", "conferir"):
+        # the same E/N with another seed and a 3 times longer relaxation
         comparar(lista=[float(x) for x in sys.argv[2:]], fator_relax=3, semente=7)
     else:
         comparar()

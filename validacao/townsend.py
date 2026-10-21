@@ -1,27 +1,28 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Verificação pelo critério de ruptura de Townsend: eletrodos metálicos, tensão
-contínua, campo local (sem --energia), regime linear.
+"""Verification against the Townsend breakdown criterion: bare metal electrodes,
+DC voltage, local field approximation (no --energy), linear regime.
 
-Referência: o problema linear contínuo que o modelo resolve, com coeficientes
-constantes no campo uniforme E = V/d. Com s a distância ao cátodo, os elétrons
-derivam para +s com w = mu E e difundem com D, e a ionização dá nu = k N:
-    d/ds (w n - D dn/ds) = nu n  ->  n = soma c_j exp(lambda_j s),
+Reference: the continuous linear problem that the model solves, with constant
+coefficients in the uniform field E = V/d. With s the distance from the cathode,
+the electrons drift towards +s with w = mu E and diffuse with D, and ionization
+gives nu = k N:
+    d/ds (w n - D dn/ds) = nu n  ->  n = sum c_j exp(lambda_j s),
     D lambda^2 - w lambda + nu = 0.
-Os íons só derivam para o cátodo, e o fluxo deles no cátodo é a integral de
-nu n. Condições de parede do modelo (modelo.fluxos), com o fator de Boltzmann da
-meia célula igual a 1, que é o limite da malha fina:
-    cátodo (s = 0): Gamma_e = gama Gamma_i - a_e n v_th/2
-    ânodo  (s = d): Gamma_e = a_e n (v_th/2 + w)
-com a_e = (1 - r)/(1 + r). A ruptura é o zero do determinante 2x2 em V.
-O critério clássico gama (exp(alfa d) - 1) = 1, alfa = nu/w, fica como
-comparação física: a reabsorção dos secundários pelo fluxo térmico no cátodo e a
-difusão o deslocam.
+The ions only drift to the cathode, and their flux there is the integral of
+nu n. Wall conditions of the model (modelo.fluxos), with the Boltzmann factor of
+half a cell equal to 1, its limit for a fine mesh:
+    cathode (s = 0): Gamma_e = gamma Gamma_i - a_e n v_th/2
+    anode   (s = d): Gamma_e = a_e n (v_th/2 + w)
+with a_e = (1 - r)/(1 + r). Breakdown is the zero of the 2x2 determinant in V.
+The classical criterion gamma (exp(alpha d) - 1) = 1, alpha = nu/w, is kept as a
+physical comparison: the thermal flux at the cathode, which takes back part of
+the secondary electrons, and diffusion move it.
 
-Simulação: para cada tensão, o inventário de íons positivos no gap cresce ou
-decai como exp(s t) depois do transitório; a taxa s é ajustada na janela final e
-o zero de s(V) dá a tensão de ruptura discreta.
+Simulation: for each voltage, the inventory of positive ions in the gap grows or
+decays as exp(s t) after a transient; the rate s is fitted in the final window
+and the zero of s(V) gives the discrete breakdown voltage.
 
-Uso: python3 validacao/townsend.py [--malhas 100 200 400 800] [--pd 10 15 20] [--python PY]
+Usage: python3 validacao/townsend.py [--meshes 100 200 400 800] [--pd 10 15 20] [--python PY]
 """
 import argparse
 import functools
@@ -37,29 +38,29 @@ RAIZ = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "prototipo"))
 
 ME = 9.1093837015e-31
-T_TRANSITORIO = 1.0e-5   # s: alguns trânsitos dos íons no gap de 1 a 2 mm a 100 Torr
+T_TRANSITORIO = 1.0e-5   # s: a few ion transit times in a gap of 1 to 2 mm at 100 Torr
 KB = 1.380649e-23
 TORR = 133.322
 
 
 def raizes(w, d_e, nu):
-    """Expoentes espaciais lambda_1 < lambda_2 de D l^2 - w l + nu = 0 (1/m)."""
+    """Spatial exponents lambda_1 < lambda_2 of D l^2 - w l + nu = 0 (1/m)."""
     disc = np.sqrt(w * w - 4.0 * d_e * nu)
     return (w - disc) / (2.0 * d_e), (w + disc) / (2.0 * d_e)
 
 
 def determinante(w, d_e, nu, v_th, gama, gap, a_e=1.0):
-    """Determinante das condições de parede do problema linear contínuo; zero na
-    ruptura. Com d_e -> 0 e v_th -> 0, recai no critério clássico."""
+    """Determinant of the wall conditions of the continuous linear problem; zero at
+    breakdown. With d_e -> 0 and v_th -> 0, it reduces to the classical criterion."""
     l1, l2 = raizes(w, d_e, nu)
-    # modos exp(l1 s) e exp(l2 (s - d)): o segundo, de expoente grande quando a
-    # difusão é pequena, fica medido a partir do ânodo e não estoura
+    # modes exp(l1 s) and exp(l2 (s - d)): the second, with a large exponent when
+    # diffusion is small, is measured from the anode and does not overflow
     no_catodo = (1.0, np.exp(-l2 * gap))
     no_anodo = (np.exp(l1 * gap), 1.0)
-    ions = (nu * np.expm1(l1 * gap) / l1, nu * -np.expm1(-l2 * gap) / l2)   # fluxo no cátodo por modo
+    ions = (nu * np.expm1(l1 * gap) / l1, nu * -np.expm1(-l2 * gap) / l2)   # flux at the cathode per mode
     m = np.zeros((2, 2))
     for j, lam in enumerate((l1, l2)):
-        fluxo = w - d_e * lam                       # Gamma_e / n de cada modo
+        fluxo = w - d_e * lam                       # Gamma_e / n of each mode
         m[0, j] = (fluxo + a_e * 0.5 * v_th) * no_catodo[j] - gama * ions[j]
         m[1, j] = (fluxo - a_e * (0.5 * v_th + w)) * no_anodo[j]
     return np.linalg.det(m)
@@ -71,15 +72,15 @@ def classico(alfa, gap, gama):
 
 @functools.lru_cache(maxsize=None)
 def modelo(gap, pressao):
-    """Modelo montado como na simulação (caso do argônio, campo local)."""
+    """Model built as in the simulation (argon case, local field)."""
     import simula
-    a = simula.cria_parser().parse_args(["/dev/null", "--gap", repr(float(gap)), "--espessura", "0", "--pressao",
-                                         repr(float(pressao)), "--n-celulas", "10"])
+    a = simula.cria_parser().parse_args(["/dev/null", "--gap", repr(float(gap)), "--thickness", "0", "--pressure",
+                                         repr(float(pressao)), "--cells", "10"])
     return simula.monta_modelo(a, RAIZ, None)
 
 
 def coeficientes_do_modelo(gap, pressao, v):
-    """mu, D, T_e e nu do modelo montado como na simulação, no campo uniforme."""
+    """mu, D, T_e and nu of the model built as in the simulation, at the uniform field."""
     md = modelo(float(gap), float(pressao))
     campo = np.full(md.m, v / gap)
     n = np.zeros((md.n_esp, md.m))
@@ -91,7 +92,7 @@ def coeficientes_do_modelo(gap, pressao, v):
 
 
 def ruptura_referencia(gap, pressao, gama, r=0.0, sem_termico=False, sem_difusao=False, v_ini=150.0, v_fim=3000.0):
-    """Tensão de ruptura do problema contínuo e a do critério clássico (V)."""
+    """Breakdown voltage of the continuous problem and that of the classical criterion (V)."""
     a_e = (1.0 - r) / (1.0 + r)
 
     def f(v, cla=False):
@@ -106,7 +107,7 @@ def ruptura_referencia(gap, pressao, gama, r=0.0, sem_termico=False, sem_difusao
     out = []
     for cla in (False, True):
         g = [f(v, cla) for v in vs]
-        # abaixo de certo campo a raiz é complexa (w^2 < 4 D nu) e o determinante é NaN
+        # below some field the root is complex (w^2 < 4 D nu) and the determinant is NaN
         i = next(i for i in range(len(vs) - 1)
                  if np.isfinite(g[i]) and np.isfinite(g[i + 1]) and np.sign(g[i]) != np.sign(g[i + 1]))
         out.append(brentq(lambda v: f(v, cla), vs[i], vs[i + 1], xtol=1e-3))
@@ -115,18 +116,18 @@ def ruptura_referencia(gap, pressao, gama, r=0.0, sem_termico=False, sem_difusao
 
 def roda(destino, gap, pressao, gama, v, celulas, py, t_end, reflexao=0.0):
     gap, pressao, gama, v = (float(x) for x in (gap, pressao, gama, v))
-    cmd = [py, str(RAIZ / "prototipo" / "simula.py"), str(destino), "--gap", repr(gap), "--espessura", "0",
-           "--pressao", repr(pressao), "--gama", repr(gama), "--n-celulas", str(celulas), "--agrupamento", "3.0",
-           "--forma", "degrau", "--subida", "1e-9", "--v-pico", repr(v), "--neutro", "--ne0", "1e2",
-           "--atol", "1e-14", "--t-end", repr(t_end), "--dt-saida", repr(t_end / 100),
-           "--reflexao-eletrons", repr(float(reflexao))]
-    # acima da ruptura a corrente cresce até o regime não linear, que eletrodos
-    # metálicos não limitam, e o integrador pode parar: vale o trecho gravado antes
+    cmd = [py, str(RAIZ / "prototipo" / "simula.py"), str(destino), "--gap", repr(gap), "--thickness", "0",
+           "--pressure", repr(pressao), "--gamma", repr(gama), "--cells", str(celulas), "--clustering", "3.0",
+           "--waveform", "step", "--rise", "1e-9", "--v-peak", repr(v), "--neutral", "--ne0", "1e2",
+           "--atol", "1e-14", "--t-end", repr(t_end), "--dt-output", repr(t_end / 100),
+           "--electron-reflection", repr(float(reflexao))]
+    # above breakdown the current grows up to the nonlinear regime, which metal
+    # electrodes do not limit, and the integrator may stop: the part written before counts
     subprocess.run(cmd, capture_output=True, env={"OPENBLAS_NUM_THREADS": "1", "PATH": ""})
 
 
 def taxa_de_crescimento(destino):
-    """Taxa s (1/s) do inventário de íons positivos, ajustada no último terço."""
+    """Growth rate s (1/s) of the inventory of positive ions, fitted in the linear regime."""
     sys.path.insert(0, str(RAIZ / "scripts"))
     from resumo import blocos
     ts, inv = [], []
@@ -140,25 +141,26 @@ def taxa_de_crescimento(destino):
         ts.append(tb)
         inv.append(float((ions * h).sum()))
     ts, inv = np.array(ts), np.array(inv)
-    # regime linear: depois do transitório (um terço da janela) e enquanto o
-    # inventário não passa de 1e4 vezes o inicial (a carga espacial deforma o campo)
+    # linear regime: after the transient and while the inventory stays below 1e4
+    # times the initial one (space charge would distort the field)
     j = (ts >= T_TRANSITORIO) & (inv < 1e4 * inv[0])
     if np.count_nonzero(j) < 5:
-        raise RuntimeError(f"{destino}: menos de 5 registros no regime linear")
+        raise RuntimeError(f"{destino}: fewer than 5 records in the linear regime")
     return np.polyfit(ts[j], np.log(inv[j]), 1)[0]
 
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--malhas", type=int, nargs="+", default=[100, 200, 400, 800])
-    p.add_argument("--pd", type=float, nargs="+", default=[10.0, 15.0, 20.0], help="p d em Torr cm")
-    p.add_argument("--pressao-torr", type=float, default=100.0)
-    p.add_argument("--gama", type=float, default=0.05)
-    p.add_argument("--reflexao", type=float, default=0.0, help="reflexão dos elétrons na parede")
+    p.add_argument("--meshes", "--malhas", dest="malhas", type=int, nargs="+", default=[100, 200, 400, 800])
+    p.add_argument("--pd", type=float, nargs="+", default=[10.0, 15.0, 20.0], help="p d in Torr cm")
+    p.add_argument("--pressure-torr", "--pressao-torr", dest="pressao_torr", type=float, default=100.0)
+    p.add_argument("--gamma", "--gama", dest="gama", type=float, default=0.05)
+    p.add_argument("--reflection", "--reflexao", dest="reflexao", type=float, default=0.0,
+                   help="electron reflection at the walls")
     p.add_argument("--t-end", type=float, default=3e-5)
     p.add_argument("--python", default=sys.executable)
-    p.add_argument("--saida", type=pathlib.Path, default=RAIZ / "execucoes" / "townsend")
-    p.add_argument("--so-referencia", action="store_true")
+    p.add_argument("--output", "--saida", dest="saida", type=pathlib.Path, default=RAIZ / "execucoes" / "townsend")
+    p.add_argument("--reference-only", "--so-referencia", dest="so_referencia", action="store_true")
     a = p.parse_args()
     pressao = a.pressao_torr * TORR
     res = []
@@ -167,7 +169,7 @@ def main():
         v_ref, v_cla = ruptura_referencia(gap, pressao, a.gama, r=a.reflexao)
         linha = {"pd": pd, "gap": gap, "gama": a.gama, "reflexao": a.reflexao, "V_referencia": v_ref,
                  "V_classico": v_cla, "malhas": {}}
-        print(f"p d = {pd} Torr cm: referência {v_ref:.1f} V, clássico {v_cla:.1f} V", flush=True)
+        print(f"p d = {pd} Torr cm: reference {v_ref:.1f} V, classical {v_cla:.1f} V", flush=True)
         if not a.so_referencia:
             for m in a.malhas:
                 vs = v_ref * np.array([0.97, 0.99, 1.01, 1.03])
@@ -179,7 +181,7 @@ def main():
                 c = np.polyfit(vs, taxas, 1)
                 v_b = -c[1] / c[0]
                 linha["malhas"][m] = {"V": v_b, "tensoes": vs.tolist(), "taxas": taxas}
-                print(f"  {m} células: {v_b:.1f} V ({100 * (v_b / v_ref - 1):+.2f} % da referência)", flush=True)
+                print(f"  {m} cells: {v_b:.1f} V ({100 * (v_b / v_ref - 1):+.2f} % from the reference)", flush=True)
         res.append(linha)
     a.saida.mkdir(parents=True, exist_ok=True)
     (a.saida / f"townsend_g{a.gama:g}_r{a.reflexao:g}.json").write_text(json.dumps(res, indent=2) + "\n")

@@ -1,27 +1,26 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Observáveis da série temporal de uma execução.
+"""Observables of the time series of a run.
 
-Uso: python3 scripts/serie.py DIR [DIR ...] [--referencia REF | --malhas [--piso P]]
+Usage: python3 scripts/serie.py DIR [DIR ...] [--reference REF | --meshes [--floor P]]
 
-Para cada execução: o primeiro aviso de validade no log (DIR.log da campanha
-ou DIR/log.txt do Fortran), a partir do qual a execução não vale, e a energia
-dissipada por período e por área do eletrodo pela curva de Lissajous,
-E = ∮ V dQ, com a carga do eletrodo Q = eps0 eps_d (V - phi_esq) / espessura
-(robusta com a saída de 1 ns, ao contrário da potência instantânea), e a carga
-transferida para a superfície esquerda em cada semiperíodo, a variação de
-sigma_esq, que no caso D (um pulso por semiperíodo) é a carga por pulso e não
-depende de resolver o instante do pulso com a saída de 50 ns. Com --forma
-pulso, só a energia por período de repetição; com --forma degrau, nenhuma
-métrica por período.
+For each run: the first validity warning in the log (DIR.log), from which the
+run is not valid, and the energy dissipated per period and per electrode area
+from the Lissajous curve, E = closed integral of V dQ, with the electrode charge
+Q = eps0 eps_d (V - phi_left) / thickness (robust with a coarse output, unlike
+the instantaneous power), and the charge transferred to the left surface in each
+half period, the change of sigma_left, which with one pulse per half period is
+the charge per pulse and does not depend on resolving the time of the pulse.
+With the pulse waveform, only the energy per repetition period; with the step
+waveform, no quantity per period.
 
-Com --malhas, os diretórios são uma série de malhas (grossa para fina, razão
-2): ordem e GCI da energia de cada período e da carga de cada semiperíodo,
-com a classificação de convergencia.py.
+With --meshes, the directories are a series of meshes (coarse to fine, ratio 2):
+order and GCI of the energy of each period and of the charge of each half
+period, with the classification of convergencia.py.
 
-Com --referencia (estudo de tolerância): para cada observável, a maior
-diferença ao longo de todos os instantes comuns, dividida pelo máximo da série
-da referência, e o instante em que ela ocorre. Medir num instante só deixou
-passar o erro de tolerância da ruptura (ACHADOS, Fortran contra protótipo).
+With --reference (tolerance study): for each observable, the largest difference
+over all common times, divided by the maximum of the reference series, and the
+time at which it occurs. Measuring at a single time missed the tolerance error
+of the breakdown.
 """
 import argparse
 import pathlib
@@ -38,7 +37,7 @@ EPS0 = 8.8541878128e-12
 
 
 def energia_por_periodo(t, v, phi_esq, espessura, eps_d, periodo):
-    """∮ V dQ (J/m2) em cada período completo da série, pela regra do trapézio."""
+    """Closed integral of V dQ (J/m2) in each complete period of the series, by the trapezoidal rule."""
     t, v, phi_esq = (np.asarray(a, dtype=float) for a in (t, v, phi_esq))
     q = EPS0 * eps_d * (v - phi_esq) / espessura
     folga = 1e-6 * periodo
@@ -53,8 +52,8 @@ def energia_por_periodo(t, v, phi_esq, espessura, eps_d, periodo):
 
 
 def carga_por_semiperiodo(t, sigma, periodo):
-    """Variação de sigma (C/m2) em cada semiperíodo completo da série, entre as
-    saídas nos limites do semiperíodo."""
+    """Change of sigma (C/m2) in each complete half period of the series, between
+    the outputs at the limits of the half period."""
     t, sigma = np.asarray(t, dtype=float), np.asarray(sigma, dtype=float)
     meio = 0.5 * periodo
     folga = 1e-6 * periodo
@@ -63,14 +62,14 @@ def carga_por_semiperiodo(t, sigma, periodo):
     while (k + 1) * meio <= t[-1] + folga:
         i0, i1 = (int(np.argmin(np.abs(t - c))) for c in (k * meio, (k + 1) * meio))
         if abs(t[i0] - k * meio) > folga or abs(t[i1] - (k + 1) * meio) > folga:
-            raise SystemExit(f"a saída não tem o instante {k * meio:.4e} ou {(k + 1) * meio:.4e} s")
+            raise SystemExit(f"the output lacks the time {k * meio:.4e} or {(k + 1) * meio:.4e} s")
         cargas.append(float(sigma[i1] - sigma[i0]))
         k += 1
     return cargas
 
 
 def diferenca_maxima(t, obs, t_ref, obs_ref):
-    """{nome: (maior |f - f_ref| / max |f_ref|, instante)} nos instantes comuns."""
+    """{name: (largest |f - f_ref| / max |f_ref|, time)} at the common times."""
     t, t_ref = np.asarray(t, dtype=float), np.asarray(t_ref, dtype=float)
     tol = 1e-9 * max(np.abs(t).max(), np.abs(t_ref).max(), 1e-300)
     pares = [(i, j) for i, a in enumerate(t) for j in np.nonzero(np.abs(t_ref - a) <= tol)[0][:1]]
@@ -88,13 +87,14 @@ def diferenca_maxima(t, obs, t_ref, obs_ref):
     return saida
 
 
-# só os avisos de validade (grau de ionização, gás quente); o de energia fora
-# da tabela é diagnóstico
-AVISO = re.compile(r"AVISO:\s*(?:grau de ionizacao|gas acima).*?\bt\s*=\s*([-+0-9.eEdD]+)\s*s")
+# only the validity warnings (ionization degree, hot gas); the one on the energy
+# outside the table is a diagnostic. Old logs are in Portuguese (AVISO).
+AVISO = re.compile(r"(?:AVISO:\s*(?:grau de ionizacao|gas acima)|WARNING:\s*(?:ionization degree|gas above))"
+                   r".*?\b(?:t|em t)\s*=\s*([-+0-9.eEdD]+)\s*s")
 
 
 def primeiro_aviso(log):
-    """Instante (s) do primeiro aviso de validade no log; None se não há."""
+    """Time (s) of the first validity warning in the log; None if there is none."""
     log = pathlib.Path(log)
     if not log.exists():
         return None
@@ -103,8 +103,10 @@ def primeiro_aviso(log):
 
 
 def series(d):
-    """Instantes e observáveis: superficie.dat inteiro e, por bloco do perfil,
-    n_e e cada espécie do caso (menos o fundo) integrados e ΔT máximo e integrado sobre a temperatura de parede."""
+    """Times and observables: the whole superficie.dat and, per block of the
+    profiles, n_e and each species of the case (except the background) integrated
+    over the gap, and the maximum and integrated temperature rise over the wall
+    temperature."""
     sup = np.loadtxt(d / "superficie.dat", skiprows=1, ndmin=2)
     t_sup = sup[:, 0]
     obs_sup = {"V (V)": sup[:, 1], "phi_esq (V)": sup[:, 2], "phi_dir (V)": sup[:, 3],
@@ -144,45 +146,46 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("dirs", nargs="+", type=pathlib.Path)
     g = p.add_mutually_exclusive_group()
-    g.add_argument("--referencia", type=pathlib.Path)
-    g.add_argument("--malhas", action="store_true", help="os diretórios são uma série de malhas, razão 2")
-    p.add_argument("--piso", type=float, default=0.0,
-                   help="com --malhas, erro relativo de tolerância medido; diferenças abaixo dele não dão ordem")
+    g.add_argument("--reference", "--referencia", dest="referencia", type=pathlib.Path)
+    g.add_argument("--meshes", "--malhas", dest="malhas", action="store_true",
+                   help="the directories are a series of meshes, ratio 2")
+    p.add_argument("--floor", "--piso", dest="piso", type=float, default=0.0,
+                   help="with --meshes, measured relative tolerance error; differences below it give no order")
     a = p.parse_args()
     por_periodo = []
     ref = series(a.referencia) if a.referencia else None
     for d in a.dirs:
         print(f"== {d}")
         aviso = primeiro_aviso(log_da_execucao(d))
-        print("sem aviso" if aviso is None else f"primeiro aviso em t = {aviso:.4e} s: não vale a partir daí")
+        print("no warning" if aviso is None else f"first warning at t = {aviso:.4e} s: not valid from there on")
         par = parametros_da_execucao(d)
         (t_sup, sup), perf = series(d)
         forma = par.get("forma", "seno")
         if par.get("espessura", 0.0) > 0.0 and forma == "degrau":
-            print("sem métricas por período (forma degrau)")
+            print("no quantities per period (step waveform)")
         elif par.get("espessura", 0.0) > 0.0:
-            # com pulso, o período é o de repetição e não há semiperíodos de polaridade
+            # with pulses, the period is the repetition period and there are no half periods of polarity
             e = energia_por_periodo(t_sup, sup["V (V)"], sup["phi_esq (V)"], par["espessura"],
                                     par.get("eps_dieletrico", 4.8), par.get("periodo", 1e-7))
-            print("energia por período (J/m2): " + "  ".join(f"{x:.5e}" for x in e))
-            metricas = {f"energia período {k + 1}": x for k, x in enumerate(e)}
+            print("energy per period (J/m2): " + "  ".join(f"{x:.5e}" for x in e))
+            metricas = {f"energy period {k + 1}": x for k, x in enumerate(e)}
             if forma == "seno":
                 c = carga_por_semiperiodo(t_sup, sup["sigma_esq (C/m2)"], par.get("periodo", 1e-7))
-                print("carga por semiperíodo (C/m2): " + "  ".join(f"{x:+.5e}" for x in c))
-                metricas.update({f"carga semiperíodo {k + 1}": x for k, x in enumerate(c)})
+                print("charge per half period (C/m2): " + "  ".join(f"{x:+.5e}" for x in c))
+                metricas.update({f"charge half period {k + 1}": x for k, x in enumerate(c)})
             por_periodo.append(metricas)
         if ref:
-            print(f"diferença máxima para {a.referencia.name} (relativa ao máximo da série):")
+            print(f"largest difference from {a.referencia.name} (relative to the maximum of the series):")
             for (t, obs), (t_r, obs_r) in zip(((t_sup, sup), perf), ref):
                 for nome, (dif, tm) in diferenca_maxima(t, obs, t_r, obs_r).items():
-                    print(f"  {nome:20s} {dif:10.3e}  em t = {tm:.4e} s")
+                    print(f"  {nome:20s} {dif:10.3e}  at t = {tm:.4e} s")
 
     if a.malhas:
         if len(por_periodo) != len(a.dirs) or len(a.dirs) < 3:
-            sys.exit("--malhas precisa de pelo menos três execuções com dielétrico e forma seno ou pulso; "
-                     "com degrau, use convergencia.py por instante")
-        print("convergência por período (grossa -> fina): ordens, classificação, GCI fino, "
-              "incerteza por mínimos quadrados (Eça e Hoekstra)")
+            sys.exit("--meshes needs at least three runs with dielectric and a sine or pulse waveform; "
+                     "with a step, use convergencia.py per time")
+        print("convergence per period (coarse -> fine): orders, classification, fine GCI, "
+              "least-squares uncertainty (Eca and Hoekstra)")
         for nome in por_periodo[-1]:
             f = [v.get(nome, float("nan")) for v in por_periodo]
             r = ordem_e_gci(f, 2.0, piso=a.piso)

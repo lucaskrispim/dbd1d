@@ -1,31 +1,33 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Ordem de convergência observada e GCI de uma série de refinamento.
+"""Observed order of convergence and GCI of a refinement series.
 
-Uso: python3 -I scripts/convergencia.py --t T --razao R DIR_GROSSO DIR_MEDIO DIR_FINO [DIR ...]
+Usage: python3 -I scripts/convergencia.py --t T --ratio R DIR_COARSE DIR_MEDIUM DIR_FINE [DIR ...]
 
-Os diretórios são execuções que diferem só na malha (ou só no dt), do mais
-grosso ao mais fino, com razão de refinamento R constante entre vizinhos. Para
-cada observável no instante T (s), calcula a ordem observada
+The directories are runs that differ only in the mesh (or only in dt), from the
+coarsest to the finest, with a constant refinement ratio R between neighbours.
+For each observable at time T (s), computes the observed order
     p = ln(|f1 - f2| / |f2 - f3|) / ln(R)
-em cada trinca consecutiva, a classificação da última trinca (monótona,
-oscilatória, divergente, abaixo do piso de tolerância dado por --piso) e, só
-na monótona, o índice de convergência de malha de Roache na solução mais fina,
-GCI = Fs * |f2 - f3| / |f3| / (R**min(p, pf) - 1), com Fs = 1,25 se p está a
-10% da ordem formal pf (--ordem-formal) e Fs = 3 se não.
+in each consecutive triplet, the classification of the last triplet (monotonic,
+oscillatory, divergent, below the tolerance floor given by --floor) and, only
+for a monotonic one, Roache's grid convergence index on the finest solution,
+GCI = Fs * |f2 - f3| / |f3| / (R**min(p, pf) - 1), with Fs = 1.25 if p is within
+10% of the formal order pf (--formal-order) and Fs = 3 otherwise.
 
-Observáveis da frente de ionização (com --frente): o pico de Ar+ junto ao
-cátodo é uma estrutura de ~0,65 um que só converge com células abaixo de
-0,5 um, então a série também mede grandezas que não dependem de resolvê-lo:
-platô de Ar+ atrás da frente (mediana entre 3 e 33 um atrás do pico), Ar+
-integrado numa janela fixa de 60 um centrada no pico da execução mais fina e
-posição da frente (borda da região com n_e > 1e12 cm-3 do lado do cátodo).
+Observables of an ionization front (with --front): the Ar+ peak near the cathode
+is a structure of ~0.65 um that converges only with cells below 0.5 um, so the
+series also measures quantities that do not depend on resolving it: the Ar+
+plateau behind the front (median between 3 and 33 um behind the peak), Ar+
+integrated over a fixed window of 60 um centred on the peak of the finest run,
+and the position of the front (edge of the region with n_e > 1e12 cm-3 on the
+cathode side).
 
-Observáveis: carga superficial e potencial nas duas interfaces (superficie.dat);
-máximo e integral no gap da densidade de elétrons e do íon principal (Ar+ no
-argônio), integral de cada espécie do caso menos o gás de fundo (kinet.inp e
-gas.json do caso registrado no parametros.json; Ar*, Ar+ e Ar2+), E/N no centro e, com aquecimento, ΔT máximo e integrado sobre a
-temperatura de parede (perfil.dat). As integrais usam as posições de cada malha, então independem do
-número de células.
+Observables: surface charge and potential at both interfaces (superficie.dat);
+maximum and gap integral of the density of electrons and of the main ion (Ar+ in
+argon), gap integral of each species of the case except the background gas
+(kinet.inp and gas.json of the case recorded in parametros.json), E/N at the
+centre and, with heating, the maximum and integrated temperature rise over the
+wall temperature (perfil.dat). The integrals use the positions of each mesh, so
+they do not depend on the number of cells.
 """
 import argparse
 import math
@@ -45,7 +47,7 @@ def superficie(diretorio, t):
         if abs(v[0] - t) <= 1e-6 * t:
             return {"sigma_esq (C/m2)": v[4], "sigma_dir (C/m2)": v[5],
                     "phi_esq (V)": v[2], "phi_dir (V)": v[3]}
-    raise SystemExit(f"{diretorio}: instante {t} não encontrado em superficie.dat")
+    raise SystemExit(f"{diretorio}: time {t} not found in superficie.dat")
 
 
 def perfil(diretorio, t):
@@ -57,8 +59,8 @@ def perfil(diretorio, t):
             x = [l[jx] for l in linhas]
             interior = range(1, len(linhas) - 1)
 
-            # faces das células: cada centro fica no meio das suas duas faces, o
-            # que vale também na malha agrupada (achado N20)
+            # faces of the cells: each centre lies midway between its two faces,
+            # which also holds on the clustered mesh
             faces = [x[0]]
             for i in interior:
                 faces.append(2.0 * x[i] - faces[-1])
@@ -73,27 +75,27 @@ def perfil(diretorio, t):
             v = {"max ne (cm-3)": max(linhas[i][jn] for i in interior),
                  f"max {rotulo(ion)} (cm-3)": max(linhas[i][ji] for i in interior),
                  "int ne (cm-3 m)": integral(jn),
-                 "E/N no centro (Td)": linhas[meio][je]}
+                 "E/N at centre (Td)": linhas[meio][je]}
             for coluna in especies:
                 if coluna in nomes:
                     v[f"int {rotulo(coluna)} (cm-3 m)"] = integral(nomes.index(coluna))
             if "Temperature" in nomes:
-                # ΔT sobre a temperatura de parede: T relativo esconde o erro,
-                # porque ΔT é de poucos kelvin sobre 300 K
+                # temperature rise over the wall temperature: the relative T hides
+                # the error, since the rise is a few kelvin over 300 K
                 jt = nomes.index("Temperature")
                 v["max dT (K)"] = max(linhas[i][jt] for i in interior) - t_ref
                 v["int dT (K m)"] = sum((linhas[i][jt] - t_ref) * (faces[i] - faces[i - 1]) for i in interior)
             return celulas, v
-    raise SystemExit(f"{diretorio}: instante {t} não encontrado em perfil.dat")
+    raise SystemExit(f"{diretorio}: time {t} not found in perfil.dat")
 
 
 def observaveis_frente(x, h, ne, ai, x_ref, ion="Ar+"):
-    """Platô do íon principal (Ar+ no argônio; nome dado por ion), íon em 60 um
-    em torno de x_ref e posição da frente.
+    """Plateau of the main ion (Ar+ in argon; name given by ion), ion within 60 um
+    around x_ref and position of the front.
 
-    x e h são centros e larguras das células (m), ne e ai as densidades (cm-3).
-    O cátodo fica do lado do gap em que está o pico de Ar+; atrás da frente é o
-    lado oposto."""
+    x and h are the centres and widths of the cells (m), ne and ai the densities
+    (cm-3). The cathode is on the side of the gap where the ion peak is; behind
+    the front is the opposite side."""
     x, h, ne, ai = (np.asarray(v, dtype=float) for v in (x, h, ne, ai))
     k = int(np.argmax(ai))
     lado = 1.0 if x[k] > 0.5 * (x[0] + x[-1]) else -1.0
@@ -102,28 +104,28 @@ def observaveis_frente(x, h, ne, ai, x_ref, ion="Ar+"):
     plato = float(np.median(faixa)) if len(faixa) else float("nan")
     janela = np.abs(x - x_ref) < 30e-6
     acima = x[ne > 1e12]
-    if len(acima) == 0:                          # sem frente (caso D, B depois da ruptura)
+    if len(acima) == 0:                          # no front (after breakdown)
         frente = float("nan")
     else:
         frente = acima.max() if lado > 0 else acima.min()
-    return {f"platô {ion} (cm-3)": plato,
-            f"{ion} em 60 um (cm-3 m)": float(np.sum(ai[janela] * h[janela])),
-            "frente (m)": frente}
+    return {f"plateau {ion} (cm-3)": plato,
+            f"{ion} in 60 um (cm-3 m)": float(np.sum(ai[janela] * h[janela])),
+            "front (m)": frente}
 
 
 def ordem_e_gci(f, razao, ordem_formal=1.0, piso=0.0):
-    """Ordens observadas de cada trinca e GCI na malha mais fina.
+    """Observed orders of each triplet and GCI on the finest mesh.
 
-    A última trinca é classificada pela razão R = (f3 - f2)/(f2 - f1):
-    monótona com 0 < R < 1, oscilatória com -1 < R < 0, divergente com
-    |R| >= 1, indefinida sem valor finito, abaixo do piso quando
-    |f3 - f2|/|f3| < piso (o erro de tolerância medido) e perto do piso até
-    3 vezes ele, porque a diferença carrega o ruído das duas execuções.
-    Só a monótona tem GCI = Fs |f3 - f2|/|f3| / (R**min(p, pf) - 1): Fs =
-    1,25 se p está a 10% da ordem formal pf; senão Fs = 3. Com p acima da
-    formal, p é limitado a pf (conservador, Roache); com p abaixo, entra o
-    p observado e o GCI cresce com 1/(R**p - 1). O Fs em degrau faz o GCI
-    saltar 2,4 vezes entre p = 1,1 pf e p logo acima."""
+    The last triplet is classified by the ratio R = (f3 - f2)/(f2 - f1):
+    monotonic with 0 < R < 1, oscillatory with -1 < R < 0, divergent with
+    |R| >= 1, undefined without a finite value, below the floor when
+    |f3 - f2|/|f3| < piso (the measured tolerance error) and near the floor up
+    to 3 times it, since the difference carries the noise of both runs. Only the
+    monotonic one has GCI = Fs |f3 - f2|/|f3| / (R**min(p, pf) - 1): Fs = 1.25 if
+    p is within 10% of the formal order pf; otherwise Fs = 3. With p above the
+    formal order, p is limited to pf (conservative, Roache); with p below, the
+    observed p enters and the GCI grows as 1/(R**p - 1). The step in Fs makes the
+    GCI jump by 2.4 between p = 1.1 pf and p just above."""
     f = [float(v) for v in f]
     ordens = []
     for k in range(len(f) - 2):
@@ -133,18 +135,18 @@ def ordem_e_gci(f, razao, ordem_formal=1.0, piso=0.0):
     rel = abs(e32) / abs(f[-1]) if f[-1] != 0 else float("inf")
     gci = float("nan")
     if not all(math.isfinite(v) for v in f[-3:]):
-        tipo = "indefinida"
+        tipo = "undefined"
     elif rel < piso or e32 == 0.0:
-        tipo = "abaixo do piso"
+        tipo = "below the floor"
     elif rel < 3.0 * piso:
-        # a diferença carrega o ruído de duas execuções: a ordem não é confiável
-        tipo = "perto do piso"
+        # the difference carries the noise of two runs: the order is not reliable
+        tipo = "near the floor"
     elif e21 == 0.0 or abs(e32 / e21) >= 1.0:
-        tipo = "divergente"
+        tipo = "divergent"
     elif e32 / e21 < 0.0:
-        tipo = "oscilatória"
+        tipo = "oscillatory"
     else:
-        tipo = "monótona"
+        tipo = "monotonic"
         p = ordens[-1]
         fs = 1.25 if abs(p - ordem_formal) <= 0.1 * ordem_formal else 3.0
         gci = fs * rel / (razao ** min(p, ordem_formal) - 1.0)
@@ -152,30 +154,31 @@ def ordem_e_gci(f, razao, ordem_formal=1.0, piso=0.0):
 
 
 def incerteza_eca_hoekstra(f, h, ordem_formal=1.0):
-    """Incerteza numérica por mínimos quadrados em todas as malhas (Eça e
-    Hoekstra, J. Comput. Phys. 262, 104, 2014), sem a variante ponderada.
+    """Numerical uncertainty by least squares over all meshes (Eca and Hoekstra,
+    J. Comput. Phys. 262, 104, 2014), without the weighted variant.
 
-    f e h vão do mais grosso ao mais fino (h relativo); são precisas pelo menos
-    4 malhas. Ajuste livre phi = phi0 + alfa h^p e, conforme p:
-      0,5 <= p < ordem formal + 0,1: o ajuste livre, Fs = 1,25;
-      p >= ordem formal + 0,1: o de menor desvio entre phi0 + a h, phi0 + a h^2 e
-        phi0 + a h + b h^2 (empate: o de menos parâmetros), Fs = 3;
-      p < 0,5: U = 3 Delta_M, com Delta_M = max - min dos dados.
-    eps = |phi_ajuste(h_fina) - phi0|, sigma com n menos o número de parâmetros,
-    residuo = f_fina - phi_ajuste(h_fina) e dphi = Delta_M/(n - 1). Com sigma <
-    dphi, U = Fs eps + sigma + |residuo|; senão U = 3 sigma/dphi (eps + sigma +
-    |residuo|). Dados constantes dão U = 0. Devolve p (do ajuste livre), ajuste
-    (livre, h1, h2, h12, amplitude ou constante), phi0, eps, sigma, residuo, fs
-    e U (absoluto)."""
+    f and h go from the coarsest to the finest (relative h); at least 4 meshes
+    are needed. Free fit phi = phi0 + alpha h^p and, depending on p:
+      0.5 <= p < formal order + 0.1: the free fit, Fs = 1.25;
+      p >= formal order + 0.1: the one with the smallest deviation among
+        phi0 + a h, phi0 + a h^2 and phi0 + a h + b h^2 (tie: the one with fewer
+        parameters), Fs = 3;
+      p < 0.5: U = 3 Delta_M, with Delta_M = max - min of the data.
+    eps = |phi_fit(h_fine) - phi0|, sigma with n minus the number of parameters,
+    residual = f_fine - phi_fit(h_fine) and dphi = Delta_M/(n - 1). With sigma <
+    dphi, U = Fs eps + sigma + |residual|; otherwise U = 3 sigma/dphi (eps + sigma
+    + |residual|). Constant data give U = 0. Returns p (of the free fit), ajuste
+    (free, h1, h2, h12, amplitude or constant), phi0, eps, sigma, residuo, fs and
+    U (absolute)."""
     f, h = np.asarray(f, dtype=float), np.asarray(h, dtype=float)
     saida = dict.fromkeys(("p", "phi0", "eps", "sigma", "residuo", "fs", "U"), float("nan"))
-    saida["ajuste"] = "nenhum"
+    saida["ajuste"] = "none"
     n = len(f)
     if n < 4 or not np.all(np.isfinite(f)):
         return saida
     amplitude = f.max() - f.min()
     if amplitude == 0.0:
-        return {**saida, "ajuste": "constante", "phi0": float(f[-1]), "eps": 0.0, "sigma": 0.0,
+        return {**saida, "ajuste": "constant", "phi0": float(f[-1]), "eps": 0.0, "sigma": 0.0,
                 "residuo": 0.0, "U": 0.0}
 
     def ajuste(colunas):
@@ -190,7 +193,7 @@ def incerteza_eca_hoekstra(f, h, ordem_formal=1.0):
     grade = np.linspace(0.05, 6.0, 1191)
     k = int(np.argmin([quadrados(p) for p in grade]))
     lo, hi = grade[max(k - 1, 0)], grade[min(k + 1, len(grade) - 1)]
-    for _ in range(60):                          # seção áurea em torno do mínimo
+    for _ in range(60):                          # golden section around the minimum
         m1, m2 = lo + 0.382 * (hi - lo), lo + 0.618 * (hi - lo)
         if quadrados(m1) < quadrados(m2):
             hi = m2
@@ -203,7 +206,7 @@ def incerteza_eca_hoekstra(f, h, ordem_formal=1.0):
     if p < ordem_formal + 0.1:
         c, res, _ = ajuste([h ** p])
         sigma = float(np.sqrt(np.sum(res ** 2) / (n - 3)))      # phi0, alfa e p
-        nome, fs, termo = "livre", 1.25, c[1] * h[-1] ** p
+        nome, fs, termo = "free", 1.25, c[1] * h[-1] ** p
     else:
         candidatos = []
         for nome_k, cols in (("h1", [h]), ("h2", [h ** 2]), ("h12", [h, h ** 2])):
@@ -224,17 +227,17 @@ def incerteza_eca_hoekstra(f, h, ordem_formal=1.0):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--t", type=float, required=True)
-    p.add_argument("--razao", type=float, default=2.0)
-    p.add_argument("--frente", action="store_true",
-                   help="inclui platô, íon principal na janela de 60 um e posição da frente")
-    p.add_argument("--ordem-formal", type=float, default=1.0,
-                   help="ordem formal do esquema (1: fechamento de primeira ordem nas paredes)")
-    p.add_argument("--piso", type=float, default=0.0,
-                   help="erro relativo de tolerância medido; diferenças abaixo dele não dão ordem")
+    p.add_argument("--ratio", "--razao", dest="razao", type=float, default=2.0)
+    p.add_argument("--front", "--frente", dest="frente", action="store_true",
+                   help="include the plateau, the main ion in the 60 um window and the position of the front")
+    p.add_argument("--formal-order", "--ordem-formal", dest="ordem_formal", type=float, default=1.0,
+                   help="formal order of the scheme (1: first-order closure at the walls)")
+    p.add_argument("--floor", "--piso", dest="piso", type=float, default=0.0,
+                   help="measured relative tolerance error; differences below it give no order")
     p.add_argument("dirs", nargs="+", type=pathlib.Path)
     a = p.parse_args()
     if len(a.dirs) < 3:
-        sys.exit("são precisas pelo menos três execuções")
+        sys.exit("at least three runs are needed")
     valores, celulas = [], []
     for d in a.dirs:
         v = superficie(d, a.t)
@@ -247,7 +250,7 @@ def main():
         x_ref = x[np.argmax(ai)]
         for v, c in zip(valores, celulas):
             v.update(observaveis_frente(*c, x_ref=x_ref, ion=rotulo(especies_do_caso(a.dirs[-1])[1])))
-    print(f"t = {a.t:.3e} s, razão {a.razao}, {len(a.dirs)} execuções (grossa -> fina)")
+    print(f"t = {a.t:.3e} s, ratio {a.razao}, {len(a.dirs)} runs (coarse -> fine)")
     for nome in valores[0]:
         f = [v[nome] for v in valores]
         texto = "  ".join(f"{x:12.5e}" for x in f)
@@ -255,8 +258,8 @@ def main():
         print(f"{nome:20s} {texto}")
         eh = incerteza_eca_hoekstra(f, a.razao ** -np.arange(len(f)), a.ordem_formal)
         rel = eh["U"] / abs(f[-1]) if f[-1] != 0 else float("nan")
-        print(f"{'':20s} ordem observada: " + "  ".join(f"{o:6.2f}" for o in r["ordens"])
-              + f"   {r['tipo']}   GCI fino: {r['gci']:9.2e}   U (E-H): {rel:9.2e} ({eh['ajuste']}, p {eh['p']:.2f})")
+        print(f"{'':20s} observed order: " + "  ".join(f"{o:6.2f}" for o in r["ordens"])
+              + f"   {r['tipo']}   fine GCI: {r['gci']:9.2e}   U (E-H): {rel:9.2e} ({eh['ajuste']}, p {eh['p']:.2f})")
 
 
 if __name__ == "__main__":

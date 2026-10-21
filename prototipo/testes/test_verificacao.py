@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Testes de verificação que faltavam para o nível do Fortran (VT7 a VT12 de
-docs/lacunas.md): balanço global de energia do gás, condução e tabela de
-energia contra respostas independentes, o integrador da DAE contra uma solução
-exata, robustez em campo nulo com plasma denso (N21), gás solto e os modos do
-simula.py que não tinham teste."""
+"""Verification tests that were missing to reach the level of the Fortran code (VT7 to
+VT12 of docs/lacunas.md): global energy balance of the gas, conduction and energy
+table against independent answers, the DAE integrator against an exact solution,
+robustness at zero field with a dense plasma (N21), free gas and the modes of
+simula.py that had no test."""
 import subprocess
 import sys
 
@@ -26,10 +26,10 @@ def pecas():
     return quimica_do(RAIZ), Tabela(RAIZ / "tabela_bolsig.dat")
 
 
-# ------------------------------------------------------------- gás (VT7, VT8)
+# ------------------------------------------------------------- gas (VT7, VT8)
 def test_balanco_global_de_energia_do_gas(pecas):
-    # soma de (3/2) N k_B dT/dt h nas células = soma de (Q_el + Q_J) h menos o
-    # calor que sai pelas duas paredes, k_f (T - T_par)/(h/2); a 1e-12
+    # sum of (3/2) N k_B dT/dt h over the cells = sum of (Q_el + Q_J) h minus the
+    # heat leaving through the two walls, k_f (T - T_wall)/(h/2); to 1e-12
     md = Modelo(*pecas, n_celulas=30, agrupamento=1.5, espessura=1e-3, v_pico=3e3, aquecimento=True)
     g = np.random.default_rng(8)
     n = 10.0 ** g.uniform(9, 12, size=(md.n_esp, md.m))
@@ -54,7 +54,7 @@ def test_balanco_global_de_energia_do_gas(pecas):
 
 
 def test_joule_dos_ions_independe_do_sentido_do_campo(pecas):
-    # Q_J = e n_i mu_i E^2: campo +E e -E aquecem igual
+    # Q_J = e n_i mu_i E^2: fields +E and -E heat equally
     md = Modelo(*pecas, n_celulas=10, aquecimento=True)
     n = np.zeros((md.n_esp, md.m))
     n[md.nomes.index("AR^+")] = 1e12
@@ -69,8 +69,8 @@ def test_joule_dos_ions_independe_do_sentido_do_campo(pecas):
 
 
 def test_conducao_de_segunda_ordem_na_malha_agrupada(pecas):
-    # a mesma solução manufaturada da malha uniforme (test_aquecimento), agora
-    # com agrupamento 2: a distância entre centros difere da largura da célula
+    # the same manufactured solution of the uniform mesh (test_aquecimento), now
+    # with clustering 2: the distance between centres differs from the cell width
     erros = []
     for m in (40, 80, 160):
         md = Modelo(*pecas, n_celulas=m, v_pico=0.0, agrupamento=2.0, aquecimento=True)
@@ -84,15 +84,15 @@ def test_conducao_de_segunda_ordem_na_malha_agrupada(pecas):
         exato = (0.0307313e-3 * d1 ** 2 + kap * d2) / (1.5 * KB * md.n_gas * 1e6)
         erros.append(np.max(np.abs(dtdt - exato)[1:-1]) / np.max(np.abs(exato)))
     ordens = np.log2(np.array(erros[:-1]) / np.array(erros[1:]))
-    # células internas: na da parede o erro de truncamento local da meia célula é
-    # de ordem 1 (a solução continua de 2ª ordem); o fechamento da parede tem
-    # teste próprio em test_aquecimento.py
+    # inner cells: in the wall cell the local truncation error of the half cell is
+    # first order (the solution remains second order); the wall closure has its
+    # own test in test_aquecimento.py
     assert np.all(np.abs(ordens - 2.0) < 0.1), ordens
 
 
-# ----------------------------------------------------- tabela de energia (VT9)
+# ----------------------------------------------------- energy table (VT9)
 def tabela_sintetica(caminho, funcao):
-    """tabela_energia.dat com eps de 0,04 a 40 eV e colunas dadas por funcao(eps)."""
+    """tabela_energia.dat with eps from 0.04 to 40 eV and columns given by funcao(eps)."""
     eps = 0.04 * 10.0 ** (np.arange(31) / 10.0)
     with open(caminho, "w") as f:
         f.write("# sintetica\n# colunas\n")
@@ -101,8 +101,8 @@ def tabela_sintetica(caminho, funcao):
 
 
 def test_tabela_de_energia_exata_para_leis_de_potencia(tmp_path):
-    # a interpolação é linear em (ln eps, ln valor): leis de potência saem exatas
-    # fora dos nós
+    # the interpolation is linear in (ln eps, ln value): power laws come out exact
+    # outside the nodes
     potencias = np.arange(1, 13) * 0.25
     tabela_sintetica(tmp_path / "t.dat", lambda e: e ** potencias)
     tab = TabelaEnergia(tmp_path / "t.dat")
@@ -111,7 +111,7 @@ def test_tabela_de_energia_exata_para_leis_de_potencia(tmp_path):
 
 
 def test_tabela_de_energia_de_segunda_ordem(tmp_path):
-    # função suave como a do teste_tabela.f90: erro entre nós de ordem 2 em ln eps
+    # smooth function as that of teste_tabela.f90: error between nodes of order 2 in ln eps
     def g(e):
         return e ** 1.5 * np.exp(-3.0 / e)
 
@@ -148,9 +148,9 @@ def test_bdf_com_massa_numa_dae_linear_exata():
 
 
 def test_bdf_com_massa_corta_o_passo_quando_o_newton_falha():
-    # a DAE linear exata com f indefinida (NaN) a mais de 0,05 do último passo
-    # aceito: o Newton falha mesmo com o jacobiano atual, o passo é cortado pela
-    # metade até caber, e a solução continua exata
+    # the exact linear DAE with f undefined (NaN) more than 0.05 beyond the last accepted
+    # step: Newton fails even with the current Jacobian, the step is halved
+    # until it fits, and the solution remains exact
     estado = {"t": 0.0}
 
     def f(t, w):
@@ -170,12 +170,12 @@ def test_bdf_com_massa_corta_o_passo_quando_o_newton_falha():
     assert s.y[0] == pytest.approx(np.exp(-1.0), rel=1e-7, abs=0)
 
 
-# ---------------------------------------------------------- campo nulo (VT11)
+# ---------------------------------------------------------- zero field (VT11)
 @pytest.mark.parametrize("energia", [False, True])
 def test_celula_do_n21_integrada_sem_densidade_negativa(pecas, energia):
-    # campo nulo em plasma denso (a célula que derrubava o BOLSIG+ no Fortran,
-    # N21: n_e = 2,9e14, Ar* = 6,6e14): integrada 1 ns, como V55 e V57 do
-    # Fortran, fica finita e sem densidade negativa além da tolerância
+    # zero field in a dense plasma (the cell that brought BOLSIG+ down in the Fortran code,
+    # N21: n_e = 2.9e14, Ar* = 6.6e14): integrated for 1 ns, as V55 and V57 of the
+    # Fortran code, it stays finite and without negative density beyond the tolerance
     from scipy.integrate import solve_ivp
     from jacobiano import ModeloRapido
     te = TabelaEnergia(RAIZ / "tabela_energia.dat") if energia else None
@@ -190,17 +190,17 @@ def test_celula_do_n21_integrada_sem_densidade_negativa(pecas, energia):
     assert sol.y[:-2].min() > -1e-2
 
 
-# ------------------------------------------------------------ gás solto (VT12)
+# ------------------------------------------------------------ free gas (VT12)
 def test_eletrons_com_o_n_local_no_gas_solto(pecas):
-    # mu_e = (mu N)/N e D_e = (D N)/N com o N da célula
+    # mu_e = (mu N)/N and D_e = (D N)/N with the N of the cell
     md = Modelo(*pecas, n_celulas=4, gas_solto=True)
     n = np.zeros((md.n_esp, md.m))
     n[md.nomes.index("AR")] = md.n_gas
     n[md.nomes.index("AR")][2] = 0.5 * md.n_gas
-    n[md.nomes.index("AR^+")] = 1e17          # íons não entram no N dos elétrons
+    n[md.nomes.index("AR^+")] = 1e17          # ions do not enter the N of the electrons
     e_n = 50.0
     n_local = n[md.nomes.index("AR")]
-    campo = e_n * 1e-21 * n_local * 1e6                    # mesmo E/N em todas as células
+    campo = e_n * 1e-21 * n_local * 1e6                    # same E/N in every cell
     mob, dif, *_ = md.coeficientes(campo, n)
     assert mob[md.i_e, 2] == pytest.approx(2.0 * mob[md.i_e, 0], rel=1e-12)
     assert dif[md.i_e, 2] == pytest.approx(2.0 * dif[md.i_e, 0], rel=1e-12)
@@ -218,8 +218,8 @@ def roda_simula(destino, *extra):
 @pytest.mark.parametrize("extra, rtol", [(["--jac", "estruturado"], 1e-4), (["--jac", "fd", "--adaptativa"], 5e-2),
                                          (["--gas-solto"], 1e-4)])
 def test_modos_do_simula_concordam_com_o_padrao(tmp_path, extra, rtol):
-    # mesmo caso pelo modo padrão (DAE, gás preso): jacobiano estruturado
-    # igual; gás solto igual com ionização baixa; malha adaptativa próxima
+    # same case in the default mode (DAE, fixed gas): structured Jacobian
+    # equal; free gas equal with low ionisation; adaptive mesh close
     base = roda_simula(tmp_path / "base")
     outro = roda_simula(tmp_path / "outro", *extra)
     np.testing.assert_allclose(outro[:, 2:6], base[:, 2:6], rtol=rtol, atol=rtol * np.abs(base[:, 2:6]).max())

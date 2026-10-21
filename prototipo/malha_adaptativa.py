@@ -1,18 +1,18 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Malha adaptativa em 1D com número fixo de células (malha móvel).
+"""Adaptive 1D mesh with a fixed number of cells (moving mesh).
 
-A malha nova sai por equidistribuição de uma densidade de células
+The new mesh comes from the equidistribution of a cell density
     rho(x) = rho_base(x) + peso*rho_sol(x),
-com rho_base a da malha de referência (a agrupada nas paredes, que garante as
-bainhas mesmo sem gradientes) e rho_sol proporcional ao monitor, a soma dos
-gradientes normalizados das grandezas escolhidas (ln n_e, ln n_i, campo). As
-duas partes têm a mesma integral (m células), e a variação de rho entre células
-vizinhas é limitada, o que limita a razão entre larguras vizinhas.
+with rho_base that of the reference mesh (clustered at the walls, which resolves
+the sheaths even without gradients) and rho_sol proportional to the monitor, the
+sum of the normalized gradients of the chosen quantities (ln n_e, ln n_i, field).
+Both parts have the same integral (m cells), and the variation of rho between
+neighbouring cells is limited, which limits the ratio of neighbouring widths.
 
-As densidades passam da malha velha para a nova por reconstrução linear com
-inclinação limitada (minmod) e integrais de sobreposição: o total de cada
-grandeza se conserva exatamente, a positividade se mantém e perfis lineares
-são transferidos sem erro.
+The densities go from the old mesh to the new one by linear reconstruction with
+limited slope (minmod) and overlap integrals: the total of each quantity is
+conserved exactly, positivity is kept and linear profiles are transferred
+without error.
 """
 import numpy as np
 
@@ -22,7 +22,7 @@ def centros(faces):
 
 
 def monitor(faces, campos):
-    """Soma, por célula, de |dq/dx|/(max q - min q) das grandezas em campos."""
+    """Sum, per cell, of |dq/dx|/(max q - min q) of the quantities in campos."""
     xc = centros(faces)
     total = np.zeros(len(xc))
     for q in campos:
@@ -36,26 +36,26 @@ def monitor(faces, campos):
 
 
 def faces_por_equidistribuicao(faces, mon, base, peso=1.0, razao_max=1.3, h_min=1.0e-7):
-    """Faces novas (mesmo número de células) a partir do monitor mon nas células
-    da malha faces, combinado com a densidade de células da malha base; nenhuma
-    célula fica menor que h_min (m)."""
+    """New faces (same number of cells) from the monitor mon in the cells of the
+    mesh faces, combined with the cell density of the base mesh; no cell becomes
+    smaller than h_min (m)."""
     m = len(faces) - 1
     h = np.diff(faces)
     xc = centros(faces)
-    # densidade da malha base (células por metro) no centro de cada célula velha
+    # density of the base mesh (cells per metre) at the centre of each old cell
     h_base = np.diff(base)
     k = np.clip(np.searchsorted(base, xc, side="right") - 1, 0, m - 1)
     rho = 1.0 / h_base[k]
     integral_mon = np.sum(mon * h)
     if integral_mon > 0.0:
         rho = rho + peso * m * mon / integral_mon
-    # densidade máxima 1/h_min; como a soma das células é fixa, a escala final
-    # reduz rho um pouco, então o teto leva uma folga
-    # variação limitada por célula nova. Dentro de uma célula velha a densidade
-    # é constante, e o tamanho das células novas salta na fronteira entre duas
-    # velhas: ali a razão é no máximo razao_max. Onde uma célula velha contém só
-    # uma fração n < 1 de célula nova, a queda permitida é razao_max**n, senão o
-    # limite se acumularia dentro de uma única célula nova. n = rho*h*m/total.
+    # maximum density 1/h_min; since the number of cells is fixed, the final
+    # scaling lowers rho a little, so the cap has a margin
+    # variation limited per new cell. Inside an old cell the density is constant,
+    # and the size of the new cells jumps at the boundary between two old ones:
+    # there the ratio is at most razao_max. Where an old cell contains only a
+    # fraction n < 1 of a new cell, the allowed drop is razao_max**n, otherwise
+    # the limit would accumulate inside a single new cell. n = rho*h*m/total.
     for _ in range(6):
         escala = m / np.sum(rho * h)
         n_novas = rho * h * escala
@@ -77,27 +77,27 @@ def faces_por_equidistribuicao(faces, mon, base, peso=1.0, razao_max=1.3, h_min=
 
 
 def _inclinacoes(u, xc):
-    """Inclinações minmod por célula (k, m)."""
+    """Minmod slopes per cell (k, m)."""
     s = np.zeros_like(u)
     dx = np.diff(xc)
     d = np.diff(u, axis=1) / dx
     esq, dir_ = d[:, :-1], d[:, 1:]
     mm = np.where(esq * dir_ > 0.0, np.sign(esq) * np.minimum(np.abs(esq), np.abs(dir_)), 0.0)
     s[:, 1:-1] = mm
-    # células das pontas: a inclinação do único lado; a limitação que preserva a
-    # positividade nelas fica em transfere
+    # end cells: the slope of the only side; the limitation that preserves
+    # positivity there is in transfere
     s[:, 0] = d[:, 0]
     s[:, -1] = d[:, -1]
     return s
 
 
 def transfere(u, velhas, novas):
-    """Médias por célula da malha nova a partir das da malha velha, u (k, m)."""
+    """Cell averages on the new mesh from those on the old mesh, u (k, m)."""
     u = np.atleast_2d(np.asarray(u, dtype=float))
     xc = centros(velhas)
     s = _inclinacoes(u, xc)
-    # nas pontas, a reconstrução linear de um lado só não pode ficar negativa
-    # dentro da célula
+    # at the ends, the one-sided linear reconstruction must not become negative
+    # inside the cell
     for p in (0, -1):
         meia = 0.5 * (velhas[1] - velhas[0]) if p == 0 else 0.5 * (velhas[-1] - velhas[-2])
         excesso = np.abs(s[:, p]) * meia > u[:, p]
@@ -116,12 +116,12 @@ def transfere(u, velhas, novas):
 
 
 def transfere_energia(ne, n_eps, velhas, novas, ne_novo):
-    """Densidade de energia na malha nova pela energia média ponderada pelos
-    elétrons: eps_novo = int(n_eps)/int(n_e) sobre a célula nova, com médias
-    constantes por célula velha. Transferir n_e e n_eps com reconstruções
-    limitadas independentes criaria energias médias espúrias numa frente
-    íngreme; assim eps_novo fica entre os valores vizinhos da malha velha. A
-    energia total se conserva até a diferença entre esta média e a de n_e."""
+    """Energy density on the new mesh from the mean energy weighted by the
+    electrons: eps_new = int(n_eps)/int(n_e) over the new cell, with constant
+    averages per old cell. Transferring n_e and n_eps with independent limited
+    reconstructions would create spurious mean energies at a steep front; this
+    way eps_new stays between the neighbouring values of the old mesh. The total
+    energy is conserved up to the difference between this average and that of n_e."""
     a = transfere_constante(np.vstack([np.maximum(ne, 0.0), np.maximum(n_eps, 0.0)]), velhas, novas)
     with np.errstate(invalid="ignore", divide="ignore"):
         eps = np.where(a[0] > 0.0, a[1] / a[0], 0.0)
@@ -129,7 +129,7 @@ def transfere_energia(ne, n_eps, velhas, novas, ne_novo):
 
 
 def transfere_constante(u, velhas, novas):
-    """Transferência conservativa com valor constante por célula (primeira ordem)."""
+    """Conservative transfer with a constant value per cell (first order)."""
     u = np.atleast_2d(np.asarray(u, dtype=float))
     pontos = np.union1d(velhas, novas)
     a, b = pontos[:-1], pontos[1:]

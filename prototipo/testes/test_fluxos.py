@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Análise de fluxos por reação (scripts/fluxos.py): taxas de cada reação
-reconstruídas dos estados gravados, integradas no gap e no tempo, e a fração
-da produção e do consumo de cada espécie por reação."""
+"""Flux analysis per reaction (scripts/fluxos.py): rates of each reaction rebuilt
+from the recorded states, integrated over the gap and in time, and the fraction of
+the production and consumption of each species per reaction."""
 import subprocess
 import sys
 
@@ -25,9 +25,9 @@ def execucao(tmp_path_factory):
 
 
 def test_integral_das_taxas_bate_com_a_variacao_quimica(execucao):
-    # a soma das reações que produzem e consomem o Ar* é a fonte química dele;
-    # com o Ar* que quase não sai pela parede em 20 ns, ela fica perto da
-    # variação do Ar* integrado no gap
+    # the sum of the reactions that produce and consume Ar* is its chemical source;
+    # with Ar* hardly leaving through the wall in 20 ns, it stays close to the
+    # change of the Ar* integrated over the gap
     md, t, integrais = fluxos.taxas_integradas([execucao])
     q = md.q
     s = q.indice["AR*"]

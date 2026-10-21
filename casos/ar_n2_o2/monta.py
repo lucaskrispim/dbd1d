@@ -1,18 +1,18 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Ar seco (N2 78%, O2 21%, Ar 1%) montado do mecanismo N2-O2 do ZDPlasKin
-(Pancheshnyi, versão 1.03) na adaptação do usuário para as simulações air2D
-(original/, md5 ef36e221 e 08eb361e: processos sem seção de choque comentados;
-53 espécies, íons negativos, NxOy, blocos @B/@R e DENSITY no BOLSIG+) e do
-mecanismo do argônio da raiz, mais seis
-reações cruzadas com coeficientes típicos da literatura (aqui servem ao teste
-da ferramenta numa mistura nova, não a um estudo do ar):
-  Ar^+ + N2 => N2^+ + Ar          1,0e-11 cm3/s
-  Ar^+ + O2 => O2^+ + Ar          4,9e-11 cm3/s
-  Ar2^+ + N2 => N2^+ + Ar + Ar    1,0e-11 cm3/s
-  Ar2^+ + O2 => O2^+ + Ar + Ar    1,0e-10 cm3/s
-  Ar* + N2 => Ar + N2(C3)         3,0e-11 cm3/s
-  Ar* + O2 => Ar + O + O          2,1e-10 cm3/s
-Uso: python3 casos/ar_n2_o2/monta.py   (grava kinet.inp, bolsigdb.dat e composicao.txt aqui)
+"""Dry air with argon (N2 78%, O2 21%, Ar 1%) assembled from the N2-O2 mechanism
+of ZDPlasKin (Pancheshnyi, version 1.03) as adapted by the user for the air2D
+simulations (original/, md5 ef36e221 and 08eb361e: processes without a cross
+section commented out; 53 species, negative ions, NxOy, @B/@R blocks and DENSITY
+in BOLSIG+) and from the argon mechanism of the root, plus six cross reactions
+with typical coefficients from the literature (here they serve the test of the
+tool on a new mixture, not a study of air):
+  Ar^+ + N2 => N2^+ + Ar          1.0e-11 cm3/s
+  Ar^+ + O2 => O2^+ + Ar          4.9e-11 cm3/s
+  Ar2^+ + N2 => N2^+ + Ar + Ar    1.0e-11 cm3/s
+  Ar2^+ + O2 => O2^+ + Ar + Ar    1.0e-10 cm3/s
+  Ar* + N2 => Ar + N2(C3)         3.0e-11 cm3/s
+  Ar* + O2 => Ar + O + O          2.1e-10 cm3/s
+Usage: python3 casos/ar_n2_o2/monta.py   (writes kinet.inp, bolsigdb.dat and composicao.txt here)
 """
 import pathlib
 import re
@@ -47,11 +47,11 @@ Ar2^+ + O2 => O2^+ + Ar + Ar       !   1.0d-10
 Ar* + N2 => Ar + N2(C3)            !   3.0d-11
 Ar* + O2 => Ar + O + O             !   2.1d-10
 """
-# antes do END do bloco REACTIONS (o arquivo tem outro END num comentário final)
+# before the END of the REACTIONS block (the file has another END in a final comment)
 m = re.search(r"^REACTIONS\s*\n.*?^END", kinet, re.S | re.M)
 kinet = kinet[:m.end() - 3] + cruzadas + "\n" + kinet[m.end() - 3:]
 (AQUI / "kinet.inp").write_text(kinet)
 (AQUI / "bolsigdb.dat").write_text((AQUI / "original" / "bolsigdb_ar_air2D.dat").read_text().rstrip() + "\n\n"
                                    + (RAIZ / "bolsigdb.dat").read_text())
 (AQUI / "composicao.txt").write_text("N2 0.78\nO2 0.21\nAr 0.01\n")
-print("kinet.inp, bolsigdb.dat e composicao.txt gravados")
+print("kinet.inp, bolsigdb.dat and composicao.txt written")

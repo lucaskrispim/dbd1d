@@ -1,16 +1,16 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Tensão de entrada do caso de Takashima et al. 2012 (gerador CPT) a partir do
-campo aplicado medido a 60 Torr (docs/literatura/dados/takashima2012/
-fig7_campo_aplicado_CPT.csv), para `simula.py --forma tabela`.
+"""Input voltage of the case of Takashima et al. 2012 (CPT generator) from the
+applied field measured at 60 Torr (docs/literatura/dados/takashima2012/
+fig7_campo_aplicado_CPT.csv), for `simula.py --waveform table`.
 
-O campo aplicado do modelo deles é a tensão dividida por d + 2 l/ε (gap de
-10 mm, paredes de quartzo de 1,75 mm, ε = 3,8 aqui): V = E · 1,092 cm. A curva
-começa em 67 ns (zero antes); termina em 180 ns com +3,4 kV/cm e volta a zero em
-rampa linear de 30 ns. Reamostragem de 0,5 ns, t deslocado para começar em zero.
-A mesma forma serve para todas as pressões (o artigo só mostra a de 60 Torr).
+The applied field of their model is the voltage divided by d + 2 l/eps (10 mm
+gap, 1.75 mm quartz walls, eps = 3.8 here): V = E x 1.092 cm. The curve starts
+at 67 ns (zero before); it ends at 180 ns with +3.4 kV/cm and returns to zero in
+a linear ramp of 30 ns. Resampling at 0.5 ns, t shifted to start at zero. The
+same shape serves for every pressure (the article only shows that of 60 Torr).
 
-Uso: python3 validacao/takashima2012/prepara_pulso.py [EPS_R]
-  (grava pulso_cpt.txt com ε = 3,8, ou pulso_cpt_epsEPS_R.txt)
+Usage: python3 validacao/takashima2012/prepara_pulso.py [EPS_R]
+  (writes pulso_cpt.txt with eps = 3.8, or pulso_cpt_epsEPS_R.txt)
 """
 import sys
 from pathlib import Path
@@ -33,9 +33,9 @@ def main():
     v = np.interp(grade + t0, t, e) * DISTANCIA_CM
     v[0] = v[-1] = 0.0
     np.savetxt(AQUI / nome, np.column_stack([grade * 1e-9, v]), fmt="%.6e",
-               header=f"Takashima 2012, gerador CPT, a partir do campo aplicado a 60 Torr (fig. 7), ε = {eps}; "
+               header=f"Takashima 2012, CPT generator, from the applied field at 60 Torr (fig. 7), eps = {eps}; "
                       "t (s), V (V)")
-    print(f"{nome}: {len(grade)} pontos até {grade[-1]:.1f} ns, de {v.min() / 1e3:.1f} a {v.max() / 1e3:.1f} kV")
+    print(f"{nome}: {len(grade)} points up to {grade[-1]:.1f} ns, from {v.min() / 1e3:.1f} to {v.max() / 1e3:.1f} kV")
 
 
 if __name__ == "__main__":

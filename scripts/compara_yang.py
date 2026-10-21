@@ -1,17 +1,17 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""V3 de validacao/LEIAME.md: execuções de remoto/validacao_yang.sh (e as retomadas
-de remoto/validacao_yang_pulso.sh) contra Yang et al. 2022
-(docs/literatura/dados/yang2022/).
+"""V3 of validacao/LEIAME.md: runs of remoto/validacao_yang.sh (and the restarts of
+scripts/retoma_fina.py) against Yang et al. 2022 (docs/literatura/dados/yang2022/).
 
-Da execução principal (registros a cada 1 µs): N, H e N2(A3) médios no gap e
-no centro, e T_g médio. N e H do pulso n são os do instante logo antes do
-pulso n + 1 (o artigo mede 100 µs depois de uma rajada de n pulsos; o
-decaimento nesse intervalo é de poucos por cento, figs. 10 e 15). N2(A3):
-máximo e mínimo de cada período, contra a envoltória medida de v = 0 e v = 1
-(o mecanismo não resolve a vibração do N2(A)). Das retomadas: energia do pulso
-E = ∫ V dQ em 240 ns, com Q = ε₀ ε_d (V − φ_esq) A / Δ e A = 7,2 cm².
+From the main run (records every 1 us): N, H and N2(A3) averaged over the gap and
+at the centre, and the average T_g. N and H of pulse n are those just before pulse
+n + 1 (the article measures 100 us after a burst of n pulses; the decay over that
+interval is a few percent, figs. 10 and 15). N2(A3): maximum and minimum of each
+period, against the measured envelope of v = 0 and v = 1 (the mechanism does not
+resolve the vibration of N2(A)). From the restarts: energy of the pulse E =
+integral of V dQ over 240 ns, with Q = eps0 eps_d (V - phi_left) A / Delta and
+A = 7.2 cm2.
 
-Uso: python3 scripts/compara_yang.py PRINCIPAL [RETOMADAS ...] [--figura SAIDA.png]
+Usage: python3 scripts/compara_yang.py MAIN [RESTARTS ...]
 """
 import argparse
 import json
@@ -36,7 +36,7 @@ def le(f):
 
 
 def series(d):
-    """Instantes e, por espécie, (média no gap, centro); T_g médio."""
+    """Times and, per species, (gap average, centre); average T_g."""
     t, med, cen, tg = [], {}, {}, []
     for tb, nomes, linhas in blocos(d / "perfil.dat"):
         a = np.array(linhas[1:-1])
@@ -58,12 +58,12 @@ def series(d):
 
 
 def simulados(t_us, t):
-    """Instantes medidos (µs) que a execução já alcançou (t em s)."""
+    """Measured times (us) that the run has already reached (t in s)."""
     return [x for x in t_us if x * 1e-6 <= t[-1] + 1e-9]
 
 
 def mistura(d):
-    """N2 ou N2+1%H2, pelo caso da execução."""
+    """N2 or N2+1%H2, from the case of the run."""
     caso = json.loads((d / "parametros.json").read_text())["argumentos"]["caso"]
     return "N2+1%H2" if "1pcH2" in pathlib.Path(caso).name else "N2"
 
@@ -79,16 +79,16 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("principal", type=pathlib.Path)
     p.add_argument("retomadas", nargs="*", type=pathlib.Path)
-    p.add_argument("--figura", type=pathlib.Path)
+    p.add_argument("--figure", "--figura", dest="figura", type=pathlib.Path)
     a = p.parse_args()
     t, med, cen, tg = series(a.principal)
     n_pulsos = int(np.floor(t[-1] / PERIODO + 1e-9))
     pulsos = np.arange(1, n_pulsos + 1)
-    antes = np.array([np.argmin(np.abs(t - n * PERIODO + 1e-6)) for n in pulsos])  # 1 µs antes do pulso n + 1
+    antes = np.array([np.argmin(np.abs(t - n * PERIODO + 1e-6)) for n in pulsos])  # 1 us before pulse n + 1
     gas = mistura(a.principal)
-    print(f"{a.principal.name}: {n_pulsos} pulsos ({gas})")
+    print(f"{a.principal.name}: {n_pulsos} pulses ({gas})")
     medida_n = le("fig9_N_acumulado_N2.csv") if gas == "N2" else le("fig14_N_acumulado_1pcH2.csv")
-    print(f"{'pulso':>5s} {'N méd':>9s} {'N centro':>9s} {'N medido':>9s} {'H méd':>9s} {'T_g (K)':>8s}")
+    print(f"{'pulse':>5s} {'N avg':>9s} {'N centre':>9s} {'N meas.':>9s} {'H avg':>9s} {'T_g (K)':>8s}")
     for n, nm in zip(medida_n[:, 0].astype(int), medida_n[:, 1]):
         if n <= n_pulsos:
             j = antes[n - 1]
@@ -97,20 +97,21 @@ def main():
                   f"{tg[j] if len(tg) else float('nan'):8.1f}")
     if gas != "N2":
         hm = le("fig14_H_acumulado_1pcH2.csv")
-        print("H medido (fig. 14(b)) contra o 1D, média no gap:")
+        print("H measured (fig. 14(b)) against dbd1d, gap average:")
         for tt, hv in hm[:, :2]:
             if not simulados([tt], t):
                 continue
             j = int(np.argmin(np.abs(t - tt * 1e-6)))
-            print(f"  {tt:7.0f} µs: medido {hv:9.2e}, 1D {med['H'][j]:9.2e}")
+            print(f"  {tt:7.0f} us: measured {hv:9.2e}, dbd1d {med['H'][j]:9.2e}")
     if "N2(A3)" in med:
         mx = [med["N2(A3)"][(t > (n - 1) * PERIODO) & (t <= n * PERIODO)].max() for n in pulsos]
-        print(f"N2(A3) médio: máximo no pulso 5 {mx[min(4, n_pulsos - 1)]:.2e}, no último {mx[-1]:.2e} cm-3 "
-              f"(medido v=0 + v=1: pico de ~1,2e14 perto de 50 µs em N2)")
+        print(f"N2(A3) average: maximum in pulse 5 {mx[min(4, n_pulsos - 1)]:.2e}, in the last {mx[-1]:.2e} cm-3 "
+              f"(measured v=0 + v=1: peak of ~1.2e14 near 50 us in N2)")
     for r in a.retomadas:
         m = re.search(r"_p(\d+)$", r.name)
-        print(f"energia do pulso {m.group(1) if m else '?'}: {energia(r) * 1e3:.2f} mJ")
-    print("medido em N2: 3,48 mJ no pulso 2 a 3,08 no 150 (com refletidos); 2,2 a 2,0 mJ só o incidente")
+        print(f"energy of pulse {m.group(1) if m else '?'}: {energia(r) * 1e3:.2f} mJ")
+    print("measured in N2: 3.48 mJ in pulse 2 to 3.08 in pulse 150 (with reflections); 2.2 to 2.0 mJ for the "
+          "incident pulse alone")
 
 
 if __name__ == "__main__":

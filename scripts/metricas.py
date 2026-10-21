@@ -1,13 +1,13 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Métricas de várias execuções lado a lado, num instante, com a diferença
-relativa de cada uma para a última (a referência).
+"""Quantities of several runs side by side, at one time, with the relative
+difference of each from the last one (the reference).
 
-Uso: python3 -I scripts/metricas.py --t T DIR [DIR ...] REFERENCIA
+Usage: python3 -I scripts/metricas.py --t T DIR [DIR ...] REFERENCE
 
-Métricas: carga e potencial nas superfícies, n_e e o íon principal do caso (Ar+
-no argônio) máximos e integrados no gap e as outras espécies integradas
-(convergencia.py), posição da frente (maior x com n_e > 1e12 cm-3), posição do
-pico do íon principal e a menor célula da malha.
+Quantities: charge and potential at the surfaces, n_e and the main ion of the
+case (Ar+ in argon), maximum and integrated over the gap, and the other species
+integrated (convergencia.py), position of the front (cathode side edge with
+n_e > 1e12 cm-3), position of the peak of the main ion and the smallest cell.
 """
 import argparse
 import pathlib
@@ -30,12 +30,12 @@ def extras(d, t):
             for c in x:
                 faces.append(2.0 * c - faces[-1])
             k = max(range(len(ar)), key=lambda i: ar[i])
-            # frente do lado do cátodo, como em convergencia.py; nan sem n_e > 1e12
+            # front on the cathode side, as in convergencia.py; nan without n_e > 1e12
             frente = observaveis_frente(x, [b - a for a, b in zip(faces[:-1], faces[1:])], ne, ar,
-                                        x_ref=x[k])["frente (m)"]
-            return {"frente (um)": frente * 1e6, f"pico {rotulo(ion)} em (um)": x[k] * 1e6,
-                    "menor celula (um)": min(b - a for a, b in zip(faces[:-1], faces[1:])) * 1e6}
-    raise SystemExit(f"{d}: instante {t} não encontrado")
+                                        x_ref=x[k])["front (m)"]
+            return {"front (um)": frente * 1e6, f"peak {rotulo(ion)} at (um)": x[k] * 1e6,
+                    "smallest cell (um)": min(b - a for a, b in zip(faces[:-1], faces[1:])) * 1e6}
+    raise SystemExit(f"{d}: time {t} not found")
 
 
 def main():
@@ -50,7 +50,7 @@ def main():
         v.update(extras(d, a.t))
         tabela.append(v)
     ref = tabela[-1]
-    print(f"t = {a.t:.3e} s; diferença relativa para {a.dirs[-1].name}")
+    print(f"t = {a.t:.3e} s; relative difference from {a.dirs[-1].name}")
     print(f"{'':22s}" + "".join(f"{d.name:>24s}" for d in a.dirs))
     for nome in ref:
         linha = f"{nome:22s}"

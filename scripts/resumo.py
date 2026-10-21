@@ -1,13 +1,14 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Resumo de uma execução: evolução dos máximos ao longo do tempo.
+"""Summary of a run: evolution of the maxima in time.
 
-Uso: python3 -I scripts/resumo.py DIRETORIO [--cada N]
+Usage: python3 -I scripts/resumo.py DIRECTORY [--every N]
 
-Lê perfil.dat e mostra, a cada N registros, o maior valor no gap de densidade
-de elétrons e de cada espécie do caso menos o gás de fundo (cm-3; no argônio,
-Ar+, Ar2+ e Ar*), E/N (Td), Te (K) e temperatura do gás (K).
-Conta NaN e densidades negativas e mostra a mais negativa com o atol da
-execução: negativo abaixo do atol é ruído do integrador.
+Reads perfil.dat and shows, every N records, the largest value in the gap of the
+electron density and of each species of the case except the background gas
+(cm-3; in argon, Ar+, Ar2+ and Ar*), E/N (Td), Te (K) and the gas temperature
+(K). Counts NaN and negative densities and shows the most negative one with the
+atol of the run: a negative value below atol is noise of the integrator.
+Also provides blocos, the reader of the block files (perfil.dat, EEDF).
 """
 import argparse
 import math
@@ -15,7 +16,7 @@ import pathlib
 
 
 def parametros_da_execucao(diretorio):
-    """Argumentos gravados pelo simula.py em parametros.json ({} se não houver)."""
+    """Arguments written by simula.py in parametros.json ({} if there is none)."""
     import json
     arquivo = pathlib.Path(diretorio) / "parametros.json"
     return json.loads(arquivo.read_text())["argumentos"] if arquivo.exists() else {}
@@ -25,8 +26,8 @@ RAIZ = pathlib.Path(__file__).resolve().parent.parent
 
 
 class ErroCaso(Exception):
-    """Caso da execução que não se acha ou kinet.inp sem SPECIES."""
-# nomes das métricas do argônio, os mesmos dos registros anteriores
+    """Case of the run not found, or kinet.inp without SPECIES."""
+# names of the argon quantities, as in the earlier records
 ROTULOS = {"AR^+": "Ar+", "AR2^+": "Ar2+", "AR*": "Ar*"}
 
 
@@ -35,23 +36,23 @@ def rotulo(especie):
 
 
 def especies_do_caso(diretorio):
-    """Espécies do caso da execução, em maiúsculas como no perfil.dat, sem o
-    elétron e sem o gás de fundo (bloco SPECIES do kinet.inp), e o íon principal
-    (ion_inicial do gas.json). Sem caso registrado, a raiz: o argônio."""
+    """Species of the case of the run, in upper case as in perfil.dat, without the
+    electron and without the background gas (SPECIES block of kinet.inp), and the
+    main ion (ion_inicial of gas.json). Without a recorded case, the root: argon."""
     import json
     caso = pathlib.Path(parametros_da_execucao(diretorio).get("caso") or RAIZ)
     if not caso.exists():
-        # execução de outra máquina: o mesmo caso na raiz local
+        # run from another machine: the same case in the local root
         if caso.parent.name == "casos":
             if not (RAIZ / "casos" / caso.name).exists():
-                raise ErroCaso(f"{diretorio}: caso {caso} não existe nem como casos/{caso.name} aqui")
+                raise ErroCaso(f"{diretorio}: case {caso} does not exist, not even as casos/{caso.name} here")
             caso = RAIZ / "casos" / caso.name
         else:
             caso = RAIZ
     linhas = (caso / "kinet.inp").read_text().splitlines()
     i = next((k for k, l in enumerate(linhas) if l.strip().upper() == "SPECIES"), None)
     if i is None:
-        raise ErroCaso(f"{caso / 'kinet.inp'}: sem a linha SPECIES")
+        raise ErroCaso(f"{caso / 'kinet.inp'}: no SPECIES line")
     especies = []
     for linha in linhas[i + 1:]:
         linha = linha.split("#")[0].split("!")[0].strip().upper()
@@ -90,7 +91,7 @@ def blocos(caminho):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("dir", type=pathlib.Path)
-    p.add_argument("--cada", type=int, default=1)
+    p.add_argument("--every", "--cada", dest="cada", type=int, default=1, help="show every N records")
     a = p.parse_args()
     especies, ion = especies_do_caso(a.dir)
     densidades = ["E", ion] + [e for e in especies if e != ion]
@@ -116,10 +117,10 @@ def main():
             maximos = [max(l[j] for l in interior if j < len(l)) for j in idx]
             print(f"{t*1e9:8.1f}" + "".join(f"{m:12.3e}" for m in maximos))
     print("NaN:", nans)
-    texto = f"densidade negativa: {negativos}"
+    texto = f"negative density: {negativos}"
     if negativos:
         atol = parametros_da_execucao(a.dir).get("atol")
-        texto += f", a mais negativa {pior[0]:.1e} cm-3 ({pior[1]})" + (f"; atol {atol:g}" if atol else "")
+        texto += f", the most negative {pior[0]:.1e} cm-3 ({pior[1]})" + (f"; atol {atol:g}" if atol else "")
     print(texto)
 
 

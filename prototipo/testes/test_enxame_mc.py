@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Leitura do formato LXCat pelo Monte Carlo de enxame (ferramentas/enxame_mc.py):
-limiar colado na barra ("2.9e-1/threshold energy") e ATTACHMENT sem linha de
-parâmetro, como no bolsigdb.dat da amônia de Sun et al. 2022."""
+"""Reading of the LXCat format by the swarm Monte Carlo (ferramentas/enxame_mc.py):
+threshold glued to the slash ("2.9e-1/threshold energy") and ATTACHMENT without a
+parameter line, as in the bolsigdb.dat of the ammonia case of Sun et al. 2022."""
 import sys
 
 import pytest

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Forma da tensão aplicada: senoide (padrão), degrau com subida linear (tensão
-contínua) e pulso trapezoidal repetido, para estudos de convergência curtos."""
+"""Shape of the applied voltage: sine (default), step with a linear rise (DC
+voltage) and repeated trapezoidal pulse, for short convergence studies."""
 import subprocess
 import sys
 
@@ -33,7 +33,7 @@ def test_degrau_sobe_linear_e_fica(pecas):
 
 
 def test_pulso_trapezoidal_repetido(pecas):
-    # subida 2 ns, platô 10 ns, descida 4 ns, repetição a cada 100 ns
+    # rise 2 ns, plateau 10 ns, fall 4 ns, repetition every 100 ns
     md = Modelo(*pecas, n_celulas=4, v_pico=3e3, forma="pulso", subida=2e-9, largura=10e-9,
                 descida=4e-9, periodo=1e-7)
     for t0 in (0.0, 1e-7, 3e-7):
@@ -45,7 +45,7 @@ def test_pulso_trapezoidal_repetido(pecas):
 
 
 def test_pulso_mais_longo_que_o_periodo_e_erro(pecas):
-    with pytest.raises(ValueError, match="periodo"):
+    with pytest.raises(ValueError, match="period"):
         Modelo(*pecas, n_celulas=4, forma="pulso", subida=2e-9, largura=1e-7, descida=2e-9, periodo=1e-7)
 
 
@@ -58,11 +58,11 @@ def test_passo_maximo_nao_pula_o_pulso():
 
 
 @pytest.mark.parametrize("extra, mensagem", [
-    (["--forma", "pulso", "--subida", "1e-9"], "--largura e --descida precisam"),
-    (["--forma", "pulso"], "--subida precisa"),
-    (["--forma", "degrau", "--subida", "0"], "--subida precisa"),
+    (["--waveform", "pulse", "--rise", "1e-9"], "--width and --fall must"),
+    (["--waveform", "pulse"], "--rise must"),
+    (["--waveform", "step", "--rise", "0"], "--rise must"),
     (["--forma", "pulso", "--subida", "1e-9", "--largura", "1e-8", "--descida", "1e-9", "--periodo", "5e-9"],
-     "menor que o --periodo"),
+     "shorter than --period"),
 ])
 def test_forma_invalida_e_recusada(tmp_path, extra, mensagem):
     r = subprocess.run([sys.executable, str(PROTOTIPO / "simula.py"), str(tmp_path / "x"), "--t-end", "2e-9", *extra],
@@ -84,8 +84,8 @@ def test_pulso_roda_e_grava_a_tensao(tmp_path):
 
 
 def test_gas_pre_aquecido(tmp_path):
-    # mistura pré-aquecida (850 K, como no caso da amônia): N pela pressão de 1
-    # atm a 850 K e a temperatura inicial do perfil em 850 K
+    # preheated mixture (850 K, as in the ammonia case): N from the pressure of 1
+    # atm at 850 K and the initial temperature of the profile at 850 K
     import json
     r = subprocess.run([sys.executable, str(PROTOTIPO / "simula.py"), str(tmp_path / "q"), "--n-celulas", "10",
                         "--t-gas", "850", "--t-parede", "850", "--aquecimento", "--t-end", "1e-9",
@@ -99,8 +99,8 @@ def test_gas_pre_aquecido(tmp_path):
     assert float(linhas[3].split()[nomes.index("Temperature")]) == pytest.approx(850.0)
 
 
-# tensão tabelada (pulso medido, como o de Yang 2022): pares (t, V) dentro de
-# um período, repetidos a cada --periodo, zero fora da tabela
+# tabulated voltage (measured pulse, as that of Yang 2022): pairs (t, V) within
+# one period, repeated every --period, zero outside the table
 T_TAB = np.array([0.0, 2e-9, 5e-9, 9e-9, 20e-9])
 V_TAB = np.array([0.0, 20e3, -4e3, 6e3, 0.0])
 
@@ -116,10 +116,10 @@ def test_tabela_interpola_e_repete(pecas):
 
 
 @pytest.mark.parametrize("t, v, mensagem", [
-    (T_TAB, np.array([1e3, 20e3, -4e3, 6e3, 0.0]), "começar e terminar em zero"),
-    (T_TAB, np.array([0.0, 20e3, -4e3, 6e3, 5.0]), "começar e terminar em zero"),
-    (np.array([0.0, 3e-9, 2e-9, 9e-9, 20e-9]), V_TAB, "crescente"),
-    (T_TAB * 1e2, V_TAB, "menor que o periodo"),
+    (T_TAB, np.array([1e3, 20e3, -4e3, 6e3, 0.0]), "start and end at zero"),
+    (T_TAB, np.array([0.0, 20e3, -4e3, 6e3, 5.0]), "start and end at zero"),
+    (np.array([0.0, 3e-9, 2e-9, 9e-9, 20e-9]), V_TAB, "increase"),
+    (T_TAB * 1e2, V_TAB, "shorter than the period"),
 ])
 def test_tabela_invalida_e_recusada(pecas, t, v, mensagem):
     with pytest.raises(ValueError, match=mensagem):
@@ -127,8 +127,8 @@ def test_tabela_invalida_e_recusada(pecas, t, v, mensagem):
 
 
 def test_passo_maximo_da_tabela_nao_pula_o_pulso():
-    # dentro da janela do pulso, o passo da tabela (a menor separação entre
-    # pontos); fora, nunca além do início do pulso seguinte
+    # inside the pulse window, the step of the table (the smallest separation between
+    # points); outside, never beyond the start of the next pulse
     from simula import passo_maximo_em
     from argparse import Namespace
     a = Namespace(forma="tabela", periodo=1e-6, tabela=(T_TAB, V_TAB))
@@ -137,7 +137,7 @@ def test_passo_maximo_da_tabela_nao_pula_o_pulso():
     for t in (25e-9, 0.3e-6, 0.999e-6, 4.5e-6):
         inicio_seguinte = (np.floor(t / 1e-6) + 1) * 1e-6
         assert 0.0 < passo_maximo_em(a, t) <= inicio_seguinte - t + 1e-18
-    # longe do pulso o passo pode crescer
+    # far from the pulse the step may grow
     assert passo_maximo_em(a, 0.3e-6) > 0.5e-6
     assert passo_maximo_em(Namespace(forma="seno"), 1.0) == np.inf
 
@@ -145,8 +145,8 @@ def test_passo_maximo_da_tabela_nao_pula_o_pulso():
 def test_tabela_roda_e_grava_a_tensao(tmp_path):
     arq = tmp_path / "pulso.txt"
     np.savetxt(arq, np.column_stack([T_TAB, V_TAB / 10]), header="t_s V_V")
-    # com 10 células e campo local o BDF com massa colapsa o passo na inversão
-    # de campo em t = 20 ns (malha que não resolve a bainha); com 40, não
+    # with 10 cells and local field the BDF with mass collapses the step at the field
+    # reversal at t = 20 ns (mesh that does not resolve the sheath); with 40, it does not
     r = subprocess.run([sys.executable, str(PROTOTIPO / "simula.py"), str(tmp_path / "p"), "--n-celulas", "40",
                         "--forma", "tabela", "--tensao-tabela", str(arq), "--periodo", "1e-7",
                         "--t-end", "1.2e-7", "--dt-saida", "1e-9", "--espessura", "1e-3"],
@@ -163,14 +163,14 @@ def test_tabela_sem_arquivo_e_recusada(tmp_path):
                         "--forma", "tabela"],
                        capture_output=True, text=True, env={"OPENBLAS_NUM_THREADS": "1", "PATH": ""})
     erro = [l for l in (r.stderr + r.stdout).splitlines() if "error:" in l]
-    assert r.returncode != 0 and erro and "--tensao-tabela" in erro[-1]
+    assert r.returncode != 0 and erro and "--voltage-table" in erro[-1]
 
 
 def test_tabela_no_meio_do_periodo_nao_e_pulada(tmp_path):
-    # pulso de 20 kV a 0,5 µs num período de 1 µs, com saídas só em 0,27 e
-    # 0,54 µs: sem o passo máximo dinâmico o integrador anda de 0,27 a 0,54 µs
-    # em poucos passos, salta o pulso e a barreira fica sem carga (~5e-11 C/m2);
-    # com ele, a descarga deixa ~1e-5 C/m2
+    # pulse of 20 kV at 0.5 µs in a period of 1 µs, with outputs only at 0.27 and
+    # 0.54 µs: without the dynamic maximum step the integrator goes from 0.27 to 0.54 µs
+    # in a few steps, skips the pulse and the barrier stays uncharged (~5e-11 C/m2);
+    # with it, the discharge leaves ~1e-5 C/m2
     arq = tmp_path / "pulso.txt"
     np.savetxt(arq, np.column_stack([T_TAB + 0.5e-6, V_TAB]))
     r = subprocess.run([sys.executable, str(PROTOTIPO / "simula.py"), str(tmp_path / "p"), "--n-celulas", "15",
@@ -183,8 +183,8 @@ def test_tabela_no_meio_do_periodo_nao_e_pulada(tmp_path):
 
 
 def test_tabela_retoma_em_outra_pasta(tmp_path):
-    # a origem registra o caminho absoluto da tabela; a retomada com o mesmo
-    # arquivo por caminho relativo é a mesma tabela
+    # the origin records the absolute path of the table; the restart with the same
+    # file by a relative path is the same table
     np.savetxt(tmp_path / "pulso.txt", np.column_stack([T_TAB, V_TAB / 10]))
     comum = ["--n-celulas", "40", "--forma", "tabela", "--tensao-tabela", "pulso.txt", "--periodo", "1e-7",
              "--espessura", "1e-3"]

@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Reflexão de elétrons na parede (Hagelaar et al., Phys. Rev. E 62, 1452,
-2000): com coeficiente r, o fluxo de elétrons absorvido, térmico e deriva, e a
-energia que ele leva ficam multiplicados por (1 - r)/(1 + r); íons, neutros e
-a emissão secundária não mudam."""
+"""Electron reflection at the wall (Hagelaar et al., Phys. Rev. E 62, 1452,
+2000): with coefficient r, the absorbed electron flux, thermal and drift, and the
+energy it carries are multiplied by (1 - r)/(1 + r); ions, neutrals and secondary
+emission do not change."""
 import numpy as np
 import pytest
 
@@ -24,7 +24,7 @@ def _estado(md):
 
 
 def test_fluxo_de_particulas_com_reflexao(pecas):
-    # campo que leva os elétrons à parede esquerda: lá entram térmico e deriva
+    # field that drives the electrons to the left wall: there thermal and drift enter
     campo_v = 2.0e4
     sem = Modelo(*pecas, n_celulas=10, gama_sec=0.07)
     com = Modelo(*pecas, n_celulas=10, gama_sec=0.07, reflexao_eletrons=0.7)
@@ -44,7 +44,7 @@ def test_fluxo_de_particulas_com_reflexao(pecas):
 
 
 def test_fluxo_de_energia_com_reflexao():
-    # mesmo estado, sem emissão secundária: a energia que sai fica multiplicada por (1 - r)/(1 + r)
+    # same state, without secondary emission: the outgoing energy is multiplied by (1 - r)/(1 + r)
     tabela = Tabela(RAIZ / "tabela_bolsig.dat")
     q = quimica_do(RAIZ)
     saidas = []

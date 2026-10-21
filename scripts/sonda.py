@@ -1,9 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Série temporal de uma coluna do perfil.dat na célula mais próxima de uma
-posição, como borda0.dat, centro.dat e borda1.dat do código Fortran.
+"""Time series of a column of perfil.dat in the cell closest to a position.
 
-Uso: python3 scripts/sonda.py DIR/perfil.dat COLUNA X [COLUNA ...]
-     (X em m; escreve t e os valores das colunas)
+Usage: python3 scripts/sonda.py DIR/perfil.dat COLUMN X [COLUMN ...]
+       (X in m; writes t and the values of the columns)
 """
 import pathlib
 import sys
@@ -15,7 +14,7 @@ from resumo import blocos  # noqa: E402
 
 
 def serie(arquivo, coluna, x):
-    """Instantes (s) e valores de coluna na célula cujo centro está mais perto de x."""
+    """Times (s) and values of a column in the cell whose centre is closest to x."""
     t, v = [], []
     for tb, nomes, linhas in blocos(pathlib.Path(arquivo)):
         a = np.array(linhas[1:-1])

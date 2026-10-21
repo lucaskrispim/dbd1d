@@ -1,4 +1,4 @@
-# Takashima 2012 fig8: ar seco, gerador CPT (~50 ns, 25 kV), energia acoplada por pulso; 40kHz; ficam de fora os pontos sobre o eixo de 0 Torr, os encobertos por marcadores de outra série (na série de 20 kHz, vários) e o ponto de 492 Torr da série incidente, pequeno demais
+# Takashima 2012 fig8: dry air, CPT generator (~50 ns, 25 kV), coupled energy per pulse; 40kHz; left out are the points on the 0 Torr axis, those hidden by markers of another series (several in the 20 kHz series) and the 492 Torr point of the incident series, too small
 # p_torr,E_mJ
 14.12,0.32
 21.43,0.505

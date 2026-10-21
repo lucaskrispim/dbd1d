@@ -1,4 +1,4 @@
-# Takashima 2012 fig10: ar seco, gerador FID (5 a 10 ns, 30 kV), 10 kHz; incidente_e_refletidos; ficam de fora os pontos sobre o eixo de 0 Torr, os encobertos por marcadores de outra série (na série de 20 kHz, vários) e o ponto de 492 Torr da série incidente, pequeno demais
+# Takashima 2012 fig10: dry air, FID generator (5 to 10 ns, 30 kV), 10 kHz; incidente_e_refletidos; left out are the points on the 0 Torr axis, those hidden by markers of another series (several in the 20 kHz series) and the 492 Torr point of the incident series, too small
 # p_torr,E_mJ
 13.87,1.537
 21.5,1.677

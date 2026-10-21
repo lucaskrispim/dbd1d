@@ -1,61 +1,58 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Modelo fluido 1D acoplado: transporte de todas as espécies, Poisson, química e
-cargas superficiais da DBD num único sistema dy/dt = f(t, y), para um
-integrador implícito de passo adaptativo (BDF do scipy).
+"""Coupled 1D fluid model: transport of every species, Poisson equation,
+chemistry and surface charges of the DBD in a single system dy/dt = f(t, y), for
+an implicit integrator with adaptive step (scipy's BDF).
 
-Estado y: densidades (cm-3) das espécies transportadas, célula a célula, e as
-cargas superficiais esquerda e direita (C/m2). O gás de fundo (uma espécie ou
-mistura, gas.json) fica preso, com densidade constante, na T_g dada.
+State y: densities (cm-3) of the transported species, cell by cell, and the left
+and right surface charges (C/m2). The background gas (one species or a mixture,
+gas.json) is fixed, with constant density, at the given T_g.
 
-Discretização (a mesma geometria e as mesmas condições de parede do código
-Fortran, achados N8, N16 a N20):
-- malha agrupada nas paredes por tangente hiperbólica (agrupamento = 0: uniforme);
-- Poisson nas células e nos nós das paredes, com a barreira dielétrica e a
-  carga superficial na lei de Gauss de cada interface;
-- fluxos internos de Scharfetter-Gummel com mobilidade e difusão das células e
-  média harmônica nas faces;
-- paredes absorventes: Gamma = n*(f*v_term/2 + a*w_n), f o fator de Boltzmann da
-  meia célula quando a deriva se afasta da parede (N19); emissão secundária
-  gama*Gamma_ions;
-- química: reações do zdplaskin_m.F90 com as taxas de impacto eletrônico e Te
-  da tabela em E/N, no campo do centro da célula.
+Discretization (the geometry and wall conditions of the original Fortran code):
+- mesh clustered towards the walls by a hyperbolic tangent (agrupamento = 0: uniform);
+- Poisson equation in the cells and at the wall nodes, with the dielectric
+  barrier and the surface charge in Gauss's law at each interface;
+- interior Scharfetter-Gummel fluxes with the mobility and diffusion of the
+  cells and their harmonic mean at the faces;
+- absorbing walls: Gamma = n*(f*v_th/2 + max(w_n, 0)), f the Boltzmann factor of
+  half a cell when the drift points away from the wall; secondary emission
+  gamma*Gamma_ions;
+- chemistry: reactions of the case with the electron impact rate coefficients
+  and Te of the table in E/N, at the field of the cell centre.
 
-Com energia=True, a densidade de energia dos elétrons n_eps (eV cm-3) entra no
-estado (aproximação da energia média local, Hagelaar e Pitchford 2005): os
-coeficientes dos elétrons (mobilidade, difusão, Te, taxas) vêm da energia média
-n_eps/n_e e da T_g (tabela_energia_tg.dat por TabelaEnergiaTg, ou
-tabela_energia.dat a 300 K), e
+With energia=True, the electron energy density n_eps (eV cm-3) is in the state
+(local mean energy approximation, Hagelaar and Pitchford 2005): the electron
+coefficients (mobility, diffusion, Te, rates) come from the mean energy
+n_eps/n_e and T_g (tabela_energia_tg.dat through TabelaEnergiaTg, or
+tabela_energia.dat at 300 K), and
   d(n_eps)/dt + d(Gamma_eps)/dx = -Gamma_e*E - n_e*N*[(P_el + P_inel)/N](eps),
-com Gamma_eps de Scharfetter-Gummel (mu_eps, D_eps, carga -1), o ganho pelo
-campo calculado com os mesmos fluxos de elétrons do transporte e a perda pelas
-potências elástica e inelástica tabeladas. A potência total P/N do BOLSIG+
-não serve de perda: no crescimento temporal do BOLSIG+ ela inclui k_ion*eps, a
-energia dos elétrons criados, que no fluido já aparece como diluição de n_eps
-pelo aumento de n_e (contá-la de novo baixava a energia média e a ionização).
-Na parede, cada elétron que sai por agitação térmica leva
-(5/2)kTe, como em Hagelaar et al. 2000, e a deriva leva mu_eps*E*n_eps; os
-secundários entram com eps_sec.
+with Gamma_eps of Scharfetter-Gummel (mu_eps, D_eps, charge -1), the field work
+computed with the same electron fluxes as the transport and the loss from the
+tabulated elastic and inelastic powers. The total power P/N of BOLSIG+ cannot be
+used as the loss: in the temporal growth mode of BOLSIG+ it includes k_ion*eps,
+the energy of the created electrons, which in the fluid already appears as a
+dilution of n_eps by the growth of n_e (counting it again lowered the mean
+energy and the ionization). At the wall, each electron leaving by thermal motion
+takes (5/2)kTe, as in Hagelaar et al. 2000, and the drift takes mu_eps*E*n_eps;
+secondary electrons enter with eps_sec.
 
-Com aquecimento=True, a temperatura do gás T (K) entra no estado, a volume
-constante, como no código Fortran (termico.f90, cinetica.f90 e o ZDPlasKin com
-GAS_HEATING):
+With aquecimento=True, the gas temperature T (K) is in the state, at constant
+volume, as in the Fortran code and in ZDPlasKin with GAS_HEATING:
   c_v N k_B dT/dt = d/dx(kappa(T) dT/dx) + Q_el + Q_J,
-com N as partículas pesadas da célula, c_v e kappa(T) do gas.json (no argônio,
-c_v = 3/2 e o kappa do DF do Fortran), média harmônica nas faces,
-parede a t_parede a meia célula, Q_el a perda elástica dos elétrons (P_el/N da
-tabela) e Q_J o Joule dos íons, e n_i mu_i E^2 (achado F5). T e N locais entram
-nas taxas, na difusão dos íons (Einstein), na difusão dos neutros, nas mobilidades
-iônicas e nos fluxos térmicos de parede. Com a tabela de energia em T_g
-(TabelaEnergiaTg, lacuna G4), a T_g local entra também nos coeficientes dos
-elétrons, na perda elástica e no piso da energia média; com a tabela a 300 K,
-eles ficam os de 300 K.
+with N the heavy particles of the cell, c_v and kappa(T) from gas.json (in
+argon, c_v = 3/2), harmonic mean at the faces, the wall at t_parede half a cell
+away, Q_el the elastic electron loss (P_el/N of the table) and Q_J the Joule
+heating of the ions, |z| n_i mu_i E^2. Local T and N enter the rates, the ion
+diffusion (Einstein), the neutral diffusion, the ion mobilities and the thermal
+wall fluxes. With the energy table in T_g (TabelaEnergiaTg), the local T_g also
+enters the electron coefficients, the elastic loss and the floor of the mean
+energy; with the table at 300 K, they stay those of 300 K.
 
-Com gas_solto=True (gas_fixo = .false. no Fortran), o gás de fundo entra no
-estado: difunde com o seu coeficiente do transporte.json, participa da
-química e recebe de volta pela parede, como átomos neutros, as partículas que
-ela absorve, cada uma com os seus atomos_do_fundo (achado N15; Ar2+ conta dois). O N dos elétrons (E/N, coeficientes da
-tabela, perdas) passa a ser o dos neutros da célula, como o all_neutral do
-ZDPlasKin.
+With gas_solto=True, the background gas is in the state: it diffuses with its
+coefficient from transporte.json, takes part in the chemistry and receives back
+from the wall, as neutral atoms, the particles the wall absorbs, each with its
+atomos_do_fundo (Ar2+ counts two). The N of the electrons (E/N, coefficients of
+the table, losses) becomes that of the neutrals of the cell, as the all_neutral
+of ZDPlasKin.
 """
 import copy
 import json
@@ -76,7 +73,7 @@ N_LOSCHMIDT = 2.6867811e19     # cm-3
 
 
 def bernoulli(x):
-    """B(x) = x/(e^x - 1), com B(0) = 1."""
+    """B(x) = x/(e^x - 1), with B(0) = 1."""
     x = np.asarray(x, dtype=float)
     pequeno = np.abs(x) < 1e-8
     with np.errstate(over="ignore", invalid="ignore", divide="ignore"):
@@ -85,8 +82,8 @@ def bernoulli(x):
 
 
 def faces_tanh(m, comprimento, agrupamento):
-    """Faces de m células em [0, comprimento], agrupadas nas duas paredes por
-    tangente hiperbólica de intensidade agrupamento (0: malha uniforme)."""
+    """Faces of m cells in [0, comprimento], clustered towards both walls by a
+    hyperbolic tangent of strength agrupamento (0: uniform mesh)."""
     j = np.arange(m + 1)
     if agrupamento <= 0.0:
         return comprimento * j / m
@@ -96,14 +93,14 @@ def faces_tanh(m, comprimento, agrupamento):
 
 
 def condutividade_termica(t):
-    """Condutividade térmica do argônio (W/(m K)), como DF no Fortran: a
-    referência que o gas.json do argônio reproduz (test_gas, test_verificacao)."""
+    """Thermal conductivity of argon (W/(m K)), as in the Fortran code: the
+    reference that the gas.json of argon reproduces (test_gas, test_verificacao)."""
     k = (0.0307313 * t + 10.006) * 1e-3
     return np.where(t > 3000.0, k * np.sqrt(np.maximum(t, 3000.0) / 3000.0), k)
 
 
 def media_harmonica(a, b):
-    """2ab/(a + b), zero onde a + b é nulo (coeficiente nas faces)."""
+    """2ab/(a + b), zero where a + b vanishes (coefficient at the faces)."""
     with np.errstate(divide="ignore", invalid="ignore"):
         h = 2.0 * a * b / (a + b)
     return np.where((a + b) > 0.0, h, 0.0)
@@ -113,8 +110,8 @@ RAIZ = pathlib.Path(__file__).resolve().parent.parent
 
 
 def _le_json(valor, nome):
-    """Cópia do dicionário dado, do arquivo dado ou, sem valor, do arquivo
-    nome na raiz do repositório."""
+    """Copy of the given dictionary, of the given file or, without a value, of
+    the file nome at the root of the repository."""
     if valor is None:
         valor = RAIZ / nome
     if not isinstance(valor, dict):
@@ -123,11 +120,11 @@ def _le_json(valor, nome):
 
 
 class ErroGas(ValueError):
-    """Propriedades do gás de fundo ausentes ou inválidas (gas.json)."""
+    """Missing or invalid properties of the background gas (gas.json)."""
 
 
 class ErroTransporte(ValueError):
-    """Dados de transporte ausentes ou inválidos (transporte.json)."""
+    """Missing or invalid transport data (transporte.json)."""
 
 
 class Modelo:
@@ -143,42 +140,43 @@ class Modelo:
                  espessura_dir=None, eps_dieletrico_dir=None, tabela_tensao=None, reflexao_eletrons=0.0):
         self.q, self.tab = quimica, tabela
         if quimica.bolsig_tres_corpos:
-            raise ErroQuimica("reações do BOLSIG+ com dois elétrons reagentes: "
-                              + ", ".join(quimica.bolsig_tres_corpos) + ". A taxa do BOLSIG+ é de dois corpos "
-                              "(cm3/s) e não serve de coeficiente de três corpos; corrija o kinet.inp")
-        # propriedades do gás de fundo (gas.json na raiz, ou o dado)
+            raise ErroQuimica("BOLSIG+ reactions with two reacting electrons: "
+                              + ", ".join(quimica.bolsig_tres_corpos) + ". The BOLSIG+ rate is a two-body one "
+                              "(cm3/s) and cannot be a three-body coefficient; correct kinet.inp")
+        # properties of the background gas (gas.json at the root, or the given one)
         self.gas = _le_json(gas, "gas.json")
-        # pasta dos arquivos do caso (o simula.py a troca com --caso)
+        # folder of the files of the case (simula.py changes it with --case)
         self.caso = RAIZ
         fundos = self._le_gas(quimica, fundo)
         self.tab_e = tabela_energia
         self.energia = tabela_energia is not None
         self.eps_sec = eps_sec
-        # fator de Boltzmann da meia célula no fluxo térmico de parede (N19); é um
-        # modelo de subgrade que tende a 1 com a malha (revisão C2)
+        # Boltzmann factor of half a cell in the thermal wall flux; a subgrid model
+        # that tends to 1 as the mesh is refined
         self.freio = freio
         self.m = n_celulas
         self.L = gap
-        self.base = faces_tanh(n_celulas, gap, agrupamento)             # malha de referência
+        self.base = faces_tanh(n_celulas, gap, agrupamento)             # reference mesh
         self.troca_malha(self.base if faces is None else np.asarray(faces, dtype=float))
         self._define_tensao(v_pico, periodo, forma, subida, largura, descida, tabela_tensao)
         self._define_barreiras(espessura, eps_dieletrico, espessura_dir, eps_dieletrico_dir)
-        # permissividade relativa do gás no Poisson (T4: o Fortran usa 1,000516,
-        # valor a 0 °C; a 300 K seria ~1,00047; o padrão 1 é o vácuo)
+        # relative permittivity of the gas in the Poisson equation (the Fortran code
+        # used 1.000516, a value at 0 C; at 300 K it would be ~1.00047; the default
+        # 1 is vacuum)
         self.eps_gas = eps_gas
         self.gama = gama_sec
-        # reflexão de elétrons na parede (Hagelaar et al. 2000): o fluxo absorvido,
-        # térmico e deriva, e a energia que ele leva ficam vezes (1 - r)/(1 + r)
+        # electron reflection at the walls (Hagelaar et al. 2000): the absorbed flux,
+        # thermal and drift, and the energy it carries are multiplied by (1 - r)/(1 + r)
         if not 0.0 <= reflexao_eletrons < 1.0:
-            raise ValueError(f"reflexão de elétrons {reflexao_eletrons}: precisa estar em [0, 1)")
+            raise ValueError(f"electron reflection {reflexao_eletrons}: must be in [0, 1)")
         self.reflexao_eletrons = reflexao_eletrons
         self.absorcao_eletrons = (1.0 - reflexao_eletrons) / (1.0 + reflexao_eletrons)
         self.alfa, self.sigma_cx = polarizabilidade, sigma_cx
         self.t_gas = t_gas
-        # densidade do gás a 1 atm na temperatura dada, cm-3
+        # gas density at 1 atm and the given temperature, cm-3
         self.n_gas = 101325.0 / (KB * t_gas) * 1e-6 if n_gas is None else n_gas
         self._define_especies(quimica, fundos, gas_solto)
-        # dados de transporte por espécie (transporte.json na raiz, ou o dado)
+        # transport data per species (transporte.json at the root, or the given one)
         self.transporte = _le_json(transporte, "transporte.json")
         self._aplica_opcoes_do_argonio(k0_ar, en_aquecimento_ar, k0_ar2)
         self._le_massas(fundos)
@@ -189,13 +187,13 @@ class Modelo:
         if self.energia:
             self._prepara_energia(quimica, fundos, bolsigdb, ganho_tres_corpos)
         self.calor_reacao = self._calor_das_reacoes(quimica, ganho_tres_corpos)
-        # calor rápido dos elétrons (processos do BOLSIG+ listados no gas.json,
-        # como a excitação rotacional do N2): tabela_calor_tg.dat do caso
+        # fast heating by electrons (BOLSIG+ processes listed in gas.json, such as
+        # the rotational excitation of N2): tabela_calor_tg.dat of the case
         self.tab_calor = None
         if self.gas.get("calor", {}).get("processos_rapidos"):
             if tabela_calor is None:
-                raise ErroGas("gas.json lista processos_rapidos: falta a tabela_calor_tg.dat (ferramentas/caso.py "
-                              "calor e tabelas) ou o parâmetro tabela_calor")
+                raise ErroGas("gas.json lists processos_rapidos: tabela_calor_tg.dat is missing (ferramentas/caso.py "
+                              "heat and tables) or the parameter tabela_calor")
             self.tab_calor = tabela_calor
         self.aquecimento = aquecimento
         self.t_parede = t_parede
@@ -204,74 +202,76 @@ class Modelo:
             self.n_var += 1
         self._le_difusao_e_perda(fundos[0][0], gas_solto)
 
-    # ------------------------------------------------- etapas do construtor
+    # ------------------------------------------------- steps of the constructor
     def _define_tensao(self, v_pico, periodo, forma, subida, largura, descida, tabela=None):
-        """Forma da tensão: seno (padrão); degrau, subida linear em subida s e
-        constante depois (tensão contínua); pulso, trapézio de subida, platô
-        largura e descida, repetido a cada periodo; tabela, pares (t, V) dentro
-        de um período (um pulso medido), interpolados e repetidos a cada
-        periodo, com V nulo fora da tabela."""
+        """Waveform of the voltage: seno, a sine (default); degrau, a linear rise in
+        subida s and constant afterwards (DC voltage); pulso, a trapezoid of rise,
+        plateau largura and fall, repeated every periodo; tabela, pairs (t, V)
+        within one period (a measured pulse), interpolated and repeated every
+        periodo, with V zero outside the table."""
         if forma not in ("seno", "degrau", "pulso", "tabela"):
-            raise ValueError(f"forma da tensão desconhecida: {forma}")
+            raise ValueError(f"unknown voltage waveform: {forma}")
         if forma == "pulso" and subida + largura + descida >= periodo:
-            raise ValueError("pulso: subida + largura + descida precisa ser menor que o periodo")
+            raise ValueError("pulse: rise + width + fall must be shorter than the period")
         if forma == "tabela":
             t_tab, v_tab = (np.asarray(x, dtype=float) for x in tabela)
             if len(t_tab) < 2 or np.any(np.diff(t_tab) <= 0.0) or t_tab[0] < 0.0:
-                raise ValueError("tabela da tensão: os instantes precisam ser crescentes, a partir de t >= 0")
+                raise ValueError("voltage table: times must increase, from t >= 0")
             if t_tab[-1] >= periodo:
-                raise ValueError("tabela da tensão: o último instante precisa ser menor que o periodo")
-            # V nulo nas pontas: fora da tabela a tensão é zero, e um salto
-            # daria corrente de deslocamento infinita
+                raise ValueError("voltage table: the last time must be shorter than the period")
+            # V zero at both ends: outside the table the voltage is zero, and a jump
+            # would give an infinite displacement current
             if v_tab[0] != 0.0 or v_tab[-1] != 0.0:
-                raise ValueError("tabela da tensão: precisa começar e terminar em zero")
+                raise ValueError("voltage table: must start and end at zero")
             self.t_tab, self.v_tab = t_tab, v_tab
         self.v_pico, self.omega = v_pico, 2.0 * np.pi / periodo
         self.forma, self.periodo = forma, periodo
         self.subida, self.largura, self.descida = subida, largura, descida
 
     def _define_barreiras(self, espessura, eps_dieletrico, espessura_dir, eps_dieletrico_dir):
-        """Barreira dielétrica de cada eletrodo; a direita, sem valor, igual à
-        esquerda. Espessura zero é eletrodo metálico, e só nos dois lados."""
+        """Dielectric barrier of each electrode; the right one, without a value,
+        equal to the left one. Zero thickness is a bare metal electrode, and only
+        on both sides."""
         self.espessura, self.eps_d = espessura, eps_dieletrico
         self.espessura_dir = espessura if espessura_dir is None else espessura_dir
         self.eps_d_dir = eps_dieletrico if eps_dieletrico_dir is None else eps_dieletrico_dir
         if (self.espessura > 0.0) != (self.espessura_dir > 0.0):
-            raise ValueError("espessura: barreira só de um lado não é suportada (as duas ou nenhuma)")
+            raise ValueError("thickness (espessura): a barrier on one side only is not supported (both or none)")
 
     def _define_especies(self, quimica, fundos, gas_solto):
-        """Espécies transportadas: todas menos as do gás de fundo, que só entra
-        solto; numa mistura, cada espécie do fundo com a sua fração de N."""
+        """Transported species: all but those of the background gas, which enters
+        only when free; in a mixture, each background species with its fraction of N."""
         self.fundos = [(quimica.indice[nome], fracao) for nome, fracao in fundos]
         self.gas_solto = gas_solto
         indices_fundo = {i for i, _ in self.fundos}
         self.especies = [k for k in range(len(quimica.especies)) if gas_solto or k not in indices_fundo]
         self.nomes = [quimica.especies[k].upper() for k in self.especies]
         self.carga = quimica.carga[self.especies]
-        # a mobilidade do transporte.json é a do próprio íon (v = K E): a
-        # deriva usa só o sinal da carga, que entra inteira no Poisson
+        # the mobility of transporte.json is that of the ion itself (v = K E): the
+        # drift uses only the sign of the charge, which enters whole in the Poisson equation
         self.sinal = np.sign(self.carga)
         self.i_e = self.nomes.index("E")
 
     def _aplica_opcoes_do_argonio(self, k0_ar, en_aquecimento_ar, k0_ar2):
-        """Opções de linha de comando do argônio, que sobrepõem as mobilidades
-        de Ar+ e Ar2+ do transporte.json."""
+        """Command line options for argon, which override the mobilities of Ar+
+        and Ar2+ in transporte.json."""
         opcoes = (("AR^+", "K0", k0_ar), ("AR^+", "EN_aquecimento", en_aquecimento_ar), ("AR2^+", "K0", k0_ar2))
         for nome, chave, valor in opcoes:
             if valor is None:
                 continue
             if nome not in self.nomes:
-                raise ErroTransporte(f"transporte: opção do argônio para {nome}, que não está na química")
+                raise ErroTransporte(f"transport: argon option for {nome}, which is not in the chemistry")
             mob = self._objeto(nome, "mobilidade")
             if chave == "EN_aquecimento" and mob.get("tipo") != "frost":
-                raise ErroTransporte(f"transporte: campo de aquecimento dado para {nome}, cuja mobilidade "
-                                     f"não é frost ({mob.get('tipo')})")
+                raise ErroTransporte(f"transport: heating field given for {nome}, whose mobility "
+                                     f"is not frost ({mob.get('tipo')})")
             mob[chave] = valor
 
     def _le_massas(self, fundos):
-        """Massa de cada espécie transportada e a do gás de fundo, para a troca
-        elástica dos elétrons com ele; numa mistura, 1/M = soma de x_i/M_i
-        (aproximação: pesa pela fração, e não pela frequência de colisão)."""
+        """Mass of each transported species and of the background gas, for the
+        elastic exchange of the electrons with it; in a mixture, 1/M = sum of
+        x_i/M_i (an approximation: weighted by the fraction, not by the collision
+        frequency)."""
         self.massa = np.array([ME if s == "E" else self._numero(s, "massa_u") * U for s in self.nomes])
         if len(fundos) == 1:
             self.m_fundo = self._numero(fundos[0][0], "massa_u") * U
@@ -279,7 +279,7 @@ class Modelo:
             self.m_fundo = 1.0 / sum(fracao / (self._numero(nome, "massa_u") * U) for nome, fracao in fundos)
 
     def _le_mobilidades(self):
-        """Mobilidade de cada íon: constante, Frost ou tabela em E/N."""
+        """Mobility of each ion: constant, Frost or a table in E/N."""
         self._mob = {}
         for k, s in enumerate(self.nomes):
             if s == "E" or self.carga[k] == 0:
@@ -290,7 +290,7 @@ class Modelo:
             else:
                 faltam = {"constante": ["K0"], "frost": ["K0", "EN_aquecimento"]}.get(mob.get("tipo"))
                 if faltam is None:
-                    raise ErroTransporte(f"transporte: tipo de mobilidade {mob.get('tipo')} desconhecido ({s})")
+                    raise ErroTransporte(f"transport: unknown mobility type {mob.get('tipo')} ({s})")
                 for chave in faltam:
                     self._numero(s, "mobilidade", chave)
             self._mob[k] = mob
@@ -300,30 +300,30 @@ class Modelo:
         e_n, k0 = mob.get("E_N"), mob.get("K0")
         listas = isinstance(e_n, list) and isinstance(k0, list) and len(e_n) == len(k0) and len(e_n) >= 2
         if not listas or np.any(np.diff(e_n) <= 0) or np.any(np.asarray(k0, dtype=float) <= 0):
-            raise ErroTransporte(f"transporte: {s} mobilidade em tabela precisa de E_N crescente e K0 "
-                                 "positivo, do mesmo tamanho")
+            raise ErroTransporte(f"transport: {s} mobility as a table needs increasing E_N and positive "
+                                 "K0, of the same length")
         if mob.get("acima", "preso") not in ("preso", "raiz"):
-            raise ErroTransporte(f"transporte: {s} mobilidade em tabela: acima = {mob['acima']!r}, "
-                                 "preso ou raiz")
+            raise ErroTransporte(f"transport: {s} mobility as a table: acima = {mob['acima']!r}, "
+                                 "must be preso or raiz")
 
     def _define_grupos(self, gas_solto):
-        """Íons positivos, íons negativos, neutros, o íon inicial e, com o gás
-        solto, os átomos que a parede devolve ao gás por partícula absorvida.
-        Íons negativos: transporte e Joule como os positivos, sem emissão
-        secundária; o campo das paredes os prende no volume (fluxos)."""
+        """Positive ions, negative ions, neutrals, the initial ion and, with the free
+        gas, the atoms the wall returns to the gas per absorbed particle. Negative
+        ions: transport and Joule heating as the positive ones, without secondary
+        emission; the field of the walls confines them to the volume (fluxos)."""
         nomes, carga = self.nomes, self.carga
         self.ions = [k for k in range(len(nomes)) if carga[k] > 0]
         self.ions_negativos = [k for k, s in enumerate(nomes) if carga[k] < 0 and s != "E"]
         ion = str(self.gas["ion_inicial"]).upper()
         if ion not in nomes or carga[nomes.index(ion)] <= 0:
-            raise ErroGas(f"gas.json: ion_inicial {self.gas['ion_inicial']} não é íon positivo da química")
+            raise ErroGas(f"gas.json: ion_inicial {self.gas['ion_inicial']} is not a positive ion of the chemistry")
         self.ion_inicial = nomes.index(ion)
         self.neutros = [k for k, s in enumerate(nomes) if carga[k] == 0 and s != "E"]
         if gas_solto:
-            # cada espécie do fundo no estado; atomos[j, k]: partículas do fundo j
-            # que a parede devolve por partícula k absorvida (numa mistura,
-            # atomos_do_fundo é um objeto por espécie do fundo, como
-            # {"N2": 0.5, "H2": 1.5} para o NH3)
+            # each background species in the state; atomos[j, k]: particles of the
+            # background j that the wall returns per absorbed particle k (in a
+            # mixture, atomos_do_fundo is an object per background species, such as
+            # {"N2": 0.5, "H2": 1.5} for NH3)
             self.i_fundos = [nomes.index(self.q.especies[i].upper()) for i, _ in self.fundos]
             nomes_fundo = [nomes[i] for i in self.i_fundos]
             self.atomos = np.zeros((len(self.i_fundos), len(nomes)))
@@ -331,24 +331,25 @@ class Modelo:
                 if s == "E" or k in self.i_fundos:
                     continue
                 if len(nomes_fundo) == 1:
-                    self.atomos[0, k] = self._numero(s, "atomos_do_fundo", faixa="não negativo")
+                    self.atomos[0, k] = self._numero(s, "atomos_do_fundo", faixa="non-negative")
                     continue
                 self._objeto(s, "atomos_do_fundo")
                 for j, f in enumerate(nomes_fundo):
-                    self.atomos[j, k] = self._numero(s, "atomos_do_fundo", f, faixa="não negativo")
+                    self.atomos[j, k] = self._numero(s, "atomos_do_fundo", f, faixa="non-negative")
 
     def _prepara_energia(self, quimica, fundos, bolsigdb, ganho_tres_corpos):
-        """Energia trocada pelos elétrons em cada reação fora da tabela: as
-        colisões com espécies que não são o gás de fundo (no argônio, as do Ar*),
-        ausentes da potência tabelada para o gás de fundo, e o ganho do elétron
-        que sobra na recombinação a três corpos (dois elétrons reagem, um
-        sobra). Hipótese do ganho: 0 (padrão) até a energia de ionização do gás
-        (15,76 eV no argônio); ver ACHADOS. Com o bloco calor do gas.json, o que
-        o elétron não leva vira calor do gás (limite superior: a radiação não é
-        descontada). As reações do BOLSIG+ ficam de fora: a energia delas vem
-        do bolsigdb.dat."""
-        # química do quimica.json: os limiares vêm dele, nunca do bolsigdb.dat da
-        # raiz (que é do argônio); lida do zdplaskin_m.F90 sem bolsigdb dado, o da raiz
+        """Energy exchanged by the electrons in each reaction outside the table:
+        collisions with species that are not the background gas (in argon, those
+        of Ar*), absent from the power tabulated for the background, and the gain
+        of the electron left in three-body recombination (two electrons react, one
+        remains). Assumption for the gain: from 0 (default) to the ionization
+        energy of the gas (15.76 eV in argon). With the heat block of gas.json,
+        what the electron does not take becomes gas heat (an upper bound:
+        radiation is not subtracted). The BOLSIG+ reactions are left out: their
+        energy comes from bolsigdb.dat."""
+        # chemistry from quimica.json: the thresholds come from it, never from the
+        # bolsigdb.dat of the root (argon); read from zdplaskin_m.F90 without a given
+        # bolsigdb, the one of the root
         if bolsigdb is None and not getattr(quimica, "do_json", False):
             bolsigdb = RAIZ / "bolsigdb.dat"
         energia = quimica.energia_eletronica(bolsigdb, [nome for nome, _ in fundos])
@@ -358,9 +359,10 @@ class Modelo:
         self.energia_reacao = energia + np.where(tres, ganho_tres_corpos, 0.0)
 
     def _le_difusao_e_perda(self, fundo, gas_solto):
-        """Difusão dos neutros (como DK no Fortran), m2/s, na T e no N do gás, e
-        fator de perda na parede: Chantry, gama/(2 - gama) do fluxo térmico
-        n v/2 (1 para íons, elétrons e o gás de fundo, que a parede devolve)."""
+        """Diffusion of the neutrals, m2/s, at the T and N of the gas, and the wall
+        loss factor: Chantry, s/(2 - s) of the thermal flux n v/2 for a sticking
+        coefficient s (1 for ions, electrons and the background gas, which the
+        wall returns)."""
         self._dif = {}
         self.fator_parede = np.ones(len(self.nomes))
         fundo_solto = set(self.i_fundos) if gas_solto else set()
@@ -370,10 +372,10 @@ class Modelo:
             dif = self._objeto(s, "difusao")
             self._numero(s, "difusao", "D0")
             self._numero(s, "difusao", "T0")
-            self._numero(s, "difusao", "expoente", faixa="finito")
+            self._numero(s, "difusao", "expoente", faixa="finite")
             self._dif[k] = dif
             if k not in fundo_solto:
-                gama = self._numero(s, "perda_na_parede", faixa="entre 0 e 1")
+                gama = self._numero(s, "perda_na_parede", faixa="between 0 and 1")
                 self.fator_parede[k] = gama / (2.0 - gama)
         p_atm = (self.n_gas * 1e6) * (1.38e-23 * self.t_gas) / 101325.0
         self.difusao = np.zeros(len(self.nomes))
@@ -381,48 +383,48 @@ class Modelo:
             self.difusao[k] = dif["D0"] / p_atm * (self.t_gas / dif["T0"]) ** dif["expoente"]
 
     def _le_gas(self, quimica, fundo):
-        """Valida o gas.json e devolve a lista (NOME, fração) do gás de fundo."""
+        """Validates gas.json and returns the list (NAME, fraction) of the background gas."""
         g = self.gas
         for chave in ("fundo", "cv_por_kb", "condutividade", "ion_inicial"):
             if chave not in g:
-                raise ErroGas(f"gas.json: falta {chave}")
+                raise ErroGas(f"gas.json: {chave} is missing")
         if not isinstance(g["fundo"], dict) or not g["fundo"]:
-            raise ErroGas(f"gas.json: fundo {g['fundo']!r}: dicionário de espécie e fração")
+            raise ErroGas(f"gas.json: fundo {g['fundo']!r}: must be a dictionary of species and fraction")
         fundos = []
         for nome, fracao in g["fundo"].items():
             if nome.upper() not in quimica.indice:
-                raise ErroGas(f"gas.json: o gás de fundo {nome} não está na química")
+                raise ErroGas(f"gas.json: the background gas {nome} is not in the chemistry")
             if not isinstance(fracao, (int, float)) or isinstance(fracao, bool) or not fracao > 0.0:
-                raise ErroGas(f"gas.json: fração do gás de fundo {nome} = {fracao!r}: precisa ser positiva")
+                raise ErroGas(f"gas.json: fraction of the background gas {nome} = {fracao!r}: must be positive")
             if nome.upper() in [n for n, _ in fundos]:
-                raise ErroGas(f"gas.json: o gás de fundo {nome.upper()} aparece duas vezes")
+                raise ErroGas(f"gas.json: the background gas {nome.upper()} appears twice")
             fundos.append((nome.upper(), float(fracao)))
         if abs(sum(f for _, f in fundos) - 1.0) > 1e-9:
-            raise ErroGas(f"gas.json: as frações do gás de fundo somam {sum(f for _, f in fundos):g}, e não 1")
+            raise ErroGas(f"gas.json: the fractions of the background gas add up to {sum(f for _, f in fundos):g}, not 1")
         if fundo is not None and [fundo.upper()] != [n for n, _ in fundos]:
-            raise ErroGas(f"gás de fundo {fundo} diferente do gas.json ({', '.join(n for n, _ in fundos)})")
+            raise ErroGas(f"background gas {fundo} differs from gas.json ({', '.join(n for n, _ in fundos)})")
         cv = g["cv_por_kb"]
         if not isinstance(cv, (int, float)) or isinstance(cv, bool) or not np.isfinite(cv) or cv <= 0.0:
-            raise ErroGas(f"gas.json: cv_por_kb = {cv!r}: precisa ser número positivo")
+            raise ErroGas(f"gas.json: cv_por_kb = {cv!r}: must be a positive number")
         self.cv_por_kb = float(cv)
         c = g["condutividade"]
         if not isinstance(c, dict) or c.get("tipo") not in ("linear_com_raiz", "tabela"):
-            raise ErroGas(f"gas.json: condutividade {c!r}: tipo linear_com_raiz ou tabela")
+            raise ErroGas(f"gas.json: condutividade {c!r}: tipo must be linear_com_raiz or tabela")
         faltam = [k for k in {"linear_com_raiz": ("a", "b", "escala", "t_raiz"), "tabela": ("T", "kappa")}[c["tipo"]]
                   if k not in c]
         if faltam:
-            raise ErroGas(f"gas.json: condutividade sem {', '.join(faltam)}")
+            raise ErroGas(f"gas.json: condutividade without {', '.join(faltam)}")
         if c["tipo"] == "tabela" and (len(c["T"]) != len(c["kappa"]) or len(c["T"]) < 2
                                       or np.any(np.diff(c["T"]) <= 0) or np.any(np.asarray(c["kappa"]) <= 0)):
-            raise ErroGas("gas.json: condutividade em tabela precisa de T crescente e kappa positivo, do mesmo tamanho")
+            raise ErroGas("gas.json: condutividade as a table needs increasing T and positive kappa, of the same length")
         return fundos
 
     def _calor_das_reacoes(self, quimica, ganho_tres_corpos):
-        """Calor (eV por evento) de cada reação, -soma(nu h), com as entalpias do
-        bloco calor do gas.json; None sem o bloco. Ficam de fora as reações do
-        BOLSIG+ (a energia sai dos elétrons, em P_inel) e as de um só reagente
-        (radiativas: o fóton sai). Na recombinação a três corpos, o ganho do
-        elétron que sobra é descontado."""
+        """Heat (eV per event) of each reaction, -sum(nu h), with the enthalpies of
+        the heat block (calor) of gas.json; None without the block. The BOLSIG+
+        reactions (the energy comes from the electrons, in P_inel) and those with a
+        single reactant (radiative: the photon leaves) are left out. In three-body
+        recombination, the gain of the remaining electron is subtracted."""
         calor = self.gas.get("calor")
         if calor is None:
             return None
@@ -444,13 +446,13 @@ class Modelo:
             if ordem[ie, r] >= 2 and nu[ie, r] == -1:
                 q[r] -= ganho_tres_corpos
         if faltam:
-            raise ErroGas(f"gas.json: falta a entalpia de {', '.join(sorted(faltam))} no bloco calor")
+            raise ErroGas(f"gas.json: the enthalpy of {', '.join(sorted(faltam))} is missing in the calor block")
         self._eletrons_perdidos = np.where(np.array([c is None for c in quimica.coluna_bolsig]),
                                            np.minimum(nu[ie], 0.0), 0.0)
         return q
 
     def condutividade(self, t):
-        """Condutividade térmica do gás (W/(m K)) na temperatura t (K)."""
+        """Thermal conductivity of the gas (W/(m K)) at the temperature t (K)."""
         c = self.gas["condutividade"]
         t = np.asarray(t, dtype=float)
         if c["tipo"] == "tabela":
@@ -459,53 +461,53 @@ class Modelo:
         return np.where(t > c["t_raiz"], k * np.sqrt(np.maximum(t, c["t_raiz"]) / c["t_raiz"]), k)
 
     def _dado(self, especie, campo):
-        """Campo dos dados de transporte da espécie; erro explícito se falta."""
+        """Field of the transport data of a species; an explicit error if missing."""
         if especie not in self.transporte:
-            raise ErroTransporte(f"transporte: sem dados da espécie {especie}")
+            raise ErroTransporte(f"transport: no data for the species {especie}")
         if campo not in self.transporte[especie]:
-            raise ErroTransporte(f"transporte: a espécie {especie} não tem {campo}")
+            raise ErroTransporte(f"transport: the species {especie} has no {campo}")
         return self.transporte[especie][campo]
 
     def _objeto(self, especie, campo):
         valor = self._dado(especie, campo)
         if not isinstance(valor, dict):
-            raise ErroTransporte(f"transporte: {especie} {campo} = {valor!r}: precisa ser um objeto")
+            raise ErroTransporte(f"transport: {especie} {campo} = {valor!r}: must be an object")
         return valor
 
-    FAIXAS = {"positivo": lambda v: v > 0.0, "não negativo": lambda v: v >= 0.0,
-              "entre 0 e 1": lambda v: 0.0 <= v <= 1.0, "finito": lambda v: True}
+    FAIXAS = {"positive": lambda v: v > 0.0, "non-negative": lambda v: v >= 0.0,
+              "between 0 and 1": lambda v: 0.0 <= v <= 1.0, "finite": lambda v: True}
 
-    def _numero(self, especie, campo, chave=None, faixa="positivo"):
-        """Número finito do campo (ou campo.chave) da espécie, na faixa dada."""
+    def _numero(self, especie, campo, chave=None, faixa="positive"):
+        """Finite number in the field (or field.key) of a species, in the given range."""
         if chave:
             alvo = self._objeto(especie, campo)
             if chave not in alvo:
-                raise ErroTransporte(f"transporte: a espécie {especie} não tem {campo}.{chave}")
+                raise ErroTransporte(f"transport: the species {especie} has no {campo}.{chave}")
             valor = alvo[chave]
         else:
             valor = self._dado(especie, campo)
         numero = isinstance(valor, (int, float)) and not isinstance(valor, bool) and np.isfinite(valor)
         if not (numero and self.FAIXAS[faixa](valor)):
             nome = f"{campo}.{chave}" if chave else campo
-            raise ErroTransporte(f"transporte: {especie} {nome} = {valor!r}: precisa ser número {faixa}")
+            raise ErroTransporte(f"transport: {especie} {nome} = {valor!r}: must be a {faixa} number")
         return float(valor)
 
     def troca_malha(self, faces):
-        """Usa a malha de faces dadas (mesmo número de células, extremos 0 e L)."""
+        """Uses the mesh of the given faces (same number of cells, ends 0 and L)."""
         if len(faces) != self.m + 1 or faces[0] != 0.0 or abs(faces[-1] - self.L) > 1e-15 * self.L:
-            raise ValueError("malha incompatível com o modelo")
+            raise ValueError("mesh incompatible with the model")
         if np.any(np.diff(faces) <= 0.0):
-            raise ValueError("faces da malha fora de ordem")
+            raise ValueError("faces of the mesh out of order")
         self.faces = np.array(faces, dtype=float)
         self.faces[-1] = self.L
-        self.h = np.diff(self.faces)                                     # larguras
-        self.xc = 0.5 * (self.faces[1:] + self.faces[:-1])               # centros
+        self.h = np.diff(self.faces)                                     # widths
+        self.xc = 0.5 * (self.faces[1:] + self.faces[:-1])               # centres
         nos = np.concatenate([[0.0], self.xc, [self.L]])
-        self.d = np.diff(nos)                                            # m+1 distâncias entre nós
+        self.d = np.diff(nos)                                            # m+1 distances between nodes
 
-    # ------------------------------------------------------------------ campo
+    # ------------------------------------------------------------------ field
     def tensao(self, t):
-        """Tensão aplicada no eletrodo esquerdo (V) no instante t (s)."""
+        """Voltage applied to the left electrode (V) at time t (s)."""
         if self.forma == "seno":
             return self.v_pico * np.sin(self.omega * t)
         if self.forma == "degrau":
@@ -522,12 +524,12 @@ class Modelo:
         return 0.0
 
     def poisson(self, rho, sigma_esq, sigma_dir, v):
-        """phi nos nós (paredes e centros) e campo nas m+1 faces. rho em C/m3."""
+        """phi at the nodes (walls and centres) and the field at the m+1 faces. rho in C/m3."""
         m, d = self.m, self.d
         n = m + 2
-        ab = np.zeros((3, n))       # forma em banda do solve_banded: superior, diagonal, inferior
+        ab = np.zeros((3, n))       # banded form of solve_banded: upper, diagonal, lower
         rhs = np.zeros(n)
-        # células: (phi_{i+1}-phi_i)/d_i - (phi_i-phi_{i-1})/d_{i-1} = -rho h/eps0
+        # cells: (phi_{i+1}-phi_i)/d_i - (phi_i-phi_{i-1})/d_{i-1} = -rho h/eps0
         for_cel = np.arange(1, m + 1)
         g_w = self.eps_gas / d[for_cel - 1]
         g_e = self.eps_gas / d[for_cel]
@@ -554,28 +556,28 @@ class Modelo:
         return phi, campo
 
     def campo_nas_celulas(self, campo):
-        """Campo nos centros das células, interpolado do campo nas faces."""
+        """Field at the cell centres, interpolated from the field at the faces."""
         nos = np.concatenate([[0.0], self.xc, [self.L]])
-        x_f = 0.5 * (nos[1:] + nos[:-1])                 # ponto médio de cada par de nós
+        x_f = 0.5 * (nos[1:] + nos[:-1])                 # midpoint of each pair of nodes
         w = (self.xc - x_f[:-1]) / (x_f[1:] - x_f[:-1])
         return (1.0 - w) * campo[:-1] + w * campo[1:]
 
-    # ------------------------------------------------------------ coeficientes
-    # mobilidades reduzidas medidas (cm2/(V s), na densidade de Loschmidt),
-    # constantes ou pela fórmula de Frost, K = K0*(1 + (E/N)/(E/N)_aq)**(-1/2);
-    # valores e fontes no transporte.json
+    # ------------------------------------------------------------ coefficients
+    # measured reduced mobilities (cm2/(V s), at the Loschmidt density), constant or
+    # from the formula of Frost, K = K0*(1 + (E/N)/(E/N)_h)**(-1/2); values and
+    # sources in transporte.json
 
     def mobilidade_ion(self, k, campo, n_pesadas=None):
-        """Mobilidade (m2/(V s)) do íon k nas células, a partir das medidas, com
-        mu = K*N0/N; N é o do gás ou, se dado, o das partículas pesadas."""
+        """Mobility (m2/(V s)) of the ion k in the cells, from the measurements,
+        with mu = K*N0/N; N is that of the gas or, if given, that of the heavy particles."""
         mob = self._mob[k]
         escala = N_LOSCHMIDT / (self.n_gas if n_pesadas is None else n_pesadas) * 1e-4
         if mob["tipo"] == "constante":
             return np.full_like(np.asarray(campo, dtype=float), mob["K0"] * escala)
         e_n = np.abs(campo) / (self.n_gas if n_pesadas is None else n_pesadas) * 1e15
         if mob["tipo"] == "tabela":
-            # K0 medido por E/N, linear; abaixo, preso; acima, preso ou com a cauda
-            # de campo alto K ~ (E/N)^(-1/2) a partir do último ponto medido
+            # K0 measured versus E/N, linear; below, held; above, held or with the
+            # high-field tail K ~ (E/N)^(-1/2) from the last measured point
             k0 = np.interp(e_n, mob["E_N"], mob["K0"])
             if mob.get("acima", "preso") == "raiz":
                 ultimo = mob["E_N"][-1]
@@ -584,44 +586,45 @@ class Modelo:
         return mob["K0"] * escala / np.sqrt(1.0 + e_n / mob["EN_aquecimento"])
 
     def n_pesadas(self, n):
-        """Partículas pesadas por célula (cm-3): o gás de fundo e as espécies que
-        não são elétrons, como MDT no Fortran."""
+        """Heavy particles per cell (cm-3): the background gas and the species that
+        are not electrons."""
         pesadas = [k for k in range(self.n_esp) if k != self.i_e]
         soma = np.maximum(n[pesadas], 0.0).sum(axis=0)
         return soma if self.gas_solto else self.n_gas + soma
 
     def n_neutro(self, n):
-        """N dos elétrons (cm-3): o do gás com o gás preso; com o gás solto, os
-        neutros da célula (o gás de fundo e os neutros transportados), como o
-        all_neutral do ZDPlasKin."""
+        """N of the electrons (cm-3): that of the gas with the fixed gas; with the
+        free gas, the neutrals of the cell (background gas and transported
+        neutrals), as the all_neutral of ZDPlasKin."""
         if not self.gas_solto:
             return self.n_gas
         return np.maximum(n[self.neutros], 0.0).sum(axis=0)
 
     def coeficientes(self, campo_cel, n=None, n_eps=None, t_gas=None):
-        """Mobilidade (m2/(V s)), difusão (m2/s) e temperatura (K) de cada espécie
-        nas células, taxas de impacto eletrônico (células, colunas), E/N (Td) e
-        os coeficientes extras: P_el/N (eV cm3/s) e, com a equação de energia, os
-        de energia dos elétrons. Com t_gas (K, por célula), a temperatura e as
-        partículas pesadas locais entram nos coeficientes dos íons e dos neutros."""
+        """Mobility (m2/(V s)), diffusion (m2/s) and temperature (K) of each species
+        in the cells, electron impact rate coefficients (cells, columns), E/N (Td)
+        and the extra coefficients: P_el/N (eV cm3/s) and, with the energy
+        equation, those of the electron energy. With t_gas (K, per cell), the local
+        temperature and heavy particles enter the coefficients of ions and neutrals."""
         n_e_neutro = self.n_neutro(n)
         e_n = np.abs(campo_cel) / n_e_neutro * 1e15
         mob = np.zeros((self.n_esp, self.m))
         dif = np.zeros((self.n_esp, self.m))
         local = t_gas is not None or self.gas_solto
         tg = np.full(self.m, self.t_gas) if t_gas is None else np.asarray(t_gas, dtype=float)
-        # a mobilidade iônica usa sempre o N das partículas pesadas da célula,
-        # como ions.f90; a difusão do Ar*, só com aquecimento ou gás solto
+        # the ion mobility always uses the N of the heavy particles of the cell; the
+        # diffusion of the neutrals, only with heating or the free gas
         n_pes = self.n_pesadas(n) if n is not None else None
         temp = np.tile(tg, (self.n_esp, 1))
         extra = {}
         if self.energia:
             eps, eps_bruta = self.energia_media(n, n_eps, e_n, tg, com_bruta=True)
             v = self.tab_e(eps, tg)
-            # elétrons abaixo do piso da tabela (mais frios que o gás): a tabela
-            # não os tem (o BOLSIG+ dá o regime com campo), e o valor no piso
-            # faria o gás seguir esquentando; a perda elástica ganha a relaxação
-            # (2m/M)(nu/N)(eps - piso) e fica negativa, levando-os ao gás
+            # electrons below the floor of the table (colder than the gas): the table
+            # does not have them (BOLSIG+ gives the regime with a field), and the
+            # value at the floor would keep heating the gas; the elastic loss gains
+            # the relaxation (2m/M)(nu/N)(eps - floor) and becomes negative, taking
+            # them to the gas
             pel = v[:, E_PEL]
             abaixo = eps_bruta < eps
             if np.any(abaixo):
@@ -643,13 +646,13 @@ class Modelo:
             extra = {"pel": v[:, PEL], "nu": v[:, NUN]}
         extra["n"] = n_e_neutro
         extra["tg"] = tg
-        extra["e_n"] = e_n                      # E/N local (Td), para as taxas que usam EN
+        extra["e_n"] = e_n                      # local E/N (Td), for the rates that use EN
         for k in range(self.n_esp):
             if k == self.i_e:
                 continue
             if self.carga[k] != 0:
                 mob[k] = self.mobilidade_ion(k, campo_cel, n_pes)
-                dif[k] = mob[k] * KB * tg / (abs(self.carga[k]) * Q)       # Einstein, carga z
+                dif[k] = mob[k] * KB * tg / (abs(self.carga[k]) * Q)       # Einstein, charge z
             elif local:
                 p_atm = (n_pes * 1e6) * (1.38e-23 * tg) / 101325.0
                 d = self._dif[k]
@@ -658,39 +661,40 @@ class Modelo:
                 dif[k] = self.difusao[k]
         return mob, dif, temp, k_bolsig, e_n, extra
 
-    # densidade de elétrons abaixo da qual a energia média tende à de campo local
+    # electron density below which the mean energy tends to the local field value
     N_MIN_ENERGIA = 1.0e-2        # cm-3
 
     def energia_media(self, n, n_eps, e_n, t_gas=None, com_bruta=False):
-        """Energia média (eV) por célula, presa à faixa da tabela na T_g da
-        célula (com a tabela em T_g, o piso é ~(3/2) k T_g):
-        (n_eps + n_min*eps_LFA)/(n_e + n_min). Com n_e >> n_min é n_eps/n_e; onde
-        não há elétrons (n_e nulo ou levemente negativo pelo integrador) a razão
-        não tem sentido e vale a energia de campo local. n_min fica bem acima do
-        ruído das densidades no integrador (tolerância absoluta)."""
+        """Mean energy (eV) per cell, held within the range of the table at the T_g
+        of the cell (with the table in T_g, the floor is ~(3/2) k T_g):
+        (n_eps + n_min*eps_LFA)/(n_e + n_min). With n_e >> n_min it is n_eps/n_e;
+        where there are no electrons (n_e zero or slightly negative from the
+        integrator) the ratio has no meaning and the local field energy applies.
+        n_min is well above the noise of the densities in the integrator
+        (absolute tolerance)."""
         n_min = self.N_MIN_ENERGIA
         tg = np.full(self.m, self.t_gas) if t_gas is None else np.asarray(t_gas, dtype=float)
         lfa = self.tab_e.energia_de_campo_local(e_n, tg)
         piso, teto = self.tab_e.limites(tg)
         ne = np.maximum(n[self.i_e], 0.0)
-        # energia fora da faixa da tabela, contada antes de prender, onde há
-        # elétrons bastantes para a razão ter sentido
+        # energy outside the range of the table, counted before holding, where there
+        # are enough electrons for the ratio to have a meaning
         com_eletrons = ne > 1.0e3 * n_min
         if np.any(com_eletrons):
             bruta = n_eps[com_eletrons] / ne[com_eletrons]
             self.tab_e.fora += int(np.count_nonzero(bruta > teto[com_eletrons] * (1.0 + 1e-12)))
             self.tab_e.fora_abaixo += int(np.count_nonzero(bruta < piso[com_eletrons] * (1.0 - 1e-12)))
-        # n_eps não passa de eps_max*n_e: sem elétrons, não há energia deles
+        # n_eps does not exceed eps_max*n_e: without electrons there is no electron energy
         n_eps = np.clip(n_eps, 0.0, teto * ne)
         eps = (n_eps + n_min * lfa) / (ne + n_min)
-        # com_bruta: também a energia antes de prender ao piso, para a
-        # relaxação dos elétrons mais frios que o gás
+        # com_bruta: also the energy before holding it at the floor, for the
+        # relaxation of electrons colder than the gas
         return (np.clip(eps, piso, teto), eps) if com_bruta else np.clip(eps, piso, teto)
 
-    # ------------------------------------------------------------------ fluxos
+    # ------------------------------------------------------------------ fluxes
     def sg(self, n, carga, mu_c, d_c, campo):
-        """Fluxos de Scharfetter-Gummel nas faces internas para densidades n
-        (linhas, células) de carga dada, com mobilidade e difusão das células."""
+        """Scharfetter-Gummel fluxes at the interior faces for densities n (rows,
+        cells) of the given charge, with the mobility and diffusion of the cells."""
         d_int = self.d[1:-1]
         mu_f = media_harmonica(mu_c[:, :-1], mu_c[:, 1:])
         d_f = media_harmonica(d_c[:, :-1], d_c[:, 1:])
@@ -702,16 +706,16 @@ class Modelo:
         return np.where(d_f <= 0.0, gup, gsg)
 
     def fluxos(self, n, campo, mob, dif, temp):
-        """Fluxos nas m+1 faces (cm-3 m/s, positivos para +x) e os fluxos que
-        atingem cada parede, por espécie."""
+        """Fluxes at the m+1 faces (cm-3 m/s, positive towards +x) and the fluxes
+        reaching each wall, per species."""
         G = np.zeros((self.n_esp, self.m + 1))
         G[:, 1:-1] = self.sg(n, self.sinal, mob, dif, campo)
-        # paredes
+        # walls
         v_term = np.sqrt(8.0 * KB * temp / (np.pi * self.massa[:, None]))
         out = np.zeros((self.n_esp, 2))
         for lado, (cel, face, sinal) in enumerate(((0, 0, -1.0), (self.m - 1, self.m, 1.0))):
-            ce = self.carga * campo[face]                  # força por e: o freio usa |z| e E
-            w_n = sinal * mob[:, cel] * self.sinal * campo[face]      # deriva na direção da parede
+            ce = self.carga * campo[face]                  # force per e: the brake uses |z| and E
+            w_n = sinal * mob[:, cel] * self.sinal * campo[face]      # drift towards the wall
             meia = self.d[face]
             with np.errstate(over="ignore"):
                 f = np.where((w_n < 0.0) & (temp[:, cel] > 0.0) & self.freio,
@@ -722,8 +726,8 @@ class Modelo:
         G[:, 0] = -out[:, 0]
         G[:, -1] = out[:, 1]
         if self.gas_solto:
-            # o gás de fundo não é absorvido: cada espécie dele recebe os átomos
-            # que a parede absorveu (o fundo tem peso zero em atomos)
+            # the background gas is not absorbed: each of its species receives the
+            # atoms the wall absorbed (the background has zero weight in atomos)
             retorno = self.atomos @ out
             for j, i in enumerate(self.i_fundos):
                 G[i, 0] = retorno[j, 0]
@@ -733,11 +737,11 @@ class Modelo:
         return G, out, gama_ions
 
     def fluxos_energia(self, n, n_eps, campo, mob, temp, extra, gama_ions):
-        """Fluxo de energia dos elétrons nas m+1 faces (eV cm-3 m/s, positivo
-        para +x): Scharfetter-Gummel no interior; nas paredes, 5/2 kTe por
-        elétron no fluxo térmico freado (fluxo de energia (5/6) v_term n_eps de
-        Hagelaar et al., Phys. Rev. E 62, 1452, 2000), mu_eps*E*n_eps na deriva para a parede e eps_sec
-        por elétron secundário que entra."""
+        """Electron energy flux at the m+1 faces (eV cm-3 m/s, positive towards +x):
+        Scharfetter-Gummel in the interior; at the walls, 5/2 kTe per electron of
+        the braked thermal flux (energy flux (5/6) v_th n_eps of Hagelaar et al.,
+        Phys. Rev. E 62, 1452, 2000), mu_eps*E*n_eps in the drift towards the wall
+        and eps_sec per incoming secondary electron."""
         mu_e = extra["mu_eps"][None, :]
         d_e = extra["d_eps"][None, :]
         Ge = np.zeros(self.m + 1)
@@ -747,7 +751,7 @@ class Modelo:
         v_term = np.sqrt(8.0 * KB * te / (np.pi * ME))
         saida = np.zeros(2)
         for lado, (cel, face, sinal) in enumerate(((0, 0, -1.0), (self.m - 1, self.m, 1.0))):
-            w_n = -sinal * mob[ie, cel] * campo[face]            # deriva dos elétrons para a parede
+            w_n = -sinal * mob[ie, cel] * campo[face]            # drift of the electrons towards the wall
             w_eps = -sinal * extra["mu_eps"][cel] * campo[face]
             with np.errstate(over="ignore"):
                 f = 1.0
@@ -761,7 +765,7 @@ class Modelo:
 
     # ------------------------------------------------------------------- RHS
     def separa(self, y):
-        """Densidades das espécies (sem a energia), cargas superficiais."""
+        """Densities of the species (without the energy), surface charges."""
         z = y[:-2].reshape(self.n_var, self.m)
         return z[:self.n_esp], y[-2], y[-1]
 
@@ -772,15 +776,16 @@ class Modelo:
         return y[:-2].reshape(self.n_var, self.m)[self.i_t]
 
     def densidade_neutra(self, n):
-        """Densidade total de neutros por célula (cm-3): o ALL_NEUTRAL do
-        ZDPlasKin, terceiro corpo das reações com ANY_NEUTRAL."""
+        """Total density of neutrals per cell (cm-3): the ALL_NEUTRAL of ZDPlasKin,
+        third body of the reactions with ANY_NEUTRAL."""
         todas = self.densidades_completas(n)
         neutras = [s for s, nome in enumerate(self.q.especies) if self.q.carga[s] == 0 and nome.upper() != "E"]
         return todas[neutras].sum(axis=0)
 
     def densidades_completas(self, n):
-        """Densidades de todas as espécies da química (cm-3), com o gás de
-        fundo preso na sua fração de N; negativos do integrador viram zero."""
+        """Densities of every species of the chemistry (cm-3), with the fixed
+        background gas at its fraction of N; negative values from the integrator
+        become zero."""
         todas = np.empty((len(self.q.especies), self.m))
         todas[self.especies] = np.maximum(n, 0.0)
         if not self.gas_solto:
@@ -789,19 +794,19 @@ class Modelo:
         return todas
 
     def campo(self, t, n, sigma_esq, sigma_dir):
-        """Potencial nos nós e campo nas faces para as densidades n."""
+        """Potential at the nodes and field at the faces for the densities n."""
         rho = Q * 1e6 * (self.carga @ n)
         return self.poisson(rho, sigma_esq, sigma_dir, self.tensao(t))
 
     def rhs(self, t, y):
-        """dy/dt do estado completo, com o campo do Poisson no instante t."""
+        """dy/dt of the full state, with the field of the Poisson equation at time t."""
         n, s_esq, s_dir = self.separa(y)
         _, campo = self.campo(t, n, s_esq, s_dir)
         return self.rhs_campo(t, y, campo)
 
     def rhs_campo(self, t, y, campo):
-        """Lado direito com o campo nas faces dado (o rhs o resolve antes; o
-        jacobiano estruturado o perturba)."""
+        """Right-hand side with the given field at the faces (rhs solves it first;
+        the structured Jacobian perturbs it)."""
         n, s_esq, s_dir = self.separa(y)
         n_eps = self.energia_do_estado(y) if self.energia else None
         t_gas = self.temperatura_do_estado(y) if self.aquecimento else None
@@ -824,17 +829,17 @@ class Modelo:
             partes.append(self.d_energia(n, n_eps, campo, G, mob, temp, extra, gama_ions))
         if self.aquecimento:
             partes.append(self.d_temperatura(n, t_gas, campo_cel, mob, extra))
-        # cargas superficiais: as partículas que chegam e os elétrons emitidos
+        # surface charges: the arriving particles and the emitted electrons
         d_sigma = Q * 1e6 * (self.carga @ out + gama_ions)
         return np.concatenate(partes + [d_sigma])
 
     def d_temperatura(self, n, t_gas, campo_cel, mob, extra):
-        """dT/dt (K/s): condução com kappa(T) (média harmônica nas faces, parede
-        a t_parede a meia célula), perda elástica dos elétrons e Joule dos íons,
-        divididos por (3/2) N k_B com N as partículas pesadas."""
+        """dT/dt (K/s): conduction with kappa(T) (harmonic mean at the faces, wall at
+        t_parede half a cell away), elastic electron loss and Joule heating of the
+        ions, divided by c_v N k_B with N the heavy particles."""
         kap = self.condutividade(t_gas)
         k_par = self.condutividade(np.array(self.t_parede))
-        F = np.empty(self.m + 1)                         # W/m2, positivo para +x
+        F = np.empty(self.m + 1)                         # W/m2, positive towards +x
         F[1:-1] = -media_harmonica(kap[:-1], kap[1:]) * np.diff(t_gas) / self.d[1:-1]
         F[0] = -media_harmonica(k_par, kap[0]) * (t_gas[0] - self.t_parede) / self.d[0]
         F[-1] = -media_harmonica(kap[-1], k_par) * (self.t_parede - t_gas[-1]) / self.d[-1]
@@ -843,15 +848,15 @@ class Modelo:
         q_j = self.joule_ions(n, mob, campo_cel)
         fonte = -np.diff(F) / self.h + q_el + q_j
         if self.calor_reacao is not None:
-            # calor das reações (entalpias do gas.json) e, com a equação de energia,
-            # a energia média que os elétrons consumidos levam (d_energia a retira)
+            # heat of the reactions (enthalpies of gas.json) and, with the energy
+            # equation, the mean energy carried by the consumed electrons (d_energia removes it)
             q_reac = self.calor_reacao @ extra["taxas"]
             if self.energia:
                 q_reac = q_reac - extra["eps"] * (self._eletrons_perdidos @ extra["taxas"])
             fonte = fonte + Q * 1e6 * q_reac
         if self.tab_calor is not None:
-            # P/N dos processos rápidos na energia média (com --energia) ou na de
-            # campo local da própria tabela, no E/N e na T_g da célula
+            # P/N of the fast processes at the mean energy (with --energy) or at the
+            # local field energy of the table itself, at the E/N and T_g of the cell
             tg = extra["tg"]
             eps = extra["eps"] if self.energia else self.tab_calor.energia_de_campo_local(extra["e_n"], tg)
             p_rap = self.tab_calor(eps, tg)[:, 1]
@@ -859,16 +864,16 @@ class Modelo:
         return fonte / (self.cv_por_kb * KB * self.n_pesadas(n) * 1e6)
 
     def joule_ions(self, n, mob, campo_cel):
-        """Aquecimento Joule dos íons (W/m3), |z| e n mu E^2, positivos e negativos."""
+        """Joule heating of the ions (W/m3), |z| e n mu E^2, positive and negative."""
         ions = self.ions + self.ions_negativos
         return sum(abs(self.carga[k]) * Q * np.maximum(n[k], 0.0) * 1e6 * mob[k] * campo_cel ** 2 for k in ions)
 
     def ganho_de_energia(self, G, campo):
-        """Trabalho do campo sobre os elétrons por célula (eV cm-3/s), -Gamma_e*E
-        médio nas duas faces da célula. Nas células das paredes vale só o da
-        face interna: o fluxo de absorção na face da parede é dominado pela
-        agitação térmica (v_term/2 ~ 1e6 m/s), que o campo não realiza, e
-        aquecia a célula várias vezes mais que o volume."""
+        """Work of the field on the electrons per cell (eV cm-3/s), -Gamma_e*E
+        averaged over the two faces of the cell. In the wall cells only that of the
+        inner face counts: the absorption flux at the wall face is dominated by the
+        thermal motion (v_th/2 ~ 1e6 m/s), which the field does not do, and it
+        heated the cell several times more than the volume."""
         trabalho = -G[self.i_e] * campo
         ganho = 0.5 * (trabalho[:-1] + trabalho[1:])
         ganho[0] = trabalho[1]
@@ -876,18 +881,18 @@ class Modelo:
         return ganho
 
     def d_energia(self, n, n_eps, campo, G, mob, temp, extra, gama_ions):
-        """d(n_eps)/dt (eV cm-3/s): transporte, ganho pelo campo com os fluxos de
-        elétrons das duas faces da célula, perda elástica e inelástica tabelada
-        (P_el + P_inel), troca de energia nas colisões com Ar*, energia média
-        levada por elétron recombinado e o ganho opcional do terceiro elétron na
-        recombinação a três corpos."""
+        """d(n_eps)/dt (eV cm-3/s): transport, field work with the electron fluxes of
+        the two faces of the cell, tabulated elastic and inelastic loss (P_el +
+        P_inel), energy exchanged in collisions with species outside the
+        background (Ar* in argon), mean energy carried away by each lost electron
+        and the optional gain of the third electron in three-body recombination."""
         Ge = self.fluxos_energia(n, n_eps, campo, mob, temp, extra, gama_ions)
         ganho = self.ganho_de_energia(G, campo)
         perda = np.maximum(n[self.i_e], 0.0) * extra["n"] * extra["perda"]
-        # reações: superelásticas e ionização em etapas com o Ar* dão ou tiram a
-        # energia do limiar; cada elétron perdido na recombinação leva a energia
-        # média (os elétrons novos entram sem energia: a ionização já paga o
-        # limiar em P_inel e o resto fica com os elétrons)
+        # reactions: superelastic collisions and stepwise ionization with Ar* give or
+        # take the threshold energy; each electron lost in recombination takes the
+        # mean energy (new electrons enter without energy: ionization already pays
+        # the threshold in P_inel and the rest stays with the electrons)
         k = self.q.coeficientes(extra["k_bolsig"], extra["tg"], temp[self.i_e], extra["e_n"],
                                 self.densidade_neutra(n) if self.q.usa_any_neutral else None)
         taxas = self.q.taxas(self.densidades_completas(n), k)
@@ -896,8 +901,8 @@ class Modelo:
         return -np.diff(Ge) / self.h + ganho - perda + outras
 
     def fora_da_tabela(self, y):
-        """Células de um estado com energia média acima e abaixo da faixa da
-        tabela, onde há elétrons bastantes (n_e > 10 cm-3), para o log."""
+        """Cells of a state with mean energy above and below the range of the
+        table, where there are enough electrons (n_e > 10 cm-3), for the log."""
         n = self.separa(y)[0]
         ne = n[self.i_e]
         com = ne > 1.0e3 * self.N_MIN_ENERGIA
@@ -908,32 +913,31 @@ class Modelo:
                 int(np.count_nonzero(bruta < piso[com] * (1.0 - 1e-12))))
 
     def frequencia_de_colisao(self, n, extra):
-        """Frequência de colisão dos elétrons (1/s) por célula, como o Fortran:
-        (nu/N) da tabela vezes a soma de todas as densidades da célula."""
+        """Collision frequency of the electrons (1/s) per cell, as in the Fortran
+        code: (nu/N) of the table times the sum of all densities of the cell."""
         return extra["nu"] * (self.n_pesadas(n) + np.maximum(n[self.i_e], 0.0))
 
     def celula_muito_ionizada(self, y):
-        """Primeira célula com n_e/N acima de 1e-3 com o gás preso, onde a
-        hipótese do gás preso deixa de valer (aviso do Fortran); None se não há."""
+        """First cell with n_e/N above 1e-3 with the fixed gas, where the assumption
+        of a fixed background stops holding; None if there is none."""
         if self.gas_solto:
             return None
         acima = np.nonzero(self.separa(y)[0][self.i_e] > 1e-3 * self.n_gas)[0]
         return int(acima[0]) if len(acima) else None
 
-    T_ALTA = 1000.0     # K: acima disso o kappa extrapolado deixa de valer
+    T_ALTA = 1000.0     # K: above it the extrapolated kappa stops holding
 
     def celula_quente(self, y):
-        """Primeira célula com o gás acima de T_ALTA (com aquecimento); None se não há."""
+        """First cell with the gas above T_ALTA (with heating); None if there is none."""
         if not self.aquecimento:
             return None
         acima = np.nonzero(self.temperatura_do_estado(y) > self.T_ALTA)[0]
         return int(acima[0]) if len(acima) else None
 
     def estado_inicial(self, n_e0=1.0, neutro=False):
-        """Como o Fortran: só elétrons a n_e0 cm-3, superfícies descarregadas;
-        com neutro, o íon inicial do gas.json também a n_e0
-        (plasma inicial quase neutro); com a
-        equação de energia, a energia média de campo nulo."""
+        """As in the Fortran code: only electrons at n_e0 cm-3, uncharged surfaces;
+        with neutro, the initial ion of gas.json also at n_e0 (a quasi-neutral
+        initial plasma); with the energy equation, the mean energy of zero field."""
         n = np.zeros((self.n_var, self.m))
         n[self.i_e] = n_e0
         if neutro:

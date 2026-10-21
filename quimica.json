@@ -189,62 +189,62 @@
  "programa": [
   {
    "alvo": 0,
-   "onde": "reação 1",
+   "onde": "reaction 1",
    "coluna_bolsig": 0
   },
   {
    "alvo": 1,
-   "onde": "reação 2",
+   "onde": "reaction 2",
    "coluna_bolsig": 1
   },
   {
    "alvo": 2,
-   "onde": "reação 3",
+   "onde": "reaction 3",
    "coluna_bolsig": 2
   },
   {
    "alvo": 3,
-   "onde": "reação 4",
+   "onde": "reaction 4",
    "coluna_bolsig": 3
   },
   {
    "alvo": 4,
-   "onde": "reação 5",
+   "onde": "reaction 5",
    "texto": "8.5e-07 * (te / 300.0) ** (-0.67)"
   },
   {
    "alvo": 5,
-   "onde": "reação 6",
+   "onde": "reaction 6",
    "texto": "6.06e-06 / tgas * exp(-15130.0 / tgas)"
   },
   {
    "alvo": 6,
-   "onde": "reação 7",
+   "onde": "reaction 7",
    "texto": "6e-10"
   },
   {
    "alvo": 7,
-   "onde": "reação 8",
+   "onde": "reaction 8",
    "texto": "8.75e-27 * (te / 11600.0) ** (-4.5)"
   },
   {
    "alvo": 8,
-   "onde": "reação 9",
+   "onde": "reaction 9",
    "texto": "1.4e-32"
   },
   {
    "alvo": 9,
-   "onde": "reação 10",
+   "onde": "reaction 10",
    "texto": "2.25e-31 * (tgas / 300.0) ** (-0.4)"
   },
   {
    "alvo": 10,
-   "onde": "reação 11",
+   "onde": "reaction 11",
    "texto": "3e-21"
   },
   {
    "alvo": 11,
-   "onde": "reação 12",
+   "onde": "reaction 12",
    "texto": "3e-14"
   }
  ],

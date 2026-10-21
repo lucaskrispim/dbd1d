@@ -1,13 +1,13 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Fluxos por reação de uma execução, como a análise de caminhos de Sun et al.
-2022: a taxa de cada reação reconstruída em cada estado gravado (os mesmos
-coeficientes do modelo), integrada no gap e no tempo (trapézio), e a fração da
-produção e do consumo de cada espécie que cabe a cada reação.
+"""Fluxes per reaction of a run, as in the pathway analysis of Sun et al. 2022:
+the rate of each reaction rebuilt at each saved state (with the coefficients of
+the model), integrated over the gap and in time (trapezoid), and the fraction of
+the production and consumption of each species due to each reaction.
 
-Uso: python3 scripts/fluxos.py DIR [DIR ...] [--especies NH,NH3,...] [--n 6]
-Vários DIR são trechos seguidos da mesma execução (retomadas), em ordem; o
-instante repetido na emenda conta uma vez. A resolução no tempo é a da
-gravação (--dt-saida): ela precisa acompanhar o pulso.
+Usage: python3 scripts/fluxos.py DIR [DIR ...] [--species NH,NH3,...] [--n 6]
+Several DIR are consecutive parts of the same run (restarts), in order; the time
+repeated at the junction counts once. The time resolution is that of the output
+(--dt-output): it must follow the pulse.
 """
 import argparse
 import json
@@ -26,8 +26,8 @@ PADRAO = ("N(2D)", "NH", "NH2", "NH3", "NH4^+", "H")
 
 
 def modelo_da_execucao(d):
-    """Modelo montado com os argumentos gravados no parametros.json; o caso de
-    outra máquina vira o casos/NOME daqui."""
+    """Model built with the arguments recorded in parametros.json; the case of
+    another machine becomes the local casos/NAME."""
     import simula
     a = argparse.Namespace(**json.loads((d / "parametros.json").read_text())["argumentos"])
     caso = pathlib.Path(a.caso)
@@ -42,7 +42,7 @@ def modelo_da_execucao(d):
 
 
 def estados(dirs, md):
-    """[(t, n, y)] de todos os registros dos trechos, em ordem, sem repetir a emenda."""
+    """[(t, n, y)] of all the records of the parts, in order, without repeating the junction."""
     saida, vistos = [], set()
     for d in dirs:
         sup = {}
@@ -67,7 +67,7 @@ def estados(dirs, md):
 
 
 def taxas_no_gap(md, t, y):
-    """Taxa de cada reação integrada no gap (cm-3 m/s) no estado y."""
+    """Rate of each reaction integrated over the gap (cm-3 m/s) in the state y."""
     n, s_esq, s_dir = md.separa(y)
     _, campo = md.campo(t, n, s_esq, s_dir)
     campo_cel = md.campo_nas_celulas(campo)
@@ -81,7 +81,7 @@ def taxas_no_gap(md, t, y):
 
 
 def taxas_integradas(dirs):
-    """(modelo, instantes, integral no tempo da taxa no gap de cada reação, cm-3 m)."""
+    """(model, times, time integral of the gap-integrated rate of each reaction, cm-3 m)."""
     dirs = [pathlib.Path(d) for d in dirs]
     md = modelo_da_execucao(dirs[0])
     lista = estados(dirs, md)
@@ -91,8 +91,8 @@ def taxas_integradas(dirs):
 
 
 def contribuicoes(q, integrais, especie):
-    """([(reação, fração da produção)], [(reação, fração do consumo)]) da
-    espécie, das maiores para as menores."""
+    """([(reaction, fraction of the production)], [(reaction, fraction of the
+    consumption)]) of the species, from the largest to the smallest."""
     s = q.indice[especie.upper()]
     nu = q.estequiometria[s]
     lados = []
@@ -107,17 +107,17 @@ def contribuicoes(q, integrais, especie):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("dirs", nargs="+", type=pathlib.Path)
-    p.add_argument("--especies", default=",".join(PADRAO))
+    p.add_argument("--species", "--especies", dest="especies", default=",".join(PADRAO))
     p.add_argument("--n", type=int, default=6)
     a = p.parse_args()
     md, t, integrais = taxas_integradas(a.dirs)
-    print(f"{len(t)} estados de {t[0]:.6e} a {t[-1]:.6e} s")
+    print(f"{len(t)} states from {t[0]:.6e} to {t[-1]:.6e} s")
     for especie in a.especies.split(","):
         prod, cons = contribuicoes(md.q, integrais, especie)
         s = md.q.indice[especie.upper()]
         liquido = md.q.estequiometria[s] @ integrais
-        print(f"\n== {especie}  (produção líquida no período: {liquido:.4e} cm-3 m)")
-        for titulo, lado in (("produção", prod), ("consumo", cons)):
+        print(f"\n== {especie}  (net production in the period: {liquido:.4e} cm-3 m)")
+        for titulo, lado in (("production", prod), ("consumption", cons)):
             print(f"  {titulo}:")
             for nome, f in lado[:a.n]:
                 print(f"    {100 * f:5.1f}%  {nome}")

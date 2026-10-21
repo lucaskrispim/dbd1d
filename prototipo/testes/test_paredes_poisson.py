@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Paredes, Poisson com carga, campo nas células e constantes, com respostas
-deduzidas à mão e constantes CODATA escritas aqui, sem importar do modelo
-(lacunas VT1 a VT4 de docs/lacunas.md; correspondem a teste_parede.f90,
-teste_dbd.f90, teste_poisson.f90, teste_malha.f90 e teste_quimica.f90)."""
+"""Walls, Poisson with charge, field in the cells and constants, with answers
+derived by hand and CODATA constants written here, without importing them from the
+model (gaps VT1 to VT4 of docs/lacunas.md; they correspond to teste_parede.f90,
+teste_dbd.f90, teste_poisson.f90, teste_malha.f90 and teste_quimica.f90)."""
 import numpy as np
 import pytest
 
@@ -34,7 +34,7 @@ def test_constantes_codata():
     assert modelo.Q == 1.602176634e-19
     assert modelo.KB == 1.380649e-23
     assert modelo.EPS0 == 8.8541878128e-12
-    assert modelo.U == UMA                  # a massa de cada espécie vem do transporte.json
+    assert modelo.U == UMA                  # the mass of each species comes from transporte.json
     assert modelo.ME == 9.1093837015e-31
     assert modelo.N_LOSCHMIDT == 2.6867811e19
 
@@ -48,8 +48,8 @@ def estado_paredes(md):
 
 
 def test_fluxo_termico_de_cada_especie_sem_campo(pecas):
-    # sem campo, cada espécie leva n v_térm/2 a cada parede: Ar+ e Ar* com a massa
-    # do argônio, Ar2+ com o dobro (v_térm/raiz 2), a 300 K
+    # without field, each species carries n v_th/2 to each wall: Ar+ and Ar* with the mass
+    # of argon, Ar2+ with twice it (v_th/sqrt 2), at 300 K
     md = Modelo(*pecas, n_celulas=10)
     n = estado_paredes(md)
     mob, dif, temp, *_ = md.coeficientes(np.zeros(md.m), n)
@@ -60,18 +60,18 @@ def test_fluxo_termico_de_cada_especie_sem_campo(pecas):
 
 
 def test_deriva_dos_ions_nas_duas_paredes(pecas):
-    # campo uniforme +E: os íons derivam para a direita. Na parede direita
-    # Gamma = n (v_térm/2 + mu E); na esquerda a deriva se afasta e o fluxo
-    # térmico é freado por exp(-e E (h/2)/(k T)); mu do Ar+ por Frost com
-    # K0 = 1,61 cm2/(V s) e 210 Td, do Ar2+ constante com K0 = 1,95. Com 500 V/m
-    # e meia célula de 40 um o freio vale ~0,46, então a meia célula conta
+    # uniform field +E: the ions drift to the right. At the right wall
+    # Gamma = n (v_th/2 + mu E); on the left the drift moves away and the thermal
+    # flux is braked by exp(-e E (h/2)/(k T)); mu of Ar+ by Frost with
+    # K0 = 1.61 cm2/(V s) and 210 Td, of Ar2+ constant with K0 = 1.95. With 500 V/m
+    # and a half cell of 40 um the brake is ~0.46, so the half cell counts
     md = Modelo(*pecas, n_celulas=10)
     n = estado_paredes(md)
     campo_v = 500.0
     campo = np.full(md.m + 1, campo_v)
     mob, dif, temp, *_ = md.coeficientes(np.full(md.m, campo_v), n)
     _, out, _ = md.fluxos(n, campo, mob, dif, temp)
-    n_pes = N_GAS + 9e9                     # gás e as pesadas (Ar+, Ar2+, Ar*)
+    n_pes = N_GAS + 9e9                     # gas and the heavy species (Ar+, Ar2+, Ar*)
     e_n = campo_v / n_pes * 1e15
     mu = {"AR^+": 1.61 * N0 / n_pes * 1e-4 / np.sqrt(1.0 + e_n / 210.0),
           "AR2^+": 1.95 * N0 / n_pes * 1e-4}
@@ -86,7 +86,7 @@ def test_deriva_dos_ions_nas_duas_paredes(pecas):
 
 
 def test_emissao_secundaria_em_cada_parede(pecas):
-    # cada parede emite gama vezes o fluxo de íons que chega a ela
+    # each wall emits gamma times the ion flux that reaches it
     md = Modelo(*pecas, n_celulas=10, gama_sec=0.07)
     n = estado_paredes(md)
     campo = np.full(md.m + 1, 2.0e5)
@@ -102,8 +102,8 @@ def test_emissao_secundaria_em_cada_parede(pecas):
 
 # ------------------------------------------------------------------ Poisson
 def test_campo_da_carga_superficial(pecas):
-    # V = 0, +sigma na interface esquerda e -sigma na direita, sem carga no gás:
-    # E_gás = sigma / (eps0 (1 + eps_d L/(2 d))), no sentido +x
+    # V = 0, +sigma at the left interface and -sigma at the right, without charge in the gas:
+    # E_gas = sigma / (eps0 (1 + eps_d L/(2 d))), in the +x direction
     d, eps_d = 1.0e-3, 4.8
     md = Modelo(*pecas, n_celulas=20, agrupamento=1.5, espessura=d, eps_dieletrico=eps_d)
     sigma = 3.0e-6
@@ -113,8 +113,8 @@ def test_campo_da_carga_superficial(pecas):
 
 
 def test_potencial_na_superficie_do_dieletrico(pecas):
-    # divisor capacitivo: E_gás = V/(L + 2d/eps_d); a superfície esquerda fica
-    # em V - (E_gás/eps_d) d
+    # capacitive divider: E_gas = V/(L + 2d/eps_d); the left surface is
+    # at V - (E_gas/eps_d) d
     d, eps_d, v = 1.75e-3, 4.8, 1.0e3
     md = Modelo(*pecas, n_celulas=20, agrupamento=1.5, espessura=d, eps_dieletrico=eps_d)
     phi, campo = md.poisson(np.zeros(md.m), 0.0, 0.0, v)
@@ -125,7 +125,7 @@ def test_potencial_na_superficie_do_dieletrico(pecas):
 
 
 def test_poisson_com_carga_uniforme_de_segunda_ordem_na_malha_agrupada(pecas):
-    # eletrodos aterrados e rho uniforme: phi = rho x (L - x)/(2 eps0)
+    # grounded electrodes and uniform rho: phi = rho x (L - x)/(2 eps0)
     rho = 1.0e-2                                   # C/m3
     erros = []
     for m in (20, 40, 80):
@@ -138,14 +138,14 @@ def test_poisson_com_carga_uniforme_de_segunda_ordem_na_malha_agrupada(pecas):
 
 
 def test_campo_linear_exato_nas_celulas_da_malha_agrupada(pecas):
-    # phi = x^2 nos nós dá campo -2x exato nos pontos médios entre nós; a
-    # interpolação para os centros das células tem de dar -2 x_c, inclusive
-    # nas células das paredes, onde os nós ficam a meia célula (N17)
+    # phi = x^2 at the nodes gives the exact field -2x at the midpoints between nodes; the
+    # interpolation to the cell centres must give -2 x_c, including
+    # in the wall cells, where the nodes lie half a cell away (N17)
     md = Modelo(*pecas, n_celulas=15, agrupamento=2.0)
     nos = np.concatenate([[0.0], md.xc, [md.L]])
     campo = -np.diff(nos ** 2) / np.diff(nos)
     np.testing.assert_allclose(md.campo_nas_celulas(campo), -2.0 * md.xc, rtol=1e-12)
-    # campo linear que troca de sinal: continua exato e limitado pelos extremos
+    # linear field that changes sign: it remains exact and bounded by the extremes
     x_med = 0.5 * (nos[1:] + nos[:-1])
     campo = 3.0e5 * (2.0 * x_med / md.L - 1.0)
     cel = md.campo_nas_celulas(campo)
@@ -154,7 +154,7 @@ def test_campo_linear_exato_nas_celulas_da_malha_agrupada(pecas):
 
 
 def test_faces_da_malha_agrupada(pecas):
-    # faces x_j = (L/2)(1 + tanh(beta(2j/m - 1))/tanh(beta)), como malha.f90
+    # faces x_j = (L/2)(1 + tanh(beta(2j/m - 1))/tanh(beta)), as malha.f90
     md = Modelo(*pecas, n_celulas=12, agrupamento=2.0)
     j = np.arange(13)
     esperado = 0.5 * 8.0e-4 * (1.0 + np.tanh(2.0 * (2.0 * j / 12 - 1.0)) / np.tanh(2.0))
@@ -163,7 +163,7 @@ def test_faces_da_malha_agrupada(pecas):
 
 # ------------------------------------------------------------- coeficientes
 def test_mobilidade_dos_eletrons_pela_tabela(pecas):
-    # mu_e = (mu N)/N com mu N em 1/(cm V s), N em cm-3 e 1e-4 para m2/(V s) (F2)
+    # mu_e = (mu N)/N with mu N in 1/(cm V s), N in cm-3 and 1e-4 for m2/(V s) (F2)
     md = Modelo(*pecas, n_celulas=4)
     e_n = 100.0
     campo = e_n * 1e-21 * N_GAS * 1e6
@@ -174,22 +174,22 @@ def test_mobilidade_dos_eletrons_pela_tabela(pecas):
 
 
 def test_gauss_e_conservacao_durante_a_blindagem(pecas):
-    # plasma quase neutro de 1e11 cm-3 sob tensão constante (o pico de um seno
-    # de período longo) com dielétrico nas duas paredes, integrado 100 ns. Não há
-    # estado final simples: os elétrons escapam por agitação térmica para as
-    # duas paredes e o plasma se esvazia. Conferem-se identidades exatas em
-    # qualquer instante, que pegam erros de sinal e de fator da carga
-    # superficial: (1) conservação da carga, sigma_esq + sigma_dir + soma de
-    # rho h = 0; (2) Gauss do eletrodo esquerdo a cada face k,
-    # eps0 E_k = eps0 eps_d (V - phi_0)/d + sigma_esq + soma até k de rho h.
-    # E a blindagem: o campo no centro cai abaixo de 1% do inicial.
+    # quasi-neutral plasma of 1e11 cm-3 under constant voltage (the peak of a sine
+    # of long period) with dielectric on both walls, integrated for 100 ns. There is no
+    # simple final state: the electrons escape by thermal motion to both
+    # walls and the plasma empties. Exact identities are checked at
+    # any instant, which catch sign and factor errors of the surface
+    # charge: (1) charge conservation, sigma_left + sigma_right + sum of
+    # rho h = 0; (2) Gauss at the left electrode for each face k,
+    # eps0 E_k = eps0 eps_d (V - phi_0)/d + sigma_left + sum up to k of rho h.
+    # And the shielding: the field at the centre falls below 1% of the initial one.
     from scipy.integrate import solve_ivp
     from jacobiano import ModeloRapido
     v, d, eps_d = 50.0, 1.0e-3, 4.8
     md = ModeloRapido(*pecas, n_celulas=24, agrupamento=1.5, v_pico=v, periodo=1.0,
                       espessura=d, eps_dieletrico=eps_d)
     y0 = md.estado_inicial(1.0e11, neutro=True)
-    t0 = 0.25                                       # pico da tensão
+    t0 = 0.25                                       # voltage peak
     atol = np.concatenate([np.full(md.n_var * md.m, 1e-4), [1e-12, 1e-12]])
     sol = solve_ivp(md.rhs, (t0, t0 + 1e-7), y0, method="BDF", rtol=1e-6, atol=atol,
                     jac=lambda t, y: md.jacobiano(t, y, 1e-4))
@@ -197,7 +197,7 @@ def test_gauss_e_conservacao_durante_a_blindagem(pecas):
     n, s_esq, s_dir = md.separa(sol.y[:, -1])
     phi, campo = md.campo(sol.t[-1], n, s_esq, s_dir)
     _, campo0 = md.campo(t0, *md.separa(y0))
-    rho_h = QE * 1e6 * (md.carga @ n) * md.h                     # C/m2 por célula
+    rho_h = QE * 1e6 * (md.carga @ n) * md.h                     # C/m2 per cell
     capacitor = EPS0 * eps_d * v / d
     assert abs(s_esq + s_dir + rho_h.sum()) < 1e-12 * capacitor
     v_t = md.tensao(sol.t[-1])
@@ -208,9 +208,9 @@ def test_gauss_e_conservacao_durante_a_blindagem(pecas):
 
 @pytest.mark.parametrize("eps_gas", [1.0, 1.000516])
 def test_permissividade_do_gas_no_poisson(pecas, eps_gas):
-    # T4: com a permissividade relativa do gás, o divisor capacitivo dá
-    # E_gás = V/(L + 2 d eps_gas/eps_d), e a carga de superfície dá
-    # E = sigma/(eps0 (eps_gas + eps_d L/(2 d))); o mesmo na matriz da DAE
+    # T4: with the relative permittivity of the gas, the capacitive divider gives
+    # E_gas = V/(L + 2 d eps_gas/eps_d), and the surface charge gives
+    # E = sigma/(eps0 (eps_gas + eps_d L/(2 d))); the same in the DAE matrix
     from jacobiano import ModeloRapido
     d, eps_d, v, sigma = 1.75e-3, 4.8, 1.0e3, 3.0e-6
     md = ModeloRapido(*pecas, n_celulas=20, agrupamento=1.5, espessura=d, eps_dieletrico=eps_d, eps_gas=eps_gas)
@@ -218,7 +218,7 @@ def test_permissividade_do_gas_no_poisson(pecas, eps_gas):
     np.testing.assert_allclose(campo, v / (md.L + 2.0 * d * eps_gas / eps_d), rtol=1e-10)
     _, campo = md.poisson(np.zeros(md.m), sigma, -sigma, 0.0)
     np.testing.assert_allclose(campo, sigma / (EPS0 * (eps_gas + eps_d * md.L / (2.0 * d))), rtol=1e-10)
-    # a matriz da DAE e a resposta G usam o mesmo eps_gas
+    # the DAE matrix and the response G use the same eps_gas
     from scipy.linalg import solve_banded
     phi = solve_banded((1, 1), md._matriz_poisson(), md._rhs_poisson(np.zeros(md.m), sigma, -sigma, 0.0))
     np.testing.assert_allclose(-np.diff(phi) / md.d, campo, rtol=1e-10)

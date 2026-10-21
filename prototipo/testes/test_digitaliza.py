@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Digitalização de figuras de artigos (ferramentas/digitaliza.py): um gráfico
-com dados conhecidos é gerado pelo matplotlib em PDF (vetorial) e em PNG
-(raster), e o digitalizador tem de devolver os mesmos dados a partir da
-moldura dos eixos e da cor de cada série."""
+"""Digitisation of figures of articles (ferramentas/digitaliza.py): a plot with
+known data is made by matplotlib in PDF (vector) and PNG (raster), and the
+digitiser must return the same data from the frame of the axes and the colour of
+each series."""
 import shutil
 import sys
 
@@ -14,7 +14,7 @@ from conftest import RAIZ
 sys.path.insert(0, str(RAIZ / "ferramentas"))
 import digitaliza as dg  # noqa: E402
 
-# a leitura vetorial passa o PDF pelo pdftocairo (pacote poppler-utils)
+# the vector reading passes the PDF through pdftocairo (package poppler-utils)
 precisa_pdftocairo = pytest.mark.skipif(shutil.which("pdftocairo") is None,
                                         reason="pdftocairo (poppler-utils) não instalado")
 
@@ -31,7 +31,7 @@ def _figura(caminho, log=False, pretos=False):
     fig, (a, b) = plt.subplots(1, 2, figsize=(8, 3.5))
     a.plot(X_PONTOS, Y_PONTOS, "s", color="red", ms=5)
     if pretos:
-        # marcador preto dentro do gráfico: lados verticais curtos que não são traços de escala
+        # black marker inside the plot: short vertical sides that are not ticks
         a.plot([350.0], [0.1], "s", color="black", mfc="none", ms=5)
     a.set_xlim(0.0, 700.0)
     a.set_ylim(0.0, 3.0)
@@ -48,7 +48,7 @@ def _figura(caminho, log=False, pretos=False):
 
 
 def _janelas(molduras):
-    # duas molduras, ordenadas da esquerda para a direita
+    # two frames, sorted from left to right
     assert len(molduras) == 2
     return sorted(molduras, key=lambda m: m[0])
 
@@ -90,8 +90,8 @@ def test_raster_marcadores_e_curva(tmp_path):
     ex2 = dg.Eixo(dir_[0], 0.0, dir_[2], 40.0)
     ey2 = dg.Eixo(dir_[3], -0.02, dir_[1], 0.02)
     xc, yc = ex2.valor(c[:, 0]), ey2.valor(c[:, 1])
-    # no raster o erro é da ordem de um pixel; no pico estreito a coluna
-    # de pixels mistura a subida e a descida
+    # in the raster the error is of the order of one pixel; at the narrow peak the column
+    # of pixels mixes the rise and the fall
     longe = np.abs(xc - 18.7) > 1.5
     np.testing.assert_allclose(yc[longe], np.interp(xc[longe], X_CURVA, Y_CURVA), atol=6e-3 * 0.04)
     xp, yp = dg.extremo_raster(img, (0.0, 0.0, 1.0), dir_)
@@ -108,12 +108,12 @@ def test_eixo_log_e_linear():
 
 @precisa_pdftocairo
 def test_tracos_de_escala_vetoriais(tmp_path):
-    # matplotlib põe traços em 0, 100, ..., 700 no eixo x e 0, 0,5, ..., 3 no y
+    # matplotlib puts ticks at 0, 100, ..., 700 on the x axis and 0, 0.5, ..., 3 on y
     pdf = tmp_path / "fig.pdf"
     _figura(pdf, pretos=True)
     tr = dg.tracos_pdf(pdf, 1)
     esq, _ = _janelas(dg.molduras_vetoriais(tr))
-    # desenhado duas vezes (como em figuras com painéis sobrepostos), conta uma
+    # drawn twice (as in figures with overlapping panels), it counts once
     tr = tr + tr
     xs = dg.tracos_de_escala(tr, esq, "x", min_comp=2.0)
     ys = dg.tracos_de_escala(tr, esq, "y", min_comp=2.0)
@@ -135,7 +135,7 @@ def test_tracos_de_escala_raster(tmp_path):
 
 
 def test_raster_marcadores_com_barra_e_linha(tmp_path):
-    # pontos com barra de erro e uma linha de modelo na mesma cor, como em Yang 2022
+    # points with error bars and a model line in the same colour, as in Yang 2022
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -166,8 +166,8 @@ def test_raster_marcadores_com_barra_e_linha(tmp_path):
 
 @precisa_pdftocairo
 def test_moldura_desenhada_como_caminho_fechado(tmp_path):
-    # gnuplot desenha a moldura como um retângulo fechado (M L L L Z), não
-    # como quatro linhas: o lado que o Z fecha também conta
+    # gnuplot draws the frame as a closed rectangle (M L L L Z), not
+    # as four lines: the side that Z closes also counts
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -178,7 +178,7 @@ def test_moldura_desenhada_como_caminho_fechado(tmp_path):
     a.set_xlim(0, 10)
     a.set_ylim(0, 10)
     a.add_patch(Rectangle((2, 2), 6, 5, fill=False, edgecolor="black", lw=1))
-    # e desenha a moldura duas vezes, com uma diferença de décimos de ponto
+    # and draws the frame twice, with a difference of tenths of a point
     a.add_patch(Rectangle((2, 2), 6.003, 5, fill=False, edgecolor="black", lw=1))
     pdf = tmp_path / "r.pdf"
     fig.savefig(pdf)
@@ -206,7 +206,7 @@ def _figura_pontos(png, x, y, err, alfa_barra=1.0):
 
 
 def test_marcadores_encostados_sao_separados(tmp_path):
-    # como os pulsos 2 e 5 da fig. 3 de Yang: dois marcadores que se tocam
+    # as pulses 2 and 5 of fig. 3 of Yang: two markers that touch
     x = np.array([10.0, 13.0, 60.0, 100.0])
     y = np.array([3.0, 3.05, 2.0, 1.0])
     img, m, ex, ey = _figura_pontos(tmp_path / "f.png", x, y, np.zeros(4))
@@ -218,7 +218,7 @@ def test_marcadores_encostados_sao_separados(tmp_path):
 
 
 def test_barra_de_erro_clara_e_seguida(tmp_path):
-    # barras semitransparentes (claras), como nas figs. 3, 9 e 14 de Yang
+    # semi-transparent (light) bars, as in figs. 3, 9 and 14 of Yang
     x = np.array([20.0, 70.0, 120.0])
     y = np.array([2.0, 3.0, 2.5])
     err = np.array([0.6, 1.0, 0.4])
@@ -231,8 +231,8 @@ def test_barra_de_erro_clara_e_seguida(tmp_path):
 
 
 def test_curva_seguida_separa_continua_de_tracejada(tmp_path):
-    # como o campo aplicado de Takashima 2012: a medida (contínua) e o ajuste
-    # (tracejado) na mesma cor, juntos no começo e separados depois
+    # as the applied field of Takashima 2012: the measurement (solid) and the fit
+    # (dashed) in the same colour, together at the start and apart afterwards
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -258,10 +258,10 @@ def test_curva_seguida_separa_continua_de_tracejada(tmp_path):
 
 
 def test_svg_do_poppler_22_e_do_24_dao_os_mesmos_tracos():
-    # o mesmo PDF (uma curva vermelha com marcadores, matplotlib) pelo
-    # pdftocairo 22.02 e pelo 24.02: o 24 (cairo 1.18) troca o atributo style
-    # por atributos de apresentação, põe espaços dentro do rgb() e deixa o
-    # preenchimento do texto no <g> de cima
+    # the same PDF (a red curve with markers, matplotlib) through
+    # pdftocairo 22.02 and 24.02: 24 (cairo 1.18) replaces the style attribute
+    # by presentation attributes, puts spaces inside rgb() and leaves the
+    # fill of the text in the enclosing <g>
     dados = RAIZ / "prototipo" / "testes" / "dados"
     a = dg.tracos_svg(dados / "figura_poppler22.svg")
     b = dg.tracos_svg(dados / "figura_poppler24.svg")
@@ -271,5 +271,5 @@ def test_svg_do_poppler_22_e_do_24_dao_os_mesmos_tracos():
         assert ta["preenchimento"] == tb["preenchimento"]
         assert np.allclose(ta["p"], tb["p"], atol=1e-3)
     assert len(dg.molduras_vetoriais(b)) == 1
-    # a linha e os três marcadores vermelhos, contados por subcaminho
+    # the line and the three red markers, counted by subpath
     assert sum(t["traco"] == (1.0, 0.0, 0.0) for t in b) == 7

@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Figura do V2 (ignição de Loffhagen et al. 2020): razão entre o pico de
-corrente e o pico da corrente capacitiva no décimo período contra a amplitude,
-com a ignição medida e a do modelo deles, e a corrente em algumas amplitudes.
+"""Figure of V2 (ignition of Loffhagen et al. 2020): ratio of the current peak to
+the peak of the capacitive current in the tenth period versus the amplitude, with
+the measured ignition and that of their model, and the current at some amplitudes.
 
-Uso: python3 scripts/figura_loffhagen.py DIR_DAS_EXECUCOES SAIDA.png
+Usage: python3 scripts/figura_loffhagen.py RUNS_DIR OUTPUT.png
 """
 import json
 import pathlib
@@ -33,18 +33,18 @@ def main():
         us.append(p["v_pico"] / 1e3)
         rz.append(np.abs(i[m]).max() / np.abs(np.gradient(c * v, t))[m].max())
         if p["v_pico"] in (2800, 2850, 3000, 4000):
-            b.plot((t[m] - 9 * per) * 1e6, i[m] * 1e3, label=f"U₀ = {p['v_pico'] / 1e3:.2f} kV")
+            b.plot((t[m] - 9 * per) * 1e6, i[m] * 1e3, label=f"U0 = {p['v_pico'] / 1e3:.2f} kV")
     o = np.argsort(us)
-    a.plot(np.array(us)[o], np.array(rz)[o], "ko-", label="1D (décimo período)")
-    a.axvspan(2.865, 3.174, color="tab:orange", alpha=0.25, label="ignição medida (3,02 kV, barra)")
-    a.axvline(3.649, color="tab:blue", ls="--", label="modelo de Loffhagen 2020 (3,65 kV)")
+    a.plot(np.array(us)[o], np.array(rz)[o], "ko-", label="dbd1d (tenth period)")
+    a.axvspan(2.865, 3.174, color="tab:orange", alpha=0.25, label="measured ignition (3.02 kV, bar)")
+    a.axvline(3.649, color="tab:blue", ls="--", label="model of Loffhagen 2020 (3.65 kV)")
     a.axhline(2, color="gray", ls=":", lw=1)
-    a.set_xlabel("amplitude U₀ (kV)")
-    a.set_ylabel("pico de I / pico da corrente capacitiva")
-    a.set_title("Ignição em argônio a 1 atm (gap 1 mm, 86,2 kHz)")
-    b.set_xlabel("t no décimo período (µs)")
-    b.set_ylabel("I (mA), área de 8 cm²")
-    b.set_title("Corrente no 1D")
+    a.set_xlabel("amplitude U0 (kV)")
+    a.set_ylabel("peak of I / peak of the capacitive current")
+    a.set_title("ignition in argon at 1 atm (1 mm gap, 86.2 kHz)")
+    b.set_xlabel("t in the tenth period (us)")
+    b.set_ylabel("I (mA), area of 8 cm2")
+    b.set_title("dbd1d current")
     for x in (a, b):
         x.grid(alpha=0.3)
         x.legend(fontsize=8)
