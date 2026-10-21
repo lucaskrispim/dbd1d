@@ -1,0 +1,4 @@
+Ar 0.9
+N2 0.1
+Ar* traco
+N2^+ traco

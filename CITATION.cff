@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the article and the software version."
+title: "dbd1d: one-dimensional fluid model of dielectric barrier discharges generated from ZDPlasKin chemistry files"
+version: 1.0.0
+license: GPL-3.0-or-later
+authors:
+  - family-names: "Crispim"
+    given-names: "Lucas W. S."
+    affiliation: "Universidade Federal de Juiz de Fora"
+  - family-names: "de Castro"
+    given-names: "Delvany G."
+    affiliation: "Universidade Federal de Juiz de Fora"
+  - family-names: "Ballester"
+    given-names: "Maikel Y."
+    affiliation: "Universidade Federal de Juiz de Fora"
+repository-code: "https://github.com/lucaskrispim/dbd1d"

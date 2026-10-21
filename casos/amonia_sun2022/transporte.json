@@ -1,0 +1,500 @@
+{
+  "_formato": [
+    "Dados de transporte das espécies pesadas, lidos pelo protótipo (prototipo/modelo.py) ou dados por --transporte.",
+    "Cada espécie transportada, menos E, precisa de massa_u, a massa em u. O gás de fundo só é transportado com --gas-solto.",
+    "Íons positivos de carga 1 precisam de mobilidade, reduzida na densidade de Loschmidt em cm2/(V s), do tipo constante (K0), frost (K0 e EN_aquecimento em Td, com K = K0 (1 + (E/N)/EN_aquecimento)^(-1/2)) ou tabela (E_N em Td crescente e K0, interpolada linearmente; abaixo do primeiro ponto, presa; acima do último, presa ou, com acima = raiz, K = K_último (E/N_último / (E/N))^(1/2)).",
+    "Neutros precisam de difusao, D = (D0/p) (T/T0)^expoente em m2/s com p em atm, e de perda_na_parede, a probabilidade gama de perda por choque com a parede (fluxo gama/(2 - gama) n v/2; o gás de fundo solto não precisa).",
+    "Com --gas-solto, as espécies precisam de atomos_do_fundo, os átomos do gás de fundo que a parede devolve por partícula absorvida.",
+    "Campos fonte são só registro."
+  ],
+  "N2": {
+    "massa_u": 28.014
+  },
+  "H2": {
+    "massa_u": 2.016
+  },
+  "NH3": {
+    "massa_u": 17.031,
+    "difusao": {
+      "D0": 3.461e-05,
+      "T0": 300.0,
+      "expoente": 1.798
+    },
+    "perda_na_parede": 0.0,
+    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como NH3); perda na parede 0 (molécula estável, quartzo sem catalisador)"
+  },
+  "N2(V1)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 3.29e-05,
+      "T0": 300.0,
+      "expoente": 1.696
+    },
+    "perda_na_parede": 0.00045,
+    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do N2"
+  },
+  "N2(V2)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 3.29e-05,
+      "T0": 300.0,
+      "expoente": 1.696
+    },
+    "perda_na_parede": 0.00045,
+    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do N2"
+  },
+  "N2(V3)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 3.29e-05,
+      "T0": 300.0,
+      "expoente": 1.696
+    },
+    "perda_na_parede": 0.00045,
+    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do N2"
+  },
+  "N2(V4)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 3.29e-05,
+      "T0": 300.0,
+      "expoente": 1.696
+    },
+    "perda_na_parede": 0.00045,
+    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do N2"
+  },
+  "N2(V5)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 3.29e-05,
+      "T0": 300.0,
+      "expoente": 1.696
+    },
+    "perda_na_parede": 0.00045,
+    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do N2"
+  },
+  "N2(V6)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 3.29e-05,
+      "T0": 300.0,
+      "expoente": 1.696
+    },
+    "perda_na_parede": 0.00045,
+    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do N2"
+  },
+  "N2(V7)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 3.29e-05,
+      "T0": 300.0,
+      "expoente": 1.696
+    },
+    "perda_na_parede": 0.00045,
+    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do N2"
+  },
+  "N2(V8)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 3.29e-05,
+      "T0": 300.0,
+      "expoente": 1.696
+    },
+    "perda_na_parede": 0.00045,
+    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do N2"
+  },
+  "H2(V1)": {
+    "massa_u": 2.016,
+    "difusao": {
+      "D0": 0.00010159,
+      "T0": 300.0,
+      "expoente": 1.67
+    },
+    "perda_na_parede": 0.0001,
+    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como H2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do H2"
+  },
+  "H2(V2)": {
+    "massa_u": 2.016,
+    "difusao": {
+      "D0": 0.00010159,
+      "T0": 300.0,
+      "expoente": 1.67
+    },
+    "perda_na_parede": 0.0001,
+    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como H2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do H2"
+  },
+  "H2(V3)": {
+    "massa_u": 2.016,
+    "difusao": {
+      "D0": 0.00010159,
+      "T0": 300.0,
+      "expoente": 1.67
+    },
+    "perda_na_parede": 0.0001,
+    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como H2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do H2"
+  },
+  "N2(A3)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 3.29e-05,
+      "T0": 300.0,
+      "expoente": 1.696
+    },
+    "perda_na_parede": 0.001,
+    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do N2"
+  },
+  "N2(B3)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 3.29e-05,
+      "T0": 300.0,
+      "expoente": 1.696
+    },
+    "perda_na_parede": 0.001,
+    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N2); perda na parede tomada igual à do N2(A3) (estimativa; o N2(B3) radia em microssegundos); difusão igual à do N2"
+  },
+  "N2(A'1)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 3.29e-05,
+      "T0": 300.0,
+      "expoente": 1.696
+    },
+    "perda_na_parede": 0.001,
+    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do N2"
+  },
+  "N2(C3)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 3.29e-05,
+      "T0": 300.0,
+      "expoente": 1.696
+    },
+    "perda_na_parede": 0.001,
+    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N2); perda na parede tomada igual à do N2(A3) (estimativa; o N2(C3) radia em dezenas de ns); difusão igual à do N2"
+  },
+  "N(2D)": {
+    "massa_u": 14.007,
+    "difusao": {
+      "D0": 4.421e-05,
+      "T0": 300.0,
+      "expoente": 1.685
+    },
+    "perda_na_parede": 1.0,
+    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N); perda na parede 1 (estimativa: desexcitação de metaestável na parede); difusão igual à do N"
+  },
+  "N(2P)": {
+    "massa_u": 14.007,
+    "difusao": {
+      "D0": 4.421e-05,
+      "T0": 300.0,
+      "expoente": 1.685
+    },
+    "perda_na_parede": 1.0,
+    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N); perda na parede 1 (estimativa: desexcitação de metaestável na parede); difusão igual à do N"
+  },
+  "N": {
+    "massa_u": 14.007,
+    "difusao": {
+      "D0": 4.421e-05,
+      "T0": 300.0,
+      "expoente": 1.685
+    },
+    "perda_na_parede": 2.16e-06,
+    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N); perda na parede: a do N em quartzo da entrada N em N2 (recombinação na parede de quartzo, gama = 2,16e-6 (Mazánková, Trunec e Krčma, 2015, pós-descarga a 1000 Pa)...)"
+  },
+  "H": {
+    "massa_u": 1.008,
+    "difusao": {
+      "D0": 0.000156,
+      "T0": 300.0,
+      "expoente": 1.706
+    },
+    "perda_na_parede": 0.001,
+    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como H); perda na parede 1e-3 (estimativa para H em quartzo a 300 a 700 K; sem medida conferida)"
+  },
+  "NH": {
+    "massa_u": 15.015,
+    "difusao": {
+      "D0": 5.243e-05,
+      "T0": 300.0,
+      "expoente": 1.689
+    },
+    "perda_na_parede": 0.001,
+    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como NH); perda na parede 1e-3 (estimativa, sem medida)"
+  },
+  "NH2": {
+    "massa_u": 16.023,
+    "difusao": {
+      "D0": 5.155e-05,
+      "T0": 300.0,
+      "expoente": 1.689
+    },
+    "perda_na_parede": 0.001,
+    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como NH2); perda na parede 1e-3 (estimativa, sem medida)"
+  },
+  "H^-": {
+    "massa_u": 1.008,
+    "mobilidade": {
+      "tipo": "constante",
+      "K0": 13.6052
+    },
+    "fonte": "lei de Blanc na mistura 1:1 de K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%): 10.65 em N2 e 18.84 em H2; sem dependência com E/N"
+  },
+  "N^+": {
+    "massa_u": 14.007,
+    "mobilidade": {
+      "tipo": "tabela",
+      "E_N": [
+        7,
+        8,
+        10,
+        12,
+        15,
+        20,
+        25,
+        30,
+        40,
+        50,
+        60,
+        80,
+        100,
+        120,
+        150,
+        200,
+        250,
+        300,
+        400,
+        500
+      ],
+      "K0": [
+        4.7826,
+        4.7826,
+        4.7826,
+        4.77,
+        4.7574,
+        4.7447,
+        4.732,
+        4.7193,
+        4.6938,
+        4.6683,
+        4.6555,
+        4.6299,
+        4.6171,
+        4.6042,
+        4.6042,
+        4.5913,
+        4.5913,
+        4.5913,
+        4.5526,
+        4.5007
+      ],
+      "acima": "raiz"
+    },
+    "fonte": "lei de Blanc na mistura 1:1: em N2 a tabela medida da entrada N^+ em N2 (Ellis et al. 1976); em H2 K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%), 11.63"
+  },
+  "N2^+": {
+    "massa_u": 28.014,
+    "mobilidade": {
+      "tipo": "tabela",
+      "E_N": [
+        6,
+        8,
+        10,
+        12,
+        15,
+        20,
+        25,
+        30,
+        40,
+        50,
+        60,
+        80,
+        100,
+        120,
+        150,
+        200,
+        250,
+        300,
+        400,
+        500,
+        600,
+        800
+      ],
+      "K0": [
+        3.2515,
+        3.2368,
+        3.2221,
+        3.2221,
+        3.2074,
+        3.178,
+        3.1632,
+        3.1484,
+        3.1039,
+        3.0443,
+        2.9842,
+        2.8935,
+        2.8019,
+        2.7095,
+        2.6006,
+        2.4428,
+        2.2987,
+        2.1689,
+        2.0042,
+        1.8706,
+        1.7522,
+        1.5807
+      ],
+      "acima": "raiz"
+    },
+    "fonte": "lei de Blanc na mistura 1:1: em N2 a tabela medida da entrada N2^+ em N2 (Ellis et al. 1976); em H2 K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%), 11.26"
+  },
+  "N3^+": {
+    "massa_u": 42.021,
+    "mobilidade": {
+      "tipo": "tabela",
+      "E_N": [
+        2,
+        4,
+        10,
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
+        80,
+        90,
+        100,
+        120,
+        140,
+        160,
+        180,
+        200,
+        220,
+        240
+      ],
+      "K0": [
+        3.7574,
+        3.7574,
+        3.7574,
+        3.7574,
+        3.7712,
+        3.785,
+        3.8263,
+        3.881,
+        3.9489,
+        4.0566,
+        4.1762,
+        4.2942,
+        4.4364,
+        4.5003,
+        4.5511,
+        4.5511,
+        4.513,
+        4.4748,
+        4.4107
+      ],
+      "acima": "raiz"
+    },
+    "fonte": "lei de Blanc na mistura 1:1: em N2 a tabela medida da entrada N3^+ em N2 (Ellis et al. 1976); em H2 K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%), 11.14"
+  },
+  "N4^+": {
+    "massa_u": 56.028,
+    "mobilidade": {
+      "tipo": "tabela",
+      "E_N": [
+        2,
+        4,
+        7,
+        10,
+        12,
+        15,
+        20,
+        25,
+        30,
+        35,
+        40
+      ],
+      "K0": [
+        3.8225,
+        3.8225,
+        3.8225,
+        3.8362,
+        3.8498,
+        3.8635,
+        3.8771,
+        3.8907,
+        3.9043,
+        3.9314,
+        3.9584
+      ],
+      "acima": "raiz"
+    },
+    "fonte": "lei de Blanc na mistura 1:1: em N2 a tabela medida da entrada N4^+ em N2 (Ellis et al. 1976); em H2 K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%), 11.07"
+  },
+  "H^+": {
+    "massa_u": 1.008,
+    "mobilidade": {
+      "tipo": "constante",
+      "K0": 13.6052
+    },
+    "fonte": "lei de Blanc na mistura 1:1 de K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%): 10.65 em N2 e 18.84 em H2; sem dependência com E/N"
+  },
+  "H2^+": {
+    "massa_u": 2.016,
+    "mobilidade": {
+      "tipo": "constante",
+      "K0": 10.2256
+    },
+    "fonte": "lei de Blanc na mistura 1:1 de K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%): 7.66 em N2 e 15.38 em H2; sem dependência com E/N"
+  },
+  "H3^+": {
+    "massa_u": 3.024,
+    "mobilidade": {
+      "tipo": "constante",
+      "K0": 8.7519
+    },
+    "fonte": "lei de Blanc na mistura 1:1 de K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%): 6.36 em N2 e 14.04 em H2; sem dependência com E/N"
+  },
+  "NH^+": {
+    "massa_u": 15.015,
+    "mobilidade": {
+      "tipo": "constante",
+      "K0": 5.2079
+    },
+    "fonte": "lei de Blanc na mistura 1:1 de K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%): 3.36 em N2 e 11.58 em H2; sem dependência com E/N"
+  },
+  "N2H^+": {
+    "massa_u": 29.022,
+    "mobilidade": {
+      "tipo": "constante",
+      "K0": 4.4603
+    },
+    "fonte": "lei de Blanc na mistura 1:1 de K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%): 2.78 em N2 e 11.25 em H2; sem dependência com E/N"
+  },
+  "NH2^+": {
+    "massa_u": 16.023,
+    "mobilidade": {
+      "tipo": "constante",
+      "K0": 5.1197
+    },
+    "fonte": "lei de Blanc na mistura 1:1 de K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%): 3.29 em N2 e 11.54 em H2; sem dependência com E/N"
+  },
+  "NH3^+": {
+    "massa_u": 17.031,
+    "mobilidade": {
+      "tipo": "constante",
+      "K0": 5.04
+    },
+    "fonte": "lei de Blanc na mistura 1:1 de K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%): 3.23 em N2 e 11.50 em H2; sem dependência com E/N"
+  },
+  "NH4^+": {
+    "massa_u": 18.039,
+    "mobilidade": {
+      "tipo": "constante",
+      "K0": 4.9675
+    },
+    "fonte": "lei de Blanc na mistura 1:1 de K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%): 3.17 em N2 e 11.47 em H2; sem dependência com E/N"
+  }
+}

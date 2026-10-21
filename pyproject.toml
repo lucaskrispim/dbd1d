@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dbd1d"
+version = "1.0.0"
+description = "One-dimensional fluid model of dielectric barrier discharges generated from ZDPlasKin chemistry files"
+readme = "README.md"
+license = "GPL-3.0-or-later"
+requires-python = ">=3.10"
+dependencies = ["numpy>=2.0", "scipy>=1.15"]
+
+[project.optional-dependencies]
+figures = ["matplotlib>=3.5", "pillow>=9"]
+test = ["pytest>=7", "matplotlib>=3.5", "pillow>=9"]
+
+[tool.setuptools]
+# o programa roda das pastas do repositório (prototipo/, ferramentas/); instalar
+# o projeto só instala as dependências
+packages = []
+
+[tool.pytest.ini_options]
+testpaths = ["prototipo/testes"]

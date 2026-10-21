@@ -1,0 +1,45 @@
+{
+  "_formato": [
+    "Propriedades do gás de fundo do caso, lidas pelo protótipo (prototipo/modelo.py).",
+    "fundo: espécie do kinet.inp que forma o gás de fundo e a sua fração (por enquanto, uma só com fração 1).",
+    "cv_por_kb: calor específico a volume constante por partícula pesada, em unidades de k_B (1,5 em gás monoatômico, 2,5 em diatômico sem vibração).",
+    "condutividade: condutividade térmica em W/(m K); tipo linear_com_raiz, (a T + b) escala, vezes (T/t_raiz)^(1/2) acima de t_raiz, ou tipo tabela, com T (K) e kappa, interpolada linearmente e presa nos extremos.",
+    "ion_inicial: íon positivo semeado com os elétrons no plasma inicial neutro.",
+    "calor (opcional): entalpias em eV por partícula, para o calor de cada reação (-soma de nu h), e processos_rapidos, processos do BOLSIG+ cuja energia vira calor do gás em picossegundos.",
+    "Campos fonte são só registro."
+  ],
+  "fundo": {
+    "Ar": 0.9,
+    "N2": 0.1
+  },
+  "cv_por_kb": 1.6,
+  "condutividade": {
+    "tipo": "tabela",
+    "T": [
+      260,
+      300,
+      400,
+      500,
+      600,
+      800,
+      1000,
+      1500
+    ],
+    "kappa": [
+      0.01664,
+      0.01878,
+      0.02359,
+      0.02789,
+      0.03183,
+      0.03898,
+      0.04545,
+      0.05972
+    ]
+  },
+  "ion_inicial": "Ar^+",
+  "fonte": [
+    "mistura de teste da ferramenta (casos/ar_n2/monta.py)",
+    "condutividade pela teoria cinética (Cantera, GRI-Mech 3.0), a 1 atm",
+    "cv: média pela fração de 1,5 k_B (Ar) e 2,5 k_B (N2 sem vibração)"
+  ]
+}

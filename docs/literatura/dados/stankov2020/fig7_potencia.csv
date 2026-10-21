@@ -1,0 +1,6 @@
+# Stankov 2020 fig. 7: potência média medida e calculada (ε_r = 4,2) para cada γ; centro da caixa do marcador (triângulos: erro de até 0,015 W)
+# p_mbar,P_medida_W,P_gama0.005_W,P_gama0.01_W,P_gama0.02_W,P_gama0.04_W,P_gama0.08_W
+100,0.559077,0.684294,0.647432,0.595863,0.592196,0.546166
+300,0.934728,1.12626,1.08944,1.02312,0.99367,0.962346
+500,1.53507,1.6382,1.58297,1.61613,1.60138,1.50378
+650,2.47431,2.35643,2.35639,2.34168,2.23488,2.18514

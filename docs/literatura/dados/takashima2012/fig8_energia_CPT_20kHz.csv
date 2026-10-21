@@ -1,0 +1,11 @@
+# Takashima 2012 fig8: ar seco, gerador CPT (~50 ns, 25 kV), energia acoplada por pulso; 20kHz; ficam de fora os pontos sobre o eixo de 0 Torr, os encobertos por marcadores de outra série (na série de 20 kHz, vários) e o ponto de 492 Torr da série incidente, pequeno demais
+# p_torr,E_mJ
+16.73,0.5711
+17.01,0.4263
+25.29,0.5765
+35.86,0.665
+43.62,0.765
+53.8,0.89
+71.97,1.117
+82.39,1.41
+112.8,1.559

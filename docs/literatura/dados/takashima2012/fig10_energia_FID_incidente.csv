@@ -1,0 +1,17 @@
+# Takashima 2012 fig10: ar seco, gerador FID (5 a 10 ns, 30 kV), 10 kHz; incidente; ficam de fora os pontos sobre o eixo de 0 Torr, os encobertos por marcadores de outra série (na série de 20 kHz, vários) e o ponto de 492 Torr da série incidente, pequeno demais
+# p_torr,E_mJ
+13.87,0.9784
+21.5,0.9784
+31.02,1.05
+41.14,1.145
+51.22,1.237
+61.52,1.268
+81.14,1.418
+100.4,1.547
+155.3,1.927
+201.1,2.216
+259.4,2.715
+303.1,2.855
+356.4,2.825
+396.2,2.646
+463.9,0.2396

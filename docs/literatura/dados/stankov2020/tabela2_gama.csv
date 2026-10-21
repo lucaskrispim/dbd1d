@@ -1,0 +1,7 @@
+# Stankov 2020 tabela 2: ε_r = 4,2. I_max é dez vezes o pico do modelo na fig. 3 (~16 mA), provável erro do artigo; a ruptura não é o máximo de U_gap da fig. 4 para γ = 0,005
+# gama,Ugap_ruptura_V,Imax_mA,ne_max_1e16m3
+0.005,649.2,164,4.02
+0.01,646.6,163,3.75
+0.02,608.6,156,3.38
+0.04,559.3,145,2.88
+0.08,497.1,129,2.26

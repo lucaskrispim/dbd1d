@@ -1,0 +1,7 @@
+# Stankov 2020 tabela 3: γ = 0,02. I_max é dez vezes o pico do modelo na fig. 8 (~16 mA), provável erro do artigo
+# eps_r,Ugap_ruptura_V,Imax_mA,ne_max_1e16m3
+3.3,645.5,160,3.11
+3.75,628.6,159,3.26
+4.2,608.6,156,3.38
+4.65,583.3,149,3.37
+5.1,557.4,138,3.26

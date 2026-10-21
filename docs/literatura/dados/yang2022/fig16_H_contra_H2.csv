@@ -1,0 +1,7 @@
+# Yang 2022 fig. 16: H medido 100 µs depois de rajada de 50 pulsos, 150 Torr; mín. e máx.: extremos da barra de erro (barras claras incluídas), ou a borda do marcador quando não há barra visível; a barra pode se estender alguns pixels onde a curva do modelo, da mesma cor, cruza a coluna do ponto
+# H2_pct,dens_cm3,dens_min_cm3,dens_max_cm3
+1,1.918e+15,1.7554e+15,2.0769e+15
+5,2.5186e+15,2.3333e+15,2.9451e+15
+9,3.0653e+15,2.8699e+15,3.3087e+15
+17,3.5246e+15,3.2662e+15,3.7657e+15
+33,3.7657e+15,3.5298e+15,4.0696e+15

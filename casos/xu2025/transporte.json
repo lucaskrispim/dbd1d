@@ -1,0 +1,500 @@
+{
+  "_formato": [
+    "Dados de transporte das espécies pesadas, lidos pelo protótipo (prototipo/modelo.py) ou dados por --transporte.",
+    "Cada espécie transportada, menos E, precisa de massa_u, a massa em u. O gás de fundo só é transportado com --gas-solto.",
+    "Íons positivos de carga 1 precisam de mobilidade, reduzida na densidade de Loschmidt em cm2/(V s), do tipo constante (K0), frost (K0 e EN_aquecimento em Td, com K = K0 (1 + (E/N)/EN_aquecimento)^(-1/2)) ou tabela (E_N em Td crescente e K0, interpolada linearmente; abaixo do primeiro ponto, presa; acima do último, presa ou, com acima = raiz, K = K_último (E/N_último / (E/N))^(1/2)).",
+    "Neutros precisam de difusao, D = (D0/p) (T/T0)^expoente em m2/s com p em atm, e de perda_na_parede, a probabilidade gama de perda por choque com a parede (fluxo gama/(2 - gama) n v/2; o gás de fundo solto não precisa).",
+    "Com --gas-solto, as espécies precisam de atomos_do_fundo, os átomos do gás de fundo que a parede devolve por partícula absorvida.",
+    "Campos fonte são só registro."
+  ],
+  "N2": {
+    "massa_u": 28.014
+  },
+  "H2": {
+    "massa_u": 2.016
+  },
+  "NH3": {
+    "difusao": {
+      "D0": 4.85488985961409e-05,
+      "T0": 300.0,
+      "expoente": 1.801
+    },
+    "perda_na_parede": 0.0,
+    "fonte": "difusão de traço em N2:H2 25:75 pela teoria cinética (como NH3); perda na parede como na entrada NH3 em N2+H2 da biblioteca",
+    "massa_u": 17.031
+  },
+  "N2(V1)": {
+    "difusao": {
+      "D0": 4.6405012664292236e-05,
+      "T0": 300.0,
+      "expoente": 1.697
+    },
+    "perda_na_parede": 0.00045,
+    "fonte": "difusão de traço em N2:H2 25:75 pela teoria cinética (como N2); perda na parede como na entrada N2(V1) em N2+H2 da biblioteca",
+    "massa_u": 28.014
+  },
+  "N2(V2)": {
+    "difusao": {
+      "D0": 4.6405012664292236e-05,
+      "T0": 300.0,
+      "expoente": 1.697
+    },
+    "perda_na_parede": 0.00045,
+    "fonte": "difusão de traço em N2:H2 25:75 pela teoria cinética (como N2); perda na parede como na entrada N2(V2) em N2+H2 da biblioteca",
+    "massa_u": 28.014
+  },
+  "N2(V3)": {
+    "difusao": {
+      "D0": 4.6405012664292236e-05,
+      "T0": 300.0,
+      "expoente": 1.697
+    },
+    "perda_na_parede": 0.00045,
+    "fonte": "difusão de traço em N2:H2 25:75 pela teoria cinética (como N2); perda na parede como na entrada N2(V3) em N2+H2 da biblioteca",
+    "massa_u": 28.014
+  },
+  "N2(V4)": {
+    "difusao": {
+      "D0": 4.6405012664292236e-05,
+      "T0": 300.0,
+      "expoente": 1.697
+    },
+    "perda_na_parede": 0.00045,
+    "fonte": "difusão de traço em N2:H2 25:75 pela teoria cinética (como N2); perda na parede como na entrada N2(V4) em N2+H2 da biblioteca",
+    "massa_u": 28.014
+  },
+  "N2(V5)": {
+    "difusao": {
+      "D0": 4.6405012664292236e-05,
+      "T0": 300.0,
+      "expoente": 1.697
+    },
+    "perda_na_parede": 0.00045,
+    "fonte": "difusão de traço em N2:H2 25:75 pela teoria cinética (como N2); perda na parede como na entrada N2(V5) em N2+H2 da biblioteca",
+    "massa_u": 28.014
+  },
+  "N2(V6)": {
+    "difusao": {
+      "D0": 4.6405012664292236e-05,
+      "T0": 300.0,
+      "expoente": 1.697
+    },
+    "perda_na_parede": 0.00045,
+    "fonte": "difusão de traço em N2:H2 25:75 pela teoria cinética (como N2); perda na parede como na entrada N2(V6) em N2+H2 da biblioteca",
+    "massa_u": 28.014
+  },
+  "N2(V7)": {
+    "difusao": {
+      "D0": 4.6405012664292236e-05,
+      "T0": 300.0,
+      "expoente": 1.697
+    },
+    "perda_na_parede": 0.00045,
+    "fonte": "difusão de traço em N2:H2 25:75 pela teoria cinética (como N2); perda na parede como na entrada N2(V7) em N2+H2 da biblioteca",
+    "massa_u": 28.014
+  },
+  "N2(V8)": {
+    "difusao": {
+      "D0": 4.6405012664292236e-05,
+      "T0": 300.0,
+      "expoente": 1.697
+    },
+    "perda_na_parede": 0.00045,
+    "fonte": "difusão de traço em N2:H2 25:75 pela teoria cinética (como N2); perda na parede como na entrada N2(V8) em N2+H2 da biblioteca",
+    "massa_u": 28.014
+  },
+  "H2(V1)": {
+    "difusao": {
+      "D0": 0.00012015568437361189,
+      "T0": 300.0,
+      "expoente": 1.67
+    },
+    "perda_na_parede": 0.0001,
+    "fonte": "difusão de traço em N2:H2 25:75 pela teoria cinética (como H2); perda na parede como na entrada H2(V1) em N2+H2 da biblioteca",
+    "massa_u": 2.016
+  },
+  "H2(V2)": {
+    "difusao": {
+      "D0": 0.00012015568437361189,
+      "T0": 300.0,
+      "expoente": 1.67
+    },
+    "perda_na_parede": 0.0001,
+    "fonte": "difusão de traço em N2:H2 25:75 pela teoria cinética (como H2); perda na parede como na entrada H2(V2) em N2+H2 da biblioteca",
+    "massa_u": 2.016
+  },
+  "H2(V3)": {
+    "difusao": {
+      "D0": 0.00012015568437361189,
+      "T0": 300.0,
+      "expoente": 1.67
+    },
+    "perda_na_parede": 0.0001,
+    "fonte": "difusão de traço em N2:H2 25:75 pela teoria cinética (como H2); perda na parede como na entrada H2(V3) em N2+H2 da biblioteca",
+    "massa_u": 2.016
+  },
+  "N2(A3)": {
+    "difusao": {
+      "D0": 4.6405012664292236e-05,
+      "T0": 300.0,
+      "expoente": 1.697
+    },
+    "perda_na_parede": 0.001,
+    "fonte": "difusão de traço em N2:H2 25:75 pela teoria cinética (como N2); perda na parede como na entrada N2(A3) em N2+H2 da biblioteca",
+    "massa_u": 28.014
+  },
+  "N2(B3)": {
+    "difusao": {
+      "D0": 4.6405012664292236e-05,
+      "T0": 300.0,
+      "expoente": 1.697
+    },
+    "perda_na_parede": 0.001,
+    "fonte": "difusão de traço em N2:H2 25:75 pela teoria cinética (como N2); perda na parede como na entrada N2(B3) em N2+H2 da biblioteca",
+    "massa_u": 28.014
+  },
+  "N2(A'1)": {
+    "difusao": {
+      "D0": 4.6405012664292236e-05,
+      "T0": 300.0,
+      "expoente": 1.697
+    },
+    "perda_na_parede": 0.001,
+    "fonte": "difusão de traço em N2:H2 25:75 pela teoria cinética (como N2); perda na parede como na entrada N2(A'1) em N2+H2 da biblioteca",
+    "massa_u": 28.014
+  },
+  "N2(C3)": {
+    "difusao": {
+      "D0": 4.6405012664292236e-05,
+      "T0": 300.0,
+      "expoente": 1.697
+    },
+    "perda_na_parede": 0.001,
+    "fonte": "difusão de traço em N2:H2 25:75 pela teoria cinética (como N2); perda na parede como na entrada N2(C3) em N2+H2 da biblioteca",
+    "massa_u": 28.014
+  },
+  "N(2D)": {
+    "difusao": {
+      "D0": 5.987880523251743e-05,
+      "T0": 300.0,
+      "expoente": 1.686
+    },
+    "perda_na_parede": 1.0,
+    "fonte": "difusão de traço em N2:H2 25:75 pela teoria cinética (como N); perda na parede como na entrada N(2D) em N2+H2 da biblioteca",
+    "massa_u": 14.007
+  },
+  "N(2P)": {
+    "difusao": {
+      "D0": 5.987880523251743e-05,
+      "T0": 300.0,
+      "expoente": 1.686
+    },
+    "perda_na_parede": 1.0,
+    "fonte": "difusão de traço em N2:H2 25:75 pela teoria cinética (como N); perda na parede como na entrada N(2P) em N2+H2 da biblioteca",
+    "massa_u": 14.007
+  },
+  "N": {
+    "difusao": {
+      "D0": 5.987880523251743e-05,
+      "T0": 300.0,
+      "expoente": 1.686
+    },
+    "perda_na_parede": 2.16e-06,
+    "fonte": "difusão de traço em N2:H2 25:75 pela teoria cinética (como N); perda na parede como na entrada N em N2+H2 da biblioteca",
+    "massa_u": 14.007
+  },
+  "H": {
+    "difusao": {
+      "D0": 0.00018180190117649624,
+      "T0": 300.0,
+      "expoente": 1.706
+    },
+    "perda_na_parede": 0.001,
+    "fonte": "difusão de traço em N2:H2 25:75 pela teoria cinética (como H); perda na parede como na entrada H em N2+H2 da biblioteca",
+    "massa_u": 1.008
+  },
+  "NH": {
+    "difusao": {
+      "D0": 7.178965161451533e-05,
+      "T0": 300.0,
+      "expoente": 1.69
+    },
+    "perda_na_parede": 0.001,
+    "fonte": "difusão de traço em N2:H2 25:75 pela teoria cinética (como NH); perda na parede como na entrada NH em N2+H2 da biblioteca",
+    "massa_u": 15.015
+  },
+  "NH2": {
+    "difusao": {
+      "D0": 7.087876814829108e-05,
+      "T0": 300.0,
+      "expoente": 1.69
+    },
+    "perda_na_parede": 0.001,
+    "fonte": "difusão de traço em N2:H2 25:75 pela teoria cinética (como NH2); perda na parede como na entrada NH2 em N2+H2 da biblioteca",
+    "massa_u": 16.023
+  },
+  "H^-": {
+    "mobilidade": {
+      "tipo": "constante",
+      "K0": 15.8005
+    },
+    "fonte": "lei de Blanc em N2:H2 25:75 com o limite de Langevin nos dois gases (estimativa)",
+    "massa_u": 1.008
+  },
+  "N^+": {
+    "mobilidade": {
+      "tipo": "tabela",
+      "E_N": [
+        7,
+        8,
+        10,
+        12,
+        15,
+        20,
+        25,
+        30,
+        40,
+        50,
+        60,
+        80,
+        100,
+        120,
+        150,
+        200,
+        250,
+        300,
+        400,
+        500
+      ],
+      "K0": [
+        6.7787,
+        6.7787,
+        6.7787,
+        6.766,
+        6.7532,
+        6.7405,
+        6.7276,
+        6.7148,
+        6.689,
+        6.663,
+        6.65,
+        6.6238,
+        6.6107,
+        6.5975,
+        6.5975,
+        6.5842,
+        6.5842,
+        6.5842,
+        6.5443,
+        6.4905
+      ],
+      "acima": "raiz"
+    },
+    "fonte": "lei de Blanc em N2:H2 25:75 com a medida em N2 (Ellis et al. 1976) e Langevin em H2",
+    "massa_u": 14.007
+  },
+  "N2^+": {
+    "mobilidade": {
+      "tipo": "tabela",
+      "E_N": [
+        6,
+        8,
+        10,
+        12,
+        15,
+        20,
+        25,
+        30,
+        40,
+        50,
+        60,
+        80,
+        100,
+        120,
+        150,
+        200,
+        250,
+        300,
+        400,
+        500,
+        600,
+        800
+      ],
+      "K0": [
+        5.0461,
+        5.0284,
+        5.0107,
+        5.0107,
+        4.9929,
+        4.9571,
+        4.9392,
+        4.9211,
+        4.8666,
+        4.793,
+        4.7183,
+        4.6041,
+        4.4874,
+        4.3681,
+        4.2254,
+        4.0148,
+        3.8182,
+        3.6373,
+        3.4029,
+        3.2083,
+        3.0326,
+        2.7723
+      ],
+      "acima": "raiz"
+    },
+    "fonte": "lei de Blanc em N2:H2 25:75 com a medida em N2 (Ellis et al. 1976) e Langevin em H2",
+    "massa_u": 28.014
+  },
+  "N3^+": {
+    "mobilidade": {
+      "tipo": "tabela",
+      "E_N": [
+        2,
+        4,
+        10,
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
+        80,
+        90,
+        100,
+        120,
+        140,
+        160,
+        180,
+        200,
+        220,
+        240
+      ],
+      "K0": [
+        5.6189,
+        5.6189,
+        5.6189,
+        5.6189,
+        5.6343,
+        5.6497,
+        5.6955,
+        5.7559,
+        5.8303,
+        5.9468,
+        6.0743,
+        6.1982,
+        6.345,
+        6.4101,
+        6.4614,
+        6.4614,
+        6.423,
+        6.3842,
+        6.3187
+      ],
+      "acima": "raiz"
+    },
+    "fonte": "lei de Blanc em N2:H2 25:75 com a medida em N2 (Ellis et al. 1976) e Langevin em H2",
+    "massa_u": 42.021
+  },
+  "N4^+": {
+    "mobilidade": {
+      "tipo": "tabela",
+      "E_N": [
+        2,
+        4,
+        7,
+        10,
+        12,
+        15,
+        20,
+        25,
+        30,
+        35,
+        40
+      ],
+      "K0": [
+        5.6829,
+        5.6829,
+        5.6829,
+        5.698,
+        5.7131,
+        5.7281,
+        5.743,
+        5.758,
+        5.7728,
+        5.8024,
+        5.8317
+      ],
+      "acima": "raiz"
+    },
+    "fonte": "lei de Blanc em N2:H2 25:75 com a medida em N2 (Ellis et al. 1976) e Langevin em H2",
+    "massa_u": 56.028
+  },
+  "H^+": {
+    "mobilidade": {
+      "tipo": "constante",
+      "K0": 15.8005
+    },
+    "fonte": "lei de Blanc em N2:H2 25:75 com o limite de Langevin nos dois gases (estimativa)",
+    "massa_u": 1.008
+  },
+  "H2^+": {
+    "mobilidade": {
+      "tipo": "constante",
+      "K0": 12.285
+    },
+    "fonte": "lei de Blanc em N2:H2 25:75 com o limite de Langevin nos dois gases (estimativa)",
+    "massa_u": 2.016
+  },
+  "H3^+": {
+    "mobilidade": {
+      "tipo": "constante",
+      "K0": 10.7834
+    },
+    "fonte": "lei de Blanc em N2:H2 25:75 com o limite de Langevin nos dois gases (estimativa)",
+    "massa_u": 3.024
+  },
+  "NH^+": {
+    "mobilidade": {
+      "tipo": "constante",
+      "K0": 7.1856
+    },
+    "fonte": "lei de Blanc em N2:H2 25:75 com o limite de Langevin nos dois gases (estimativa)",
+    "massa_u": 15.015
+  },
+  "N2H^+": {
+    "mobilidade": {
+      "tipo": "constante",
+      "K0": 6.3878
+    },
+    "fonte": "lei de Blanc em N2:H2 25:75 com o limite de Langevin nos dois gases (estimativa)",
+    "massa_u": 29.022
+  },
+  "NH2^+": {
+    "mobilidade": {
+      "tipo": "constante",
+      "K0": 7.093
+    },
+    "fonte": "lei de Blanc em N2:H2 25:75 com o limite de Langevin nos dois gases (estimativa)",
+    "massa_u": 16.023
+  },
+  "NH3^+": {
+    "mobilidade": {
+      "tipo": "constante",
+      "K0": 7.0091
+    },
+    "fonte": "lei de Blanc em N2:H2 25:75 com o limite de Langevin nos dois gases (estimativa)",
+    "massa_u": 17.031
+  },
+  "NH4^+": {
+    "mobilidade": {
+      "tipo": "constante",
+      "K0": 6.9325
+    },
+    "fonte": "lei de Blanc em N2:H2 25:75 com o limite de Langevin nos dois gases (estimativa)",
+    "massa_u": 18.039
+  }
+}

@@ -1,0 +1,136 @@
+{
+  "_formato": [
+    "Dados de transporte das espécies pesadas, lidos pelo protótipo (prototipo/modelo.py) ou dados por --transporte.",
+    "Cada espécie transportada, menos E, precisa de massa_u, a massa em u. O gás de fundo só é transportado com --gas-solto.",
+    "Íons positivos de carga 1 precisam de mobilidade, reduzida na densidade de Loschmidt em cm2/(V s), do tipo constante (K0), frost (K0 e EN_aquecimento em Td, com K = K0 (1 + (E/N)/EN_aquecimento)^(-1/2)) ou tabela (E_N em Td crescente e K0, interpolada linearmente; abaixo do primeiro ponto, presa; acima do último, presa ou, com acima = raiz, K = K_último (E/N_último / (E/N))^(1/2)).",
+    "Neutros precisam de difusao, D = (D0/p) (T/T0)^expoente em m2/s com p em atm, e de perda_na_parede, a probabilidade gama de perda por choque com a parede (fluxo gama/(2 - gama) n v/2; o gás de fundo solto não precisa).",
+    "Com --gas-solto, as espécies precisam de atomos_do_fundo, os átomos do gás de fundo que a parede devolve por partícula absorvida.",
+    "Campos fonte são só registro."
+  ],
+  "AR": {
+    "massa_u": 39.948,
+    "difusao": {
+      "D0": 1.8814522433840688e-05,
+      "T0": 300.0,
+      "expoente": 1.748
+    },
+    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base"
+  },
+  "AR*": {
+    "massa_u": 39.948,
+    "difusao": {
+      "D0": 1.8814522433840688e-05,
+      "T0": 300.0,
+      "expoente": 1.748
+    },
+    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede do caso de um gás só (propriedade da superfície)",
+    "perda_na_parede": 1.0
+  },
+  "AR^+": {
+    "massa_u": 39.948,
+    "mobilidade": {
+      "tipo": "constante",
+      "K0": 2.4354302182468666
+    },
+    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+  },
+  "AR2^+": {
+    "massa_u": 79.896,
+    "mobilidade": {
+      "tipo": "constante",
+      "K0": 2.114725237116162
+    },
+    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+  },
+  "N": {
+    "massa_u": 14.007,
+    "difusao": {
+      "D0": 2.886877816171563e-05,
+      "T0": 300.0,
+      "expoente": 1.712
+    },
+    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede do caso de um gás só (propriedade da superfície)",
+    "perda_na_parede": 2.16e-06
+  },
+  "N2": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 2.000912092535561e-05,
+      "T0": 300.0,
+      "expoente": 1.728
+    },
+    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base"
+  },
+  "N2(A)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 2.000912092535561e-05,
+      "T0": 300.0,
+      "expoente": 1.728
+    },
+    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede do caso de um gás só (propriedade da superfície)",
+    "perda_na_parede": 1.0
+  },
+  "N2(B)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 2.000912092535561e-05,
+      "T0": 300.0,
+      "expoente": 1.728
+    },
+    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede do caso de um gás só (propriedade da superfície)",
+    "perda_na_parede": 1.0
+  },
+  "N2(A')": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 2.000912092535561e-05,
+      "T0": 300.0,
+      "expoente": 1.728
+    },
+    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede do caso de um gás só (propriedade da superfície)",
+    "perda_na_parede": 1.0
+  },
+  "N2(C)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 2.000912092535561e-05,
+      "T0": 300.0,
+      "expoente": 1.728
+    },
+    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede do caso de um gás só (propriedade da superfície)",
+    "perda_na_parede": 1.0
+  },
+  "N^+": {
+    "massa_u": 14.007,
+    "mobilidade": {
+      "tipo": "constante",
+      "K0": 3.3656192717843583
+    },
+    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+  },
+  "N2^+": {
+    "massa_u": 28.014,
+    "mobilidade": {
+      "tipo": "constante",
+      "K0": 2.678314562080389
+    },
+    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+  },
+  "N3^+": {
+    "massa_u": 42.021,
+    "mobilidade": {
+      "tipo": "constante",
+      "K0": 2.4057072796093273
+    },
+    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+  },
+  "N4^+": {
+    "massa_u": 56.028,
+    "mobilidade": {
+      "tipo": "constante",
+      "K0": 2.256982226581923
+    },
+    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+  }
+}

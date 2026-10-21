@@ -1,0 +1,47 @@
+{
+  "_formato": [
+    "Propriedades do gás de fundo do caso, lidas pelo protótipo (prototipo/modelo.py).",
+    "fundo: espécie do kinet.inp que forma o gás de fundo e a sua fração (por enquanto, uma só com fração 1).",
+    "cv_por_kb: calor específico a volume constante por partícula pesada, em unidades de k_B (1,5 em gás monoatômico, 2,5 em diatômico sem vibração).",
+    "condutividade: condutividade térmica em W/(m K); tipo linear_com_raiz, (a T + b) escala, vezes (T/t_raiz)^(1/2) acima de t_raiz, ou tipo tabela, com T (K) e kappa, interpolada linearmente e presa nos extremos.",
+    "ion_inicial: íon positivo semeado com os elétrons no plasma inicial neutro.",
+    "calor (opcional): entalpias em eV por partícula, para o calor de cada reação (-soma de nu h), e processos_rapidos, processos do BOLSIG+ cuja energia vira calor do gás em picossegundos.",
+    "Campos fonte são só registro."
+  ],
+  "fundo": {
+    "N2": 0.99,
+    "H2": 0.01
+  },
+  "cv_por_kb": 2.5,
+  "condutividade": {
+    "tipo": "tabela",
+    "T": [
+      200,
+      250,
+      300,
+      350,
+      400,
+      500,
+      600,
+      800,
+      1000
+    ],
+    "kappa": [
+      0.02059,
+      0.02403,
+      0.02737,
+      0.03065,
+      0.0339,
+      0.04031,
+      0.04661,
+      0.05888,
+      0.07066
+    ]
+  },
+  "ion_inicial": "N2^+",
+  "fonte": [
+    "N2:H2 99:1 de Yang et al. 2022 (PSST 31 015017), 150 Torr; mecanismo da amônia de Sun et al. 2022",
+    "condutividade da mistura pela teoria cinética (Cantera e GRI-Mech 3.0), como no caso amonia_sun2022",
+    "cv de gás diatômico sem vibração, 2,5 k_B"
+  ]
+}

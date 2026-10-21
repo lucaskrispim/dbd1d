@@ -1,0 +1,17 @@
+# Yang 2022 fig. 14(a): N medido 100 µs depois de cada pulso, N2 com 1 % de H2, 150 Torr; mín. e máx.: extremos da barra de erro (barras claras incluídas), ou a borda do marcador quando não há barra visível; a barra pode se estender alguns pixels onde a curva do modelo, da mesma cor, cruza a coluna do ponto
+# pulso,N_cm3,N_min_cm3,N_max_cm3
+10,1.7433e+14,1.6416e+14,1.845e+14
+20,3.2313e+14,3.1235e+14,3.3269e+14
+30,4.5894e+14,4.431e+14,4.7506e+14
+40,5.4915e+14,5.3608e+14,5.6223e+14
+50,6.4855e+14,6.2615e+14,6.7264e+14
+60,7.5025e+14,7.046e+14,7.9758e+14
+70,8.007e+14,7.8596e+14,8.1792e+14
+80,8.3719e+14,7.5981e+14,9.1671e+14
+90,8.8277e+14,8.6441e+14,9.0218e+14
+100,9.1235e+14,9.0218e+14,9.2252e+14
+110,8.8596e+14,8.4988e+14,9.1961e+14
+120,9.2636e+14,9.0508e+14,9.4576e+14
+130,1.0082e+15,9.7482e+14,1.0416e+15
+140,1.0852e+15,1.0591e+15,1.1114e+15
+150,9.901e+14,9.6901e+14,1.0097e+15

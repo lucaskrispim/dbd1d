@@ -1,0 +1,13 @@
+# Yang 2022 fig. 3: energia acoplada por pulso, só o pulso incidente, medida em t = 30 ns; N2, 150 Torr; barras: desvio-padrão em 100 rajadas; mín. e máx.: extremos da barra de erro (barras claras incluídas), ou a borda do marcador quando não há barra visível; a barra pode se estender alguns pixels onde a curva do modelo, da mesma cor, cruza a coluna do ponto
+# pulso,E_mJ,E_min_mJ,E_max_mJ
+2,2.1735,2.0776,2.2785
+5,2.21,2.0868,2.3333
+10,2.21,2.0776,2.3425
+20,2.2009,2.0685,2.3242
+40,2.1198,1.9589,2.2877
+50,2.1832,2.0594,2.3151
+60,2.137,2.0228,2.2511
+80,2.1032,1.968,2.2329
+100,2.0959,1.968,2.2237
+120,2.0411,1.9041,2.1781
+150,1.9914,1.8858,2.105

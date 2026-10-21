@@ -1,0 +1,67 @@
+{
+  "_formato": [
+    "Propriedades do gás de fundo do caso, lidas pelo protótipo (prototipo/modelo.py).",
+    "fundo: espécie do kinet.inp que forma o gás de fundo e a sua fração (por enquanto, uma só com fração 1).",
+    "cv_por_kb: calor específico a volume constante por partícula pesada, em unidades de k_B (1,5 em gás monoatômico, 2,5 em diatômico sem vibração).",
+    "condutividade: condutividade térmica em W/(m K); tipo linear_com_raiz, (a T + b) escala, vezes (T/t_raiz)^(1/2) acima de t_raiz, ou tipo tabela, com T (K) e kappa, interpolada linearmente e presa nos extremos.",
+    "ion_inicial: íon positivo semeado com os elétrons no plasma inicial neutro.",
+    "calor (opcional): entalpias em eV por partícula, para o calor de cada reação (-soma de nu h), e processos_rapidos, processos do BOLSIG+ cuja energia vira calor do gás em picossegundos.",
+    "Campos fonte são só registro."
+  ],
+  "fundo": {
+    "N2": 1.0
+  },
+  "cv_por_kb": 2.5,
+  "condutividade": {
+    "tipo": "tabela",
+    "T": [
+      260,
+      300,
+      400,
+      500,
+      600,
+      700,
+      800,
+      900,
+      1000
+    ],
+    "kappa": [
+      0.02301,
+      0.02597,
+      0.03281,
+      0.03904,
+      0.04484,
+      0.05031,
+      0.05551,
+      0.06052,
+      0.06536
+    ]
+  },
+  "ion_inicial": "N2^+",
+  "fonte": "condutividade a 1 bar: The Engineering ToolBox (2018), Nitrogen - Thermal Conductivity vs. Temperature and Pressure; acima de 1000 K presa no último valor; cv de gás diatômico sem vibração (2,5 k_B)",
+  "calor": {
+    "entalpias": {
+      "N2": 0.0,
+      "N": 4.899,
+      "N2(A)": 6.17,
+      "N2(B)": 7.35,
+      "N2(a')": 8.4,
+      "N2(C)": 11.03,
+      "N^+": 19.433,
+      "N2^+": 15.581,
+      "N3^+": 15.353,
+      "N4^+": 14.481
+    },
+    "processos_rapidos": [
+      "N2 -> N2(rot)"
+    ],
+    "fonte": [
+      "entalpias em eV por partícula, relativas ao N2 no estado fundamental; N e N3 com a entalpia de formação a 298 K (a 0 K, o N fica 0,02 eV abaixo)",
+      "N: 472,68 kJ/mol (CODATA, Cox, Wagman et al. 1984; JANAF, Chase 1998); N3: 414,22 kJ/mol (Chase 1998)",
+      "estados excitados do N2: limiares do bolsigdb.dat do caso (conjunto de seções de choque do BOLSIG+), A no v = 0",
+      "ionização: N 14,534 eV (Lide 1992), N2 15,581 eV (NIST, Lias), N3 11,06 eV (Dyke et al. 1982)",
+      "N4^+: N2^+ menos a ligação N2^+ com N2, cerca de 1,1 eV (aproximado)",
+      "processo rápido: a excitação rotacional do N2 relaxa em picossegundos a 1 bar; a vibracional (relaxação V-T lenta) fica de fora"
+    ]
+  }
+}

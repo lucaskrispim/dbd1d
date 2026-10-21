@@ -1,0 +1,17 @@
+# Yang 2022 fig. 14(b): H medido por TALIF durante a rajada, N2 com 1 % de H2, 150 Torr; mín. e máx.: extremos da barra de erro (barras claras incluídas), ou a borda do marcador quando não há barra visível; a barra pode se estender alguns pixels onde a curva do modelo, da mesma cor, cruza a coluna do ponto
+# t_us,H_cm3,H_min_cm3,H_max_cm3
+103.53,4.4489e+14,3.629e+14,5.2419e+14
+199.73,7.7957e+14,6.8548e+14,8.7366e+14
+301.03,1.1828e+15,1.0887e+15,1.2769e+15
+399.46,1.5457e+15,1.4382e+15,1.6263e+15
+501.36,1.828e+15,1.7339e+15,1.922e+15
+599.48,2.2293e+15,2.1371e+15,2.3253e+15
+699.4,2.5588e+15,2.4597e+15,2.6478e+15
+799.99,2.9435e+15,2.836e+15,3.0242e+15
+901.11,3.2776e+15,3.2124e+15,3.3199e+15
+999.15,3.7592e+15,3.6694e+15,3.8575e+15
+1100.1,3.9728e+15,3.8844e+15,4.0726e+15
+1200.4,4.4758e+15,4.3683e+15,4.5833e+15
+1300.3,4.8964e+15,4.7984e+15,4.9866e+15
+1400.1,5.4633e+15,5.3629e+15,5.5511e+15
+1500,5.8602e+15,5.7661e+15,5.9543e+15
