@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite the article and the software version."
 title: "dbd1d: one-dimensional fluid model of dielectric barrier discharges generated from ZDPlasKin chemistry files"
-version: 1.2.0
+version: 1.2.1
 license: GPL-3.0-or-later
 doi: 10.5281/zenodo.23535841
 authors:

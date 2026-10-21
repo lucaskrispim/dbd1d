@@ -1,5 +1,5 @@
-# EEDF do BOLSIG+ (ZDPlasKin), gas a 300 K, um bloco por no: E/N (Td) e energia media (eV);
-# depois energia u (eV) e f (eV^-3/2), normalizada com a integral de sqrt(u) f du = 1
+# EEDF of BOLSIG+ (ZDPlasKin), gas at 300 K, one block per node: E/N (Td) and mean energy (eV);
+# then energy u (eV) and f (eV^-3/2), normalized with the integral of sqrt(u) f du = 1
 
   1.0000000000000000E-04  3.8825167270336650E-02
   3.1056508654064238E-03  2.4057835499649360E+02

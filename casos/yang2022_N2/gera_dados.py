@@ -5,9 +5,7 @@
 "em N2+H2") and mobilities by Blanc's law with the fractions 0.25 and 0.75 (here 1 and 0).
 Usage (in a Python with Cantera): python3 gera_dados.py
 Writes gas.json and transporte.json in this folder; the mass comes afterwards from
-ferramentas/caso.py transport. The "fonte" strings are data written to the JSON
-files and stay as they are there.
-"""
+ferramentas/caso.py transport. """
 import json
 import pathlib
 import sys
@@ -35,9 +33,9 @@ gas = {
     "cv_por_kb": 2.5,
     "condutividade": {"tipo": "tabela", "T": T, "kappa": kappa},
     "ion_inicial": "N2^+",
-    "fonte": ["N2 puro de Yang et al. 2022 (PSST 31 015017), 150 Torr; mecanismo da amônia de Sun et al. 2022",
-              "condutividade da mistura pela teoria cinética (Cantera e GRI-Mech 3.0), como no caso amonia_sun2022",
-              "cv de gás diatômico sem vibração, 2,5 k_B"],
+    "fonte": ["pure N2 of Yang et al. 2022 (PSST 31 015017), 150 Torr; ammonia mechanism of Sun et al. 2022",
+              "conductivity of the mixture by kinetic theory (Cantera and GRI-Mech 3.0), as in the case amonia_sun2022",
+              "cv of a diatomic gas without vibration, 2.5 k_B"],
 }
 (AQUI / "gas.json").write_text(json.dumps(gas, ensure_ascii=False, indent=2) + "\n")
 
@@ -63,11 +61,11 @@ for chave, ent in bib.items():
     esp = chave.split(" em ")[0]
     novo = {}
     if "difusao" in ent:
-        ref = ent["fonte"].split("(como ")[1].split(")")[0] if "(como " in ent["fonte"] else esp
+        ref = ent["fonte"].split("(as ")[1].split(")")[0] if "(as " in ent["fonte"] else esp
         novo["difusao"] = difusao(ref)
         novo["perda_na_parede"] = ent["perda_na_parede"]
-        novo["fonte"] = f"difusão de traço em N2 puro pela teoria cinética (como {ref}); perda na parede " \
-                        f"como na entrada {chave} da biblioteca"
+        novo["fonte"] = f"trace diffusion in pure N2 by kinetic theory (as {ref}); wall loss as in the library " \
+                        f"entry {chave}"
     if "mobilidade" in ent:
         alfa = {"N2": 1.740, "H2": 0.8045}
         def lang(gas):
@@ -77,14 +75,14 @@ for chave, ent in bib.items():
         if medida and medida.get("tipo") == "tabela":
             k0 = [round(1.0 / (X["N2"] / k + X["H2"] / lang("H2")), 4) for k in medida["K0"]]
             novo["mobilidade"] = {"tipo": "tabela", "E_N": medida["E_N"], "K0": k0, "acima": medida.get("acima", "preso")}
-            novo["fonte"] = "lei de Blanc em N2 puro com a medida em N2 (Ellis et al. 1976) e Langevin em H2"
+            novo["fonte"] = "Blanc's law in pure N2 with the measurement in N2 (Ellis et al. 1976) and Langevin in H2"
         else:
             novo["mobilidade"] = {"tipo": "constante", "K0": round(1.0 / (X["N2"] / lang("N2") + X["H2"] / lang("H2")), 4)}
-            novo["fonte"] = "lei de Blanc em N2 puro com o limite de Langevin nos dois gases (estimativa)"
+            novo["fonte"] = "Blanc's law in pure N2 with the Langevin limit in both gases (estimate)"
     transporte[esp] = novo
 # in pure N2 the H2 is not background: it becomes a transported species, with trace
 # diffusion in N2 and no wall loss (stable molecule)
 transporte["H2"] = {"difusao": difusao("H2"), "perda_na_parede": 0.0,
-                    "fonte": "difusão de traço em N2 puro pela teoria cinética; sem perda na parede"}
+                    "fonte": "trace diffusion in pure N2 by kinetic theory; no wall loss"}
 (AQUI / "transporte.json").write_text(json.dumps(transporte, ensure_ascii=False, indent=2) + "\n")
 print("gas.json and transporte.json written;", len(transporte) - 1, "species")

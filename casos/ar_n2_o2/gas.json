@@ -1,12 +1,12 @@
 {
   "_formato": [
-    "Propriedades do gás de fundo do caso, lidas pelo protótipo (prototipo/modelo.py).",
-    "fundo: espécie do kinet.inp que forma o gás de fundo e a sua fração (por enquanto, uma só com fração 1).",
-    "cv_por_kb: calor específico a volume constante por partícula pesada, em unidades de k_B (1,5 em gás monoatômico, 2,5 em diatômico sem vibração).",
-    "condutividade: condutividade térmica em W/(m K); tipo linear_com_raiz, (a T + b) escala, vezes (T/t_raiz)^(1/2) acima de t_raiz, ou tipo tabela, com T (K) e kappa, interpolada linearmente e presa nos extremos.",
-    "ion_inicial: íon positivo semeado com os elétrons no plasma inicial neutro.",
-    "calor (opcional): entalpias em eV por partícula, para o calor de cada reação (-soma de nu h), e processos_rapidos, processos do BOLSIG+ cuja energia vira calor do gás em picossegundos.",
-    "Campos fonte são só registro."
+    "Properties of the background gas of the case, read by the simulator (prototipo/modelo.py).",
+    "fundo: species of kinet.inp that form the background gas and their fractions.",
+    "cv_por_kb: specific heat at constant volume per heavy particle, in units of k_B (1.5 for a monatomic gas, 2.5 for a diatomic one without vibration).",
+    "condutividade: thermal conductivity in W/(m K); tipo linear_com_raiz, (a T + b) escala, times (T/t_raiz)^(1/2) above t_raiz, or tipo tabela, with T (K) and kappa, interpolated linearly and clamped at the ends.",
+    "ion_inicial: positive ion seeded with the electrons in the neutral initial plasma.",
+    "calor (optional): enthalpies in eV per particle, for the heat of each reaction (-sum of nu h), and processos_rapidos, BOLSIG+ processes whose energy becomes gas heat within picoseconds.",
+    "The fonte fields are only a record of the source."
   ],
   "fundo": {
     "N2": 0.78,
@@ -39,8 +39,8 @@
   },
   "ion_inicial": "N2^+",
   "fonte": [
-    "mistura de teste da ferramenta (casos/ar_n2_o2/monta.py)",
-    "condutividade pela teoria cinética (Cantera, GRI-Mech 3.0), a 1 atm",
-    "cv: média pela fração de 2,5 k_B (N2, O2 sem vibração) e 1,5 k_B (Ar)"
+    "test mixture of the tool (casos/ar_n2_o2/monta.py)",
+    "conductivity by kinetic theory (Cantera, GRI-Mech 3.0), at 1 atm",
+    "cv: average by fraction of 2.5 k_B (N2, O2 without vibration) and 1.5 k_B (Ar)"
   ]
 }

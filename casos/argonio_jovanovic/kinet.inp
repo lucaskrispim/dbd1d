@@ -1,8 +1,9 @@
-# Variante do mecanismo de argônio com dois coeficientes de Jovanović A P, Hoder T, Höft H,
-# Loffhagen D e Becker M M, Plasma Sources Sci. Technol. (2023), doi 10.1088/1361-6595/acd2fc,
-# apêndice A: Ar* + Ar* -> Ar+ + Ar + e, 1,20e-15 m3/s (Dyatko et al. 2008), e Ar* + 2Ar, 8,33e-45 m6/s
-# (Eletskii e Smirnov 1986). Lá o produto do três corpos é o excímero Ar2*, que aqui não existe;
-# como ele só radia (3,13e5 1/s) sem a ionização por elétron, volta ao Ar como no mecanismo base.
+# Variant of the argon mechanism with two coefficients of Jovanovic A P, Hoder T, Hoft H,
+# Loffhagen D and Becker M M, Plasma Sources Sci. Technol. 32 055011 (2023), doi 10.1088/1361-6595/acd2fc,
+# appendix A: Ar* + Ar* -> Ar+ + Ar + e, 1.20e-15 m3/s (Dyatko et al. 2008), and Ar* + 2Ar, 8.33e-45 m6/s
+# (Eletskii and Smirnov 1986). There the product of the three-body process is the excimer Ar2*, which
+# does not exist here; since it only radiates (3.13e5 1/s) without ionisation by electrons, it returns
+# to Ar as in the base mechanism.
 # Argon mechanism of the dbd1d argon case (five species)
 #
 # Electron impact processes: rate coefficients from BOLSIG+ with the argon

@@ -10,7 +10,7 @@ sys.path.insert(0, str(PROTOTIPO))
 
 
 def pytest_configure(config):
-    config.addinivalue_line("markers", "lento: gera tabelas com o BOLSIG+ (dezenas de segundos)")
+    config.addinivalue_line("markers", "lento: generates tables with BOLSIG+ (tens of seconds)")
 
 
 def _tem_terceiros():
@@ -26,7 +26,7 @@ def _tem_terceiros():
 
 # tests that generate zdplaskin_m.F90 or the tables: skipped without ZDPlasKin and
 # BOLSIG+, which do not come with the package (the ZDPlasKin licence does not allow redistribution)
-precisa_terceiros = pytest.mark.skipif(not _tem_terceiros(), reason="ZDPlasKin e BOLSIG+ ausentes (defina ZDPLASKIN_DIR)")
+precisa_terceiros = pytest.mark.skipif(not _tem_terceiros(), reason="ZDPlasKin and BOLSIG+ not found (set ZDPLASKIN_DIR)")
 
 
 def quimica_do(pasta):
@@ -80,7 +80,7 @@ def pytest_runtest_makereport(item, call):
     if falta:
         rel.outcome = "skipped"
         rel.longrepr = (str(item.path), item.location[1] or 0,
-                        f"precisa de {falta.relative_to(RAIZ)}, que não é distribuído (casos/LEIAME.md)")
+                        f"needs {falta.relative_to(RAIZ)}, which is not distributed (casos/LEIAME.md)")
 
 
 def precisa_caso(nome):
@@ -89,4 +89,4 @@ def precisa_caso(nome):
     caso = RAIZ / "casos" / nome
     tem = ((caso / "zdplaskin_m.F90").exists() or (caso / "quimica.json").exists()) \
         and (caso / "tabela_energia_tg.dat").exists()
-    return pytest.mark.skipif(not tem, reason=f"casos/{nome} sem química ou tabelas (não distribuídos, casos/LEIAME.md)")
+    return pytest.mark.skipif(not tem, reason=f"casos/{nome} without chemistry or tables (not distributed, casos/LEIAME.md)")

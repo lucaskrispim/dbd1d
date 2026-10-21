@@ -11,7 +11,6 @@ ferramentas/caso.py estimate. What the estimate does not cover:
   NOx, test values: short-lived excited states 1, O2(a1) 1e-4, O2(b1) 1e-2,
   O2(v) as N2(v), O 1e-3, stable molecules 0.
 Usage (with Cantera): python3 casos/ar_n2_o2/gera_dados.py
-The "fonte" strings are data written to the JSON files and stay as they are there.
 """
 import json
 import pathlib
@@ -38,9 +37,9 @@ gas = {
     "cv_por_kb": 0.78 * 2.5 + 0.21 * 2.5 + 0.01 * 1.5,
     "condutividade": {"tipo": "tabela", "T": T, "kappa": kappa},
     "ion_inicial": "N2^+",
-    "fonte": ["mistura de teste da ferramenta (casos/ar_n2_o2/monta.py)",
-              "condutividade pela teoria cinética (Cantera, GRI-Mech 3.0), a 1 atm",
-              "cv: média pela fração de 2,5 k_B (N2, O2 sem vibração) e 1,5 k_B (Ar)"],
+    "fonte": ["test mixture of the tool (casos/ar_n2_o2/monta.py)",
+              "conductivity by kinetic theory (Cantera, GRI-Mech 3.0), at 1 atm",
+              "cv: average by fraction of 2.5 k_B (N2, O2 without vibration) and 1.5 k_B (Ar)"],
 }
 (AQUI / "gas.json").write_text(json.dumps(gas, ensure_ascii=False, indent=2) + "\n")
 caso.gera_transporte(AQUI, biblioteca={}, estimar=True)
@@ -48,7 +47,7 @@ t = json.loads((AQUI / "transporte.json").read_text())
 SEMELHANTE = {"O3": "O2", "NO3": "NO2", "N2O5": "NO2"}
 for nome, base in SEMELHANTE.items():
     t[nome]["difusao"] = dict(t[base]["difusao"])
-    t[nome]["fonte"] = f"difusão como a do {base} (fora do GRI-Mech; valor de teste)"
+    t[nome]["fonte"] = f"diffusion as that of {base} (outside GRI-Mech; test value)"
 existentes = {}
 for arq in (RAIZ / "transporte.json", RAIZ / "casos" / "amonia_sun2022" / "transporte.json"):
     for k, v in json.loads(arq.read_text()).items():
@@ -63,13 +62,13 @@ for nome, e in t.items():
         continue
     if nome.upper() in existentes:
         e["perda_na_parede"] = existentes[nome.upper()]
-        nota = "perda na parede do caso existente (propriedade da superfície)"
+        nota = "wall loss of the existing case (property of the surface)"
     elif nome.upper() in TESTE:
         e["perda_na_parede"] = existentes[TESTE[nome.upper()]]
-        nota = f"perda na parede como a do {TESTE[nome.upper()]} (valor de teste)"
+        nota = f"wall loss as that of {TESTE[nome.upper()]} (test value)"
     else:
         e["perda_na_parede"] = VALORES[nome.upper()]
-        nota = "perda na parede: valor de teste"
+        nota = "wall loss: test value"
     e["fonte"] = (e.get("fonte", "") + "; " + nota).lstrip("; ")
 (AQUI / "transporte.json").write_text(json.dumps(t, ensure_ascii=False, indent=2) + "\n")
 print("gas.json and transporte.json written")

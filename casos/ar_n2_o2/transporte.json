@@ -1,11 +1,11 @@
 {
   "_formato": [
-    "Dados de transporte das espécies pesadas, lidos pelo protótipo (prototipo/modelo.py) ou dados por --transporte.",
-    "Cada espécie transportada, menos E, precisa de massa_u, a massa em u. O gás de fundo só é transportado com --gas-solto.",
-    "Íons positivos de carga 1 precisam de mobilidade, reduzida na densidade de Loschmidt em cm2/(V s), do tipo constante (K0), frost (K0 e EN_aquecimento em Td, com K = K0 (1 + (E/N)/EN_aquecimento)^(-1/2)) ou tabela (E_N em Td crescente e K0, interpolada linearmente; abaixo do primeiro ponto, presa; acima do último, presa ou, com acima = raiz, K = K_último (E/N_último / (E/N))^(1/2)).",
-    "Neutros precisam de difusao, D = (D0/p) (T/T0)^expoente em m2/s com p em atm, e de perda_na_parede, a probabilidade gama de perda por choque com a parede (fluxo gama/(2 - gama) n v/2; o gás de fundo solto não precisa).",
-    "Com --gas-solto, as espécies precisam de atomos_do_fundo, os átomos do gás de fundo que a parede devolve por partícula absorvida.",
-    "Campos fonte são só registro."
+    "Transport data of the heavy species, read by the simulator (prototipo/modelo.py) or given by --transport.",
+    "Each transported species except E needs massa_u, the mass in u. The background gas is transported only with --free-gas.",
+    "Positive ions of charge 1 need mobilidade, reduced to the Loschmidt density in cm2/(V s), of tipo constante (K0), frost (K0 and EN_aquecimento in Td, with K = K0 (1 + (E/N)/EN_aquecimento)^(-1/2)) or tabela (E_N in Td, increasing, and K0, interpolated linearly; below the first point, clamped; above the last, clamped or, with acima = raiz, K = K_last (E/N_last / (E/N))^(1/2)).",
+    "Neutrals need difusao, D = (D0/p) (T/T0)^expoente in m2/s with p in atm, and perda_na_parede, the probability gamma of loss per collision with the wall (flux gamma/(2 - gamma) n v/2; the free background gas does not need it).",
+    "With --free-gas, the species need atomos_do_fundo, the atoms of the background gas that the wall returns per absorbed particle.",
+    "The fonte fields are only a record of the source."
   ],
   "N2": {
     "massa_u": 28.014,
@@ -14,7 +14,7 @@
       "T0": 300.0,
       "expoente": 1.713
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base"
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species"
   },
   "N2(V1)": {
     "massa_u": 28.014,
@@ -23,7 +23,7 @@
       "T0": 300.0,
       "expoente": 1.713
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede do caso existente (propriedade da superfície)",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss of the existing case (property of the surface)",
     "perda_na_parede": 0.00045
   },
   "N2(V2)": {
@@ -33,7 +33,7 @@
       "T0": 300.0,
       "expoente": 1.713
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede do caso existente (propriedade da superfície)",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss of the existing case (property of the surface)",
     "perda_na_parede": 0.00045
   },
   "N2(V3)": {
@@ -43,7 +43,7 @@
       "T0": 300.0,
       "expoente": 1.713
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede do caso existente (propriedade da superfície)",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss of the existing case (property of the surface)",
     "perda_na_parede": 0.00045
   },
   "N2(V4)": {
@@ -53,7 +53,7 @@
       "T0": 300.0,
       "expoente": 1.713
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede do caso existente (propriedade da superfície)",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss of the existing case (property of the surface)",
     "perda_na_parede": 0.00045
   },
   "N2(V5)": {
@@ -63,7 +63,7 @@
       "T0": 300.0,
       "expoente": 1.713
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede do caso existente (propriedade da superfície)",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss of the existing case (property of the surface)",
     "perda_na_parede": 0.00045
   },
   "N2(V6)": {
@@ -73,7 +73,7 @@
       "T0": 300.0,
       "expoente": 1.713
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede do caso existente (propriedade da superfície)",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss of the existing case (property of the surface)",
     "perda_na_parede": 0.00045
   },
   "N2(V7)": {
@@ -83,7 +83,7 @@
       "T0": 300.0,
       "expoente": 1.713
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede do caso existente (propriedade da superfície)",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss of the existing case (property of the surface)",
     "perda_na_parede": 0.00045
   },
   "N2(V8)": {
@@ -93,7 +93,7 @@
       "T0": 300.0,
       "expoente": 1.713
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede do caso existente (propriedade da superfície)",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss of the existing case (property of the surface)",
     "perda_na_parede": 0.00045
   },
   "N2(A3)": {
@@ -103,7 +103,7 @@
       "T0": 300.0,
       "expoente": 1.713
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede do caso existente (propriedade da superfície)",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss of the existing case (property of the surface)",
     "perda_na_parede": 0.001
   },
   "N2(B3)": {
@@ -113,7 +113,7 @@
       "T0": 300.0,
       "expoente": 1.713
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede do caso existente (propriedade da superfície)",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss of the existing case (property of the surface)",
     "perda_na_parede": 0.001
   },
   "N2(A`1)": {
@@ -123,7 +123,7 @@
       "T0": 300.0,
       "expoente": 1.713
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede do caso existente (propriedade da superfície)",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss of the existing case (property of the surface)",
     "perda_na_parede": 0.001
   },
   "N2(C3)": {
@@ -133,7 +133,7 @@
       "T0": 300.0,
       "expoente": 1.713
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede do caso existente (propriedade da superfície)",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss of the existing case (property of the surface)",
     "perda_na_parede": 0.001
   },
   "N": {
@@ -143,7 +143,7 @@
       "T0": 300.0,
       "expoente": 1.7
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede do caso existente (propriedade da superfície)",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss of the existing case (property of the surface)",
     "perda_na_parede": 2.16e-06
   },
   "N(2D)": {
@@ -153,7 +153,7 @@
       "T0": 300.0,
       "expoente": 1.7
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede do caso existente (propriedade da superfície)",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss of the existing case (property of the surface)",
     "perda_na_parede": 1.0
   },
   "N(2P)": {
@@ -163,7 +163,7 @@
       "T0": 300.0,
       "expoente": 1.7
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede do caso existente (propriedade da superfície)",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss of the existing case (property of the surface)",
     "perda_na_parede": 1.0
   },
   "N^+": {
@@ -172,7 +172,7 @@
       "tipo": "constante",
       "K0": 3.4547460334616704
     },
-    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+    "fonte": "automatic estimate (caso.py estimate): mobility from the Langevin limit with Blanc's law (no charge exchange)"
   },
   "N2^+": {
     "massa_u": 28.014,
@@ -180,7 +180,7 @@
       "tipo": "constante",
       "K0": 2.813589282894705
     },
-    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+    "fonte": "automatic estimate (caso.py estimate): mobility from the Langevin limit with Blanc's law (no charge exchange)"
   },
   "N3^+": {
     "massa_u": 42.021,
@@ -188,7 +188,7 @@
       "tipo": "constante",
       "K0": 2.5643912112744984
     },
-    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+    "fonte": "automatic estimate (caso.py estimate): mobility from the Langevin limit with Blanc's law (no charge exchange)"
   },
   "N4^+": {
     "massa_u": 56.028,
@@ -196,7 +196,7 @@
       "tipo": "constante",
       "K0": 2.4301864581849504
     },
-    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+    "fonte": "automatic estimate (caso.py estimate): mobility from the Langevin limit with Blanc's law (no charge exchange)"
   },
   "O2": {
     "massa_u": 31.998,
@@ -205,7 +205,7 @@
       "T0": 300.0,
       "expoente": 1.718
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base"
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species"
   },
   "O2(V1)": {
     "massa_u": 31.998,
@@ -214,7 +214,7 @@
       "T0": 300.0,
       "expoente": 1.718
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede como a do N2(V1) (valor de teste)",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss as that of N2(V1) (test value)",
     "perda_na_parede": 0.00045
   },
   "O2(V2)": {
@@ -224,7 +224,7 @@
       "T0": 300.0,
       "expoente": 1.718
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede como a do N2(V2) (valor de teste)",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss as that of N2(V2) (test value)",
     "perda_na_parede": 0.00045
   },
   "O2(V3)": {
@@ -234,7 +234,7 @@
       "T0": 300.0,
       "expoente": 1.718
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede como a do N2(V3) (valor de teste)",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss as that of N2(V3) (test value)",
     "perda_na_parede": 0.00045
   },
   "O2(V4)": {
@@ -244,7 +244,7 @@
       "T0": 300.0,
       "expoente": 1.718
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede como a do N2(V4) (valor de teste)",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss as that of N2(V4) (test value)",
     "perda_na_parede": 0.00045
   },
   "O2(A1)": {
@@ -254,7 +254,7 @@
       "T0": 300.0,
       "expoente": 1.718
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede: valor de teste",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss: test value",
     "perda_na_parede": 0.0001
   },
   "O2(B1)": {
@@ -264,7 +264,7 @@
       "T0": 300.0,
       "expoente": 1.718
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede: valor de teste",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss: test value",
     "perda_na_parede": 0.01
   },
   "O2(4.5EV)": {
@@ -274,7 +274,7 @@
       "T0": 300.0,
       "expoente": 1.718
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede: valor de teste",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss: test value",
     "perda_na_parede": 1.0
   },
   "O": {
@@ -284,7 +284,7 @@
       "T0": 300.0,
       "expoente": 1.704
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede: valor de teste",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss: test value",
     "perda_na_parede": 0.001
   },
   "O(1D)": {
@@ -294,7 +294,7 @@
       "T0": 300.0,
       "expoente": 1.704
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede: valor de teste",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss: test value",
     "perda_na_parede": 1.0
   },
   "O(1S)": {
@@ -304,7 +304,7 @@
       "T0": 300.0,
       "expoente": 1.704
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede: valor de teste",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss: test value",
     "perda_na_parede": 1.0
   },
   "O3": {
@@ -314,7 +314,7 @@
       "T0": 300.0,
       "expoente": 1.718
     },
-    "fonte": "difusão como a do O2 (fora do GRI-Mech; valor de teste); perda na parede: valor de teste",
+    "fonte": "diffusion as that of O2 (outside GRI-Mech; test value); wall loss: test value",
     "perda_na_parede": 0.0
   },
   "O^+": {
@@ -323,7 +323,7 @@
       "tipo": "constante",
       "K0": 3.3067519607777895
     },
-    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+    "fonte": "automatic estimate (caso.py estimate): mobility from the Langevin limit with Blanc's law (no charge exchange)"
   },
   "O2^+": {
     "massa_u": 31.998,
@@ -331,7 +331,7 @@
       "tipo": "constante",
       "K0": 2.723186620164535
     },
-    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+    "fonte": "automatic estimate (caso.py estimate): mobility from the Langevin limit with Blanc's law (no charge exchange)"
   },
   "O4^+": {
     "massa_u": 63.996,
@@ -339,7 +339,7 @@
       "tipo": "constante",
       "K0": 2.378105295195721
     },
-    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+    "fonte": "automatic estimate (caso.py estimate): mobility from the Langevin limit with Blanc's law (no charge exchange)"
   },
   "O^-": {
     "massa_u": 15.999,
@@ -347,7 +347,7 @@
       "tipo": "constante",
       "K0": 3.3067519607777895
     },
-    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+    "fonte": "automatic estimate (caso.py estimate): mobility from the Langevin limit with Blanc's law (no charge exchange)"
   },
   "O2^-": {
     "massa_u": 31.998,
@@ -355,7 +355,7 @@
       "tipo": "constante",
       "K0": 2.723186620164535
     },
-    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+    "fonte": "automatic estimate (caso.py estimate): mobility from the Langevin limit with Blanc's law (no charge exchange)"
   },
   "O3^-": {
     "massa_u": 47.997,
@@ -363,7 +363,7 @@
       "tipo": "constante",
       "K0": 2.4984587189167464
     },
-    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+    "fonte": "automatic estimate (caso.py estimate): mobility from the Langevin limit with Blanc's law (no charge exchange)"
   },
   "O4^-": {
     "massa_u": 63.996,
@@ -371,7 +371,7 @@
       "tipo": "constante",
       "K0": 2.378105295195721
     },
-    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+    "fonte": "automatic estimate (caso.py estimate): mobility from the Langevin limit with Blanc's law (no charge exchange)"
   },
   "NO": {
     "massa_u": 30.006,
@@ -380,7 +380,7 @@
       "T0": 300.0,
       "expoente": 1.713
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede: valor de teste",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss: test value",
     "perda_na_parede": 0.0
   },
   "N2O": {
@@ -390,7 +390,7 @@
       "T0": 300.0,
       "expoente": 1.766
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede: valor de teste",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss: test value",
     "perda_na_parede": 0.0
   },
   "NO2": {
@@ -400,7 +400,7 @@
       "T0": 300.0,
       "expoente": 1.755
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede: valor de teste",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss: test value",
     "perda_na_parede": 0.0
   },
   "NO3": {
@@ -410,7 +410,7 @@
       "T0": 300.0,
       "expoente": 1.755
     },
-    "fonte": "difusão como a do NO2 (fora do GRI-Mech; valor de teste); perda na parede: valor de teste",
+    "fonte": "diffusion as that of NO2 (outside GRI-Mech; test value); wall loss: test value",
     "perda_na_parede": 0.0
   },
   "N2O5": {
@@ -420,7 +420,7 @@
       "T0": 300.0,
       "expoente": 1.755
     },
-    "fonte": "difusão como a do NO2 (fora do GRI-Mech; valor de teste); perda na parede: valor de teste",
+    "fonte": "diffusion as that of NO2 (outside GRI-Mech; test value); wall loss: test value",
     "perda_na_parede": 0.0
   },
   "NO^+": {
@@ -429,7 +429,7 @@
       "tipo": "constante",
       "K0": 2.765756092339157
     },
-    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+    "fonte": "automatic estimate (caso.py estimate): mobility from the Langevin limit with Blanc's law (no charge exchange)"
   },
   "N2O^+": {
     "massa_u": 44.013,
@@ -437,7 +437,7 @@
       "tipo": "constante",
       "K0": 2.5406231902865692
     },
-    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+    "fonte": "automatic estimate (caso.py estimate): mobility from the Langevin limit with Blanc's law (no charge exchange)"
   },
   "NO2^+": {
     "massa_u": 46.005,
@@ -445,7 +445,7 @@
       "tipo": "constante",
       "K0": 2.518716582604705
     },
-    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+    "fonte": "automatic estimate (caso.py estimate): mobility from the Langevin limit with Blanc's law (no charge exchange)"
   },
   "NO^-": {
     "massa_u": 30.006,
@@ -453,7 +453,7 @@
       "tipo": "constante",
       "K0": 2.765756092339157
     },
-    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+    "fonte": "automatic estimate (caso.py estimate): mobility from the Langevin limit with Blanc's law (no charge exchange)"
   },
   "N2O^-": {
     "massa_u": 44.013,
@@ -461,7 +461,7 @@
       "tipo": "constante",
       "K0": 2.5406231902865692
     },
-    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+    "fonte": "automatic estimate (caso.py estimate): mobility from the Langevin limit with Blanc's law (no charge exchange)"
   },
   "NO2^-": {
     "massa_u": 46.005,
@@ -469,7 +469,7 @@
       "tipo": "constante",
       "K0": 2.518716582604705
     },
-    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+    "fonte": "automatic estimate (caso.py estimate): mobility from the Langevin limit with Blanc's law (no charge exchange)"
   },
   "NO3^-": {
     "massa_u": 62.004,
@@ -477,7 +477,7 @@
       "tipo": "constante",
       "K0": 2.3899704957710495
     },
-    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+    "fonte": "automatic estimate (caso.py estimate): mobility from the Langevin limit with Blanc's law (no charge exchange)"
   },
   "O2^+N2": {
     "massa_u": 60.012,
@@ -485,7 +485,7 @@
       "tipo": "constante",
       "K0": 2.4025584465386256
     },
-    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+    "fonte": "automatic estimate (caso.py estimate): mobility from the Langevin limit with Blanc's law (no charge exchange)"
   },
   "AR": {
     "massa_u": 39.948,
@@ -494,7 +494,7 @@
       "T0": 300.0,
       "expoente": 1.731
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base"
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species"
   },
   "AR*": {
     "massa_u": 39.948,
@@ -503,7 +503,7 @@
       "T0": 300.0,
       "expoente": 1.731
     },
-    "fonte": "estimativa automática (caso.py estima): difusão de traço pela teoria cinética (Cantera, GRI-Mech 3.0) da espécie de base; perda na parede do caso existente (propriedade da superfície)",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss of the existing case (property of the surface)",
     "perda_na_parede": 1.0
   },
   "AR^+": {
@@ -512,7 +512,7 @@
       "tipo": "constante",
       "K0": 2.5913732157858695
     },
-    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+    "fonte": "automatic estimate (caso.py estimate): mobility from the Langevin limit with Blanc's law (no charge exchange)"
   },
   "AR2^+": {
     "massa_u": 79.896,
@@ -520,6 +520,6 @@
       "tipo": "constante",
       "K0": 2.30323653384918
     },
-    "fonte": "estimativa automática (caso.py estima): mobilidade pelo limite de Langevin com a lei de Blanc (sem troca de carga)"
+    "fonte": "automatic estimate (caso.py estimate): mobility from the Langevin limit with Blanc's law (no charge exchange)"
   }
 }

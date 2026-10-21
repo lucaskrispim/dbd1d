@@ -1,11 +1,11 @@
 {
   "_formato": [
-    "Dados de transporte das espécies pesadas, lidos pelo protótipo (prototipo/modelo.py) ou dados por --transporte.",
-    "Cada espécie transportada, menos E, precisa de massa_u, a massa em u. O gás de fundo só é transportado com --gas-solto.",
-    "Íons positivos de carga 1 precisam de mobilidade, reduzida na densidade de Loschmidt em cm2/(V s), do tipo constante (K0), frost (K0 e EN_aquecimento em Td, com K = K0 (1 + (E/N)/EN_aquecimento)^(-1/2)) ou tabela (E_N em Td crescente e K0, interpolada linearmente; abaixo do primeiro ponto, presa; acima do último, presa ou, com acima = raiz, K = K_último (E/N_último / (E/N))^(1/2)).",
-    "Neutros precisam de difusao, D = (D0/p) (T/T0)^expoente em m2/s com p em atm, e de perda_na_parede, a probabilidade gama de perda por choque com a parede (fluxo gama/(2 - gama) n v/2; o gás de fundo solto não precisa).",
-    "Com --gas-solto, as espécies precisam de atomos_do_fundo, os átomos do gás de fundo que a parede devolve por partícula absorvida.",
-    "Campos fonte são só registro."
+    "Transport data of the heavy species, read by the simulator (prototipo/modelo.py) or given by --transport.",
+    "Each transported species except E needs massa_u, the mass in u. The background gas is transported only with --free-gas.",
+    "Positive ions of charge 1 need mobilidade, reduced to the Loschmidt density in cm2/(V s), of tipo constante (K0), frost (K0 and EN_aquecimento in Td, with K = K0 (1 + (E/N)/EN_aquecimento)^(-1/2)) or tabela (E_N in Td, increasing, and K0, interpolated linearly; below the first point, clamped; above the last, clamped or, with acima = raiz, K = K_last (E/N_last / (E/N))^(1/2)).",
+    "Neutrals need difusao, D = (D0/p) (T/T0)^expoente in m2/s with p in atm, and perda_na_parede, the probability gamma of loss per collision with the wall (flux gamma/(2 - gamma) n v/2; the free background gas does not need it).",
+    "With --free-gas, the species need atomos_do_fundo, the atoms of the background gas that the wall returns per absorbed particle.",
+    "The fonte fields are only a record of the source."
   ],
   "N": {
     "massa_u": 14.007,
@@ -16,7 +16,7 @@
     },
     "perda_na_parede": 2.16e-06,
     "atomos_do_fundo": 0.5,
-    "fonte": "difusão estimada: autodifusão do N2 medida (0,202 cm2/s, 1 atm, 300 K) escalada pela massa reduzida e pelo diâmetro de esfera rígida do N (2,75 Å a 280 K, Diffusion coefficients of O and N atoms in inert gases) contra 3,75 Å do N2; perda: recombinação na parede de quartzo, gama = 2,16e-6 (Mazánková, Trunec e Krčma, 2015, pós-descarga a 1000 Pa)"
+    "fonte": "estimated diffusion: measured self-diffusion of N2 (0.202 cm2/s, 1 atm, 300 K) scaled by the reduced mass and by the hard-sphere diameter of N (2.75 Å at 280 K, Diffusion coefficients of O and N atoms in inert gases) against 3.75 Å for N2; loss: recombination at the quartz wall, gamma = 2.16e-6 (Mazánková, Trunec and Krčma, 2015, afterglow at 1000 Pa)"
   },
   "N2": {
     "massa_u": 28.014,
@@ -26,7 +26,7 @@
       "expoente": 1.75
     },
     "atomos_do_fundo": 0,
-    "fonte": "autodifusão tomada igual à do N2(A) medida; só entra com --gas-solto"
+    "fonte": "self-diffusion taken equal to the measured one of N2(A); used only with --free-gas"
   },
   "N2(A)": {
     "massa_u": 28.014,
@@ -37,7 +37,7 @@
     },
     "perda_na_parede": 1.0,
     "atomos_do_fundo": 1,
-    "fonte": "difusão: 0,202 cm2/s a 760 Torr e 300 K (Planet. Space Sci., 1967, doi 10.1016/0032-0633(67)90041-4); expoente 1,75 presumido; perda na parede 1 presumida (desexcitação)"
+    "fonte": "diffusion: 0.202 cm2/s at 760 Torr and 300 K (Planet. Space Sci., 1967, doi 10.1016/0032-0633(67)90041-4); exponent 1.75 assumed; wall loss 1 assumed (de-excitation)"
   },
   "N2(B)": {
     "massa_u": 28.014,
@@ -48,7 +48,7 @@
     },
     "perda_na_parede": 1.0,
     "atomos_do_fundo": 1,
-    "fonte": "presumido igual ao N2(A): estado de vida radiativa curta, o transporte pesa pouco; difusão: 0,202 cm2/s a 760 Torr e 300 K (Planet. Space Sci., 1967, doi 10.1016/0032-0633(67)90041-4); expoente 1,75 presumido; perda na parede 1 presumida (desexcitação)"
+    "fonte": "assumed equal to N2(A): short radiative lifetime, transport matters little; diffusion: 0.202 cm2/s at 760 Torr and 300 K (Planet. Space Sci., 1967, doi 10.1016/0032-0633(67)90041-4); exponent 1.75 assumed; wall loss 1 assumed (de-excitation)"
   },
   "N2(A')": {
     "massa_u": 28.014,
@@ -59,7 +59,7 @@
     },
     "perda_na_parede": 1.0,
     "atomos_do_fundo": 1,
-    "fonte": "presumido igual ao N2(A): estado de vida radiativa curta, o transporte pesa pouco; difusão: 0,202 cm2/s a 760 Torr e 300 K (Planet. Space Sci., 1967, doi 10.1016/0032-0633(67)90041-4); expoente 1,75 presumido; perda na parede 1 presumida (desexcitação)"
+    "fonte": "assumed equal to N2(A): short radiative lifetime, transport matters little; diffusion: 0.202 cm2/s at 760 Torr and 300 K (Planet. Space Sci., 1967, doi 10.1016/0032-0633(67)90041-4); exponent 1.75 assumed; wall loss 1 assumed (de-excitation)"
   },
   "N2(C)": {
     "massa_u": 28.014,
@@ -70,7 +70,7 @@
     },
     "perda_na_parede": 1.0,
     "atomos_do_fundo": 1,
-    "fonte": "presumido igual ao N2(A): estado de vida radiativa curta, o transporte pesa pouco; difusão: 0,202 cm2/s a 760 Torr e 300 K (Planet. Space Sci., 1967, doi 10.1016/0032-0633(67)90041-4); expoente 1,75 presumido; perda na parede 1 presumida (desexcitação)"
+    "fonte": "assumed equal to N2(A): short radiative lifetime, transport matters little; diffusion: 0.202 cm2/s at 760 Torr and 300 K (Planet. Space Sci., 1967, doi 10.1016/0032-0633(67)90041-4); exponent 1.75 assumed; wall loss 1 assumed (de-excitation)"
   },
   "N^+": {
     "massa_u": 14.007,
@@ -123,7 +123,7 @@
       "acima": "raiz"
     },
     "atomos_do_fundo": 0.5,
-    "fonte": "Ellis, Pai, McDaniel, Mason e Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 204-205, dados experimentais a 300 K; erro de até 3%; acima do último E/N medido, cauda K ~ (E/N)^(-1/2), estimativa (decisão do usuário, 18/10/2026)"
+    "fonte": "Ellis, Pai, McDaniel, Mason and Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 204-205, experimental data at 300 K; error up to 3%; above the last measured E/N, tail K ~ (E/N)^(-1/2), an estimate (decision of the authors, 18/10/2026)"
   },
   "N2^+": {
     "massa_u": 28.014,
@@ -180,7 +180,7 @@
       "acima": "raiz"
     },
     "atomos_do_fundo": 1,
-    "fonte": "Ellis, Pai, McDaniel, Mason e Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 203, dados experimentais a 300 K; erro de até 3%; acima do último E/N medido, cauda K ~ (E/N)^(-1/2), estimativa (decisão do usuário, 18/10/2026)"
+    "fonte": "Ellis, Pai, McDaniel, Mason and Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 203, experimental data at 300 K; error up to 3%; above the last measured E/N, tail K ~ (E/N)^(-1/2), an estimate (decision of the authors, 18/10/2026)"
   },
   "N3^+": {
     "massa_u": 42.021,
@@ -231,7 +231,7 @@
       "acima": "raiz"
     },
     "atomos_do_fundo": 1.5,
-    "fonte": "Ellis, Pai, McDaniel, Mason e Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 204-205, dados experimentais a 300 K; erro de até 7%; acima do último E/N medido, cauda K ~ (E/N)^(-1/2), estimativa (decisão do usuário, 18/10/2026)"
+    "fonte": "Ellis, Pai, McDaniel, Mason and Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 204-205, experimental data at 300 K; error up to 7%; above the last measured E/N, tail K ~ (E/N)^(-1/2), an estimate (decision of the authors, 18/10/2026)"
   },
   "N4^+": {
     "massa_u": 56.028,
@@ -266,6 +266,6 @@
       "acima": "raiz"
     },
     "atomos_do_fundo": 2,
-    "fonte": "Ellis, Pai, McDaniel, Mason e Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 204-205, dados experimentais a 300 K; erro de até 3%; medido só até 40 Td (o N4+ se dissocia acima); acima do último E/N medido, cauda K ~ (E/N)^(-1/2), estimativa (decisão do usuário, 18/10/2026)"
+    "fonte": "Ellis, Pai, McDaniel, Mason and Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 204-205, experimental data at 300 K; error up to 3%; measured only up to 40 Td (N4+ dissociates above); above the last measured E/N, tail K ~ (E/N)^(-1/2), an estimate (decision of the authors, 18/10/2026)"
   }
 }

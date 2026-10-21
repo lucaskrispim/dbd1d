@@ -1,24 +1,24 @@
 {
   "_formato": [
-    "Dados de transporte das espécies pesadas, lidos pelo protótipo (prototipo/modelo.py) ou dados por --transporte.",
-    "Cada espécie transportada, menos E, precisa de massa_u, a massa em u. O gás de fundo só é transportado com --gas-solto.",
-    "Íons positivos de carga 1 precisam de mobilidade, reduzida na densidade de Loschmidt em cm2/(V s), do tipo constante (K0), frost (K0 e EN_aquecimento em Td, com K = K0 (1 + (E/N)/EN_aquecimento)^(-1/2)) ou tabela (E_N em Td crescente e K0, interpolada linearmente; abaixo do primeiro ponto, presa; acima do último, presa ou, com acima = raiz, K = K_último (E/N_último / (E/N))^(1/2)).",
-    "Neutros precisam de difusao, D = (D0/p) (T/T0)^expoente em m2/s com p em atm, e de perda_na_parede, a probabilidade gama de perda por choque com a parede (fluxo gama/(2 - gama) n v/2; o gás de fundo solto não precisa).",
-    "Com --gas-solto, as espécies precisam de atomos_do_fundo, os átomos do gás de fundo que a parede devolve por partícula absorvida.",
-    "Campos fonte são só registro."
+    "Transport data of the heavy species, read by the simulator (prototipo/modelo.py) or given by --transport.",
+    "Each transported species except E needs massa_u, the mass in u. The background gas is transported only with --free-gas.",
+    "Positive ions of charge 1 need mobilidade, reduced to the Loschmidt density in cm2/(V s), of tipo constante (K0), frost (K0 and EN_aquecimento in Td, with K = K0 (1 + (E/N)/EN_aquecimento)^(-1/2)) or tabela (E_N in Td, increasing, and K0, interpolated linearly; below the first point, clamped; above the last, clamped or, with acima = raiz, K = K_last (E/N_last / (E/N))^(1/2)).",
+    "Neutrals need difusao, D = (D0/p) (T/T0)^expoente in m2/s with p in atm, and perda_na_parede, the probability gamma of loss per collision with the wall (flux gamma/(2 - gamma) n v/2; the free background gas does not need it).",
+    "With --free-gas, the species need atomos_do_fundo, the atoms of the background gas that the wall returns per absorbed particle.",
+    "The fonte fields are only a record of the source."
   ],
   "AR": {
     "massa_u": 39.948,
     "difusao": {"D0": 17.0e-6, "T0": 273.0, "expoente": 1.9},
     "atomos_do_fundo": 0,
-    "fonte": "difusão: o mesmo valor do Ar*, como no Fortran (DK); só entra com --gas-solto"
+    "fonte": "diffusion: the same value as Ar*, as in the Fortran code (DK); used only with --free-gas"
   },
   "AR*": {
     "massa_u": 39.948,
     "difusao": {"D0": 17.0e-6, "T0": 273.0, "expoente": 1.9},
     "perda_na_parede": 1.0,
     "atomos_do_fundo": 1,
-    "fonte": "difusão do Fortran (DK em termico.f90), sem fonte primária registrada; perda de todo metaestável que atinge a parede, como no Fortran"
+    "fonte": "diffusion of the Fortran code (DK in termico.f90), no primary source recorded; loss of every metastable that reaches the wall, as in the Fortran code"
   },
   "AR^+": {
     "massa_u": 39.948,
@@ -30,6 +30,6 @@
     "massa_u": 79.896,
     "mobilidade": {"tipo": "constante", "K0": 1.95},
     "atomos_do_fundo": 2,
-    "fonte": "Phys. Rev. 160, 130 (1967), autores não registrados no projeto; sem dado de campo alto"
+    "fonte": "Phys. Rev. 160, 130 (1967), authors not recorded in the project; no high-field data"
   }
 }

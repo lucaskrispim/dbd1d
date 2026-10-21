@@ -24,7 +24,7 @@ try:
 except caso.ErroCaso:
     TERCEIROS = None
 pytestmark = [pytest.mark.lento,
-              pytest.mark.skipif(TERCEIROS is None, reason="ZDPlasKin e BOLSIG+ ausentes (ZDPLASKIN_DIR)")]
+              pytest.mark.skipif(TERCEIROS is None, reason="ZDPlasKin and BOLSIG+ not found (ZDPLASKIN_DIR)")]
 N2 = RAIZ / "casos" / "n2"
 AMONIA = RAIZ / "casos" / "amonia_sun2022"
 OPCOES = ["-O2", "-ffp-contract=off", "-w"]

@@ -36,7 +36,7 @@ kinet = troca_uma(kinet, r"^(BOLSIG\s*\n.*?)^END", r"\1Ar Ar*\nEND")
 kinet = troca_uma(kinet, r"^(SPECIES\s*\n.*?)^END", r"\1Ar Ar* Ar^+ Ar2^+\nEND")
 cruzadas = """
 #==================================================================================================================================
-# argônio (kinet.inp da raiz) e reações cruzadas (casos/ar_n2_o2/monta.py)
+# argon (kinet.inp of the root) and cross reactions (casos/ar_n2_o2/monta.py)
 #==================================================================================================================================
 """ + reacoes_ar + """
 

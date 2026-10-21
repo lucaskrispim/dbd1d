@@ -47,7 +47,8 @@ def ultimo_periodo(d):
         j = np.argmax(np.abs(i[m][meio]))
         rupturas.append((tt[meio][j], abs(ugap[meio][j]), abs(i[m][meio][j])))
     ne = []
-    for tb, nomes, linhas in blocos(d / "perfil.dat"):
+    # perfil.dat only gives the maximum of n_e; without it (a copy with superficie.dat only) n_e max is nan
+    for tb, nomes, linhas in (blocos(d / "perfil.dat") if (d / "perfil.dat").exists() else ()):
         if (k - 1) * per - 1e-12 <= tb <= k * per + 1e-12:
             arr = np.array(linhas[1:-1])
             faces = [0.0]

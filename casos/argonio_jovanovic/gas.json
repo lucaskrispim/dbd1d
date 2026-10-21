@@ -1,13 +1,13 @@
 {
   "_formato": [
-    "Propriedades do gás de fundo do caso, lidas pelo protótipo (prototipo/modelo.py).",
-    "fundo: espécie do kinet.inp que forma o gás de fundo e a sua fração (por enquanto, uma só com fração 1).",
-    "cv_por_kb: calor específico a volume constante por partícula pesada, em unidades de k_B (1,5 em gás monoatômico, 2,5 em diatômico sem vibração).",
-    "condutividade: condutividade térmica em W/(m K); tipo linear_com_raiz, (a T + b) escala, vezes (T/t_raiz)^(1/2) acima de t_raiz, ou tipo tabela, com T (K) e kappa, interpolada linearmente e presa nos extremos.",
-    "ion_inicial: íon positivo semeado com os elétrons no plasma inicial neutro.",
-    "calor (opcional): entalpias de formação (eV) das espécies; cada reação de partículas pesadas com mais de um reagente libera -soma(nu h) como calor do gás (as do BOLSIG+ e as de um só reagente, radiativas, ficam de fora); com --energia, a energia média dos elétrons consumidos também. Sem o bloco, o gás só aquece pela perda elástica e pelo Joule dos íons.",
-    "calor.processos_rapidos (opcional): processos do bolsigdb.dat cuja energia vira calor do gás em picossegundos (por exemplo N2 -> N2(rot)); ferramentas/caso.py calor e tabelas gravam a potência deles em tabela_calor_tg.dat (saldo com a desexcitação, limitado pela perda inelástica), que o gás recebe.",
-    "Campos fonte são só registro."
+    "Properties of the background gas of the case, read by the simulator (prototipo/modelo.py).",
+    "fundo: species of kinet.inp that form the background gas and their fractions.",
+    "cv_por_kb: specific heat at constant volume per heavy particle, in units of k_B (1.5 for a monatomic gas, 2.5 for a diatomic one without vibration).",
+    "condutividade: thermal conductivity in W/(m K); tipo linear_com_raiz, (a T + b) escala, times (T/t_raiz)^(1/2) above t_raiz, or tipo tabela, with T (K) and kappa, interpolated linearly and clamped at the ends.",
+    "ion_inicial: positive ion seeded with the electrons in the neutral initial plasma.",
+    "calor (optional): enthalpies of formation (eV) of the species; each heavy-particle reaction with more than one reactant releases -sum(nu h) as gas heat (those of BOLSIG+ and the single-reactant, radiative ones are left out); with --energy, the mean energy of the consumed electrons too. Without the block, the gas is heated only by the elastic loss and by ion Joule heating.",
+    "calor.processos_rapidos (optional): processes of bolsigdb.dat whose energy becomes gas heat within picoseconds (for example N2 -> N2(rot)); ferramentas/caso.py heat and tables write their power to tabela_calor_tg.dat (net of de-excitation, limited by the inelastic loss), which the gas receives.",
+    "The fonte fields are only a record of the source."
   ],
   "fundo": {
     "AR": 1.0
@@ -21,5 +21,5 @@
     "t_raiz": 3000.0
   },
   "ion_inicial": "AR^+",
-  "fonte": "condutividade do Fortran (DF em termico.f90); cv de gás monoatômico"
+  "fonte": "conductivity of the Fortran code (DF in termico.f90); cv of a monatomic gas"
 }

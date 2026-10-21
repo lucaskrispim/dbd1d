@@ -54,7 +54,7 @@ def test_caso_curto_igual_a_referencia(tmp_path, variavel, referencia):
     tol, diferentes = tolerancia(ref)
     r = subprocess.run([sys.executable, str(RAIZ / "scripts" / "compara.py"), str(ref), str(tmp_path / "c"),
                         "--tol", str(tol), "--estrito"], capture_output=True, text=True, env=AMBIENTE)
-    assert r.returncode == 0, f"{r.stdout}\nversões diferentes da referência: {diferentes}"
+    assert r.returncode == 0, f"{r.stdout}\nversions different from the reference: {diferentes}"
     # the local field case covers the table in E/N (Q3)
     assert ("--energia" in caso(variavel)) == (variavel == "CURTO_PROTOTIPO")
 

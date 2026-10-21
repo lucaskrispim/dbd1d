@@ -5,7 +5,6 @@ mobilities and diffusions estimated by ferramentas/caso.py estimate (Langevin wi
 Blanc's law and kinetic theory) and the wall loss of the neutrals from the argon
 and N2 cases (it is a property of the surface, not of the gas).
 Usage (with Cantera): python3 casos/ar_n2/gera_dados.py
-The "fonte" strings are data written to the JSON files and stay as they are there.
 """
 import json
 import pathlib
@@ -32,9 +31,9 @@ gas = {
     "cv_por_kb": 0.9 * 1.5 + 0.1 * 2.5,
     "condutividade": {"tipo": "tabela", "T": T, "kappa": kappa},
     "ion_inicial": "Ar^+",
-    "fonte": ["mistura de teste da ferramenta (casos/ar_n2/monta.py)",
-              "condutividade pela teoria cinética (Cantera, GRI-Mech 3.0), a 1 atm",
-              "cv: média pela fração de 1,5 k_B (Ar) e 2,5 k_B (N2 sem vibração)"],
+    "fonte": ["test mixture of the tool (casos/ar_n2/monta.py)",
+              "conductivity by kinetic theory (Cantera, GRI-Mech 3.0), at 1 atm",
+              "cv: average by fraction of 1.5 k_B (Ar) and 2.5 k_B (N2 without vibration)"],
 }
 (AQUI / "gas.json").write_text(json.dumps(gas, ensure_ascii=False, indent=2) + "\n")
 faltam = caso.gera_transporte(AQUI, biblioteca={}, estimar=True)
@@ -46,6 +45,6 @@ for nome, faltando in faltam.items():
     if faltando == ["perda_na_parede"]:
         origem = next(v for k, v in perdas.items() if k.upper() == nome.upper())
         t[nome]["perda_na_parede"] = origem["perda_na_parede"]
-        t[nome]["fonte"] = t[nome].get("fonte", "") + "; perda na parede do caso de um gás só (propriedade da superfície)"
+        t[nome]["fonte"] = t[nome].get("fonte", "") + "; wall loss of the single-gas case (property of the surface)"
 (AQUI / "transporte.json").write_text(json.dumps(t, ensure_ascii=False, indent=2) + "\n")
 print("gas.json and transporte.json written; missing:", faltam)

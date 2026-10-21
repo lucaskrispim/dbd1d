@@ -1,8 +1,8 @@
 {
   "_formato": [
-    "Biblioteca de dados de transporte, por espécie e gás de fundo (chave ESPECIE em FUNDO, nomes do ZDPlasKin em maiúsculas).",
-    "Os campos são os do transporte.json de um caso (mobilidade, difusao, perda_na_parede, atomos_do_fundo, fonte); a massa sai da fórmula.",
-    "ferramentas/caso.py transporte copia daqui para o transporte.json do caso o que faltar nele."
+    "Library of transport data, per species and background gas (key ESPECIE em FUNDO, that is SPECIES in BACKGROUND, with ZDPlasKin names in upper case).",
+    "The fields are those of the transporte.json of a case (mobilidade, difusao, perda_na_parede, atomos_do_fundo, fonte); the mass comes from the formula.",
+    "ferramentas/caso.py transport copies from here into the transporte.json of the case whatever is missing there."
   ],
   "AR em AR": {
     "difusao": {
@@ -11,7 +11,7 @@
       "expoente": 1.9
     },
     "atomos_do_fundo": 0,
-    "fonte": "difusão: o mesmo valor do Ar*, como no Fortran (DK); só entra com --gas-solto"
+    "fonte": "diffusion: the same value as Ar*, as in the Fortran code (DK); used only with --free-gas"
   },
   "AR* em AR": {
     "difusao": {
@@ -21,7 +21,7 @@
     },
     "perda_na_parede": 1.0,
     "atomos_do_fundo": 1,
-    "fonte": "difusão do Fortran (DK em termico.f90), sem fonte primária registrada; perda de todo metaestável que atinge a parede, como no Fortran"
+    "fonte": "diffusion of the Fortran code (DK in termico.f90), no primary source recorded; loss of every metastable that reaches the wall, as in the Fortran code"
   },
   "AR^+ em AR": {
     "mobilidade": {
@@ -38,7 +38,7 @@
       "K0": 1.95
     },
     "atomos_do_fundo": 2,
-    "fonte": "Phys. Rev. 160, 130 (1967), autores não registrados no projeto; sem dado de campo alto"
+    "fonte": "Phys. Rev. 160, 130 (1967), authors not recorded in the project; no high-field data"
   },
   "N^+ em N2": {
     "mobilidade": {
@@ -90,7 +90,7 @@
       "acima": "raiz"
     },
     "atomos_do_fundo": 0.5,
-    "fonte": "Ellis, Pai, McDaniel, Mason e Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 204-205, dados experimentais a 300 K; erro de até 3%; acima do último E/N medido, cauda K ~ (E/N)^(-1/2), estimativa (decisão do usuário, 18/10/2026)"
+    "fonte": "Ellis, Pai, McDaniel, Mason and Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 204-205, experimental data at 300 K; error up to 3%; above the last measured E/N, tail K ~ (E/N)^(-1/2), an estimate (decision of the authors, 18/10/2026)"
   },
   "N2^+ em N2": {
     "mobilidade": {
@@ -146,7 +146,7 @@
       "acima": "raiz"
     },
     "atomos_do_fundo": 1,
-    "fonte": "Ellis, Pai, McDaniel, Mason e Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 203, dados experimentais a 300 K; erro de até 3%; acima do último E/N medido, cauda K ~ (E/N)^(-1/2), estimativa (decisão do usuário, 18/10/2026)"
+    "fonte": "Ellis, Pai, McDaniel, Mason and Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 203, experimental data at 300 K; error up to 3%; above the last measured E/N, tail K ~ (E/N)^(-1/2), an estimate (decision of the authors, 18/10/2026)"
   },
   "N3^+ em N2": {
     "mobilidade": {
@@ -196,7 +196,7 @@
       "acima": "raiz"
     },
     "atomos_do_fundo": 1.5,
-    "fonte": "Ellis, Pai, McDaniel, Mason e Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 204-205, dados experimentais a 300 K; erro de até 7%; acima do último E/N medido, cauda K ~ (E/N)^(-1/2), estimativa (decisão do usuário, 18/10/2026)"
+    "fonte": "Ellis, Pai, McDaniel, Mason and Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 204-205, experimental data at 300 K; error up to 7%; above the last measured E/N, tail K ~ (E/N)^(-1/2), an estimate (decision of the authors, 18/10/2026)"
   },
   "N4^+ em N2": {
     "mobilidade": {
@@ -230,7 +230,7 @@
       "acima": "raiz"
     },
     "atomos_do_fundo": 2,
-    "fonte": "Ellis, Pai, McDaniel, Mason e Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 204-205, dados experimentais a 300 K; erro de até 3%; medido só até 40 Td (o N4+ se dissocia acima); acima do último E/N medido, cauda K ~ (E/N)^(-1/2), estimativa (decisão do usuário, 18/10/2026)"
+    "fonte": "Ellis, Pai, McDaniel, Mason and Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 204-205, experimental data at 300 K; error up to 3%; measured only up to 40 Td (N4+ dissociates above); above the last measured E/N, tail K ~ (E/N)^(-1/2), an estimate (decision of the authors, 18/10/2026)"
   },
   "N2(A) em N2": {
     "difusao": {
@@ -240,7 +240,7 @@
     },
     "perda_na_parede": 1.0,
     "atomos_do_fundo": 1,
-    "fonte": "difusão: 0,202 cm2/s a 760 Torr e 300 K (Planet. Space Sci., 1967, doi 10.1016/0032-0633(67)90041-4); expoente 1,75 presumido; perda na parede 1 presumida (desexcitação)"
+    "fonte": "diffusion: 0.202 cm2/s at 760 Torr and 300 K (Planet. Space Sci., 1967, doi 10.1016/0032-0633(67)90041-4); exponent 1.75 assumed; wall loss 1 assumed (de-excitation)"
   },
   "N2(B) em N2": {
     "difusao": {
@@ -250,7 +250,7 @@
     },
     "perda_na_parede": 1.0,
     "atomos_do_fundo": 1,
-    "fonte": "presumido igual ao N2(A): estado de vida radiativa curta, o transporte pesa pouco; difusão: 0,202 cm2/s a 760 Torr e 300 K (Planet. Space Sci., 1967, doi 10.1016/0032-0633(67)90041-4); expoente 1,75 presumido; perda na parede 1 presumida (desexcitação)"
+    "fonte": "assumed equal to N2(A): short radiative lifetime, transport matters little; diffusion: 0.202 cm2/s at 760 Torr and 300 K (Planet. Space Sci., 1967, doi 10.1016/0032-0633(67)90041-4); exponent 1.75 assumed; wall loss 1 assumed (de-excitation)"
   },
   "N2(A') em N2": {
     "difusao": {
@@ -260,7 +260,7 @@
     },
     "perda_na_parede": 1.0,
     "atomos_do_fundo": 1,
-    "fonte": "presumido igual ao N2(A): estado de vida radiativa curta, o transporte pesa pouco; difusão: 0,202 cm2/s a 760 Torr e 300 K (Planet. Space Sci., 1967, doi 10.1016/0032-0633(67)90041-4); expoente 1,75 presumido; perda na parede 1 presumida (desexcitação)"
+    "fonte": "assumed equal to N2(A): short radiative lifetime, transport matters little; diffusion: 0.202 cm2/s at 760 Torr and 300 K (Planet. Space Sci., 1967, doi 10.1016/0032-0633(67)90041-4); exponent 1.75 assumed; wall loss 1 assumed (de-excitation)"
   },
   "N2(C) em N2": {
     "difusao": {
@@ -270,7 +270,7 @@
     },
     "perda_na_parede": 1.0,
     "atomos_do_fundo": 1,
-    "fonte": "presumido igual ao N2(A): estado de vida radiativa curta, o transporte pesa pouco; difusão: 0,202 cm2/s a 760 Torr e 300 K (Planet. Space Sci., 1967, doi 10.1016/0032-0633(67)90041-4); expoente 1,75 presumido; perda na parede 1 presumida (desexcitação)"
+    "fonte": "assumed equal to N2(A): short radiative lifetime, transport matters little; diffusion: 0.202 cm2/s at 760 Torr and 300 K (Planet. Space Sci., 1967, doi 10.1016/0032-0633(67)90041-4); exponent 1.75 assumed; wall loss 1 assumed (de-excitation)"
   },
   "N em N2": {
     "difusao": {
@@ -280,7 +280,7 @@
     },
     "perda_na_parede": 2.16e-06,
     "atomos_do_fundo": 0.5,
-    "fonte": "difusão estimada: autodifusão do N2 medida (0,202 cm2/s, 1 atm, 300 K) escalada pela massa reduzida e pelo diâmetro de esfera rígida do N (2,75 Å a 280 K, Diffusion coefficients of O and N atoms in inert gases) contra 3,75 Å do N2; perda: recombinação na parede de quartzo, gama = 2,16e-6 (Mazánková, Trunec e Krčma, 2015, pós-descarga a 1000 Pa)"
+    "fonte": "estimated diffusion: measured self-diffusion of N2 (0.202 cm2/s, 1 atm, 300 K) scaled by the reduced mass and by the hard-sphere diameter of N (2.75 Å at 280 K, Diffusion coefficients of O and N atoms in inert gases) against 3.75 Å for N2; loss: recombination at the quartz wall, gamma = 2.16e-6 (Mazánková, Trunec and Krčma, 2015, afterglow at 1000 Pa)"
   },
   "N2 em N2": {
     "difusao": {
@@ -289,7 +289,7 @@
       "expoente": 1.75
     },
     "atomos_do_fundo": 0,
-    "fonte": "autodifusão tomada igual à do N2(A) medida; só entra com --gas-solto"
+    "fonte": "self-diffusion taken equal to the measured one of N2(A); used only with --free-gas"
   },
   "N2(V1) em N2+H2": {
     "difusao": {
@@ -298,7 +298,7 @@
       "expoente": 1.696
     },
     "perda_na_parede": 0.00045,
-    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do N2"
+    "fonte": "diffusion by kinetic theory (Cantera 3.2, GRI-Mech 3.0 transport parameters), trace in N2:H2 1:1, 1/D = sum x_j/D_kj; exponent fitted from 300 to 1000 K (as N2); wall loss: Sun et al. 2022, supplement, Table S1 (from Hong et al. 2017); diffusion taken equal to that of N2"
   },
   "N2(V2) em N2+H2": {
     "difusao": {
@@ -307,7 +307,7 @@
       "expoente": 1.696
     },
     "perda_na_parede": 0.00045,
-    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do N2"
+    "fonte": "diffusion by kinetic theory (Cantera 3.2, GRI-Mech 3.0 transport parameters), trace in N2:H2 1:1, 1/D = sum x_j/D_kj; exponent fitted from 300 to 1000 K (as N2); wall loss: Sun et al. 2022, supplement, Table S1 (from Hong et al. 2017); diffusion taken equal to that of N2"
   },
   "N2(V3) em N2+H2": {
     "difusao": {
@@ -316,7 +316,7 @@
       "expoente": 1.696
     },
     "perda_na_parede": 0.00045,
-    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do N2"
+    "fonte": "diffusion by kinetic theory (Cantera 3.2, GRI-Mech 3.0 transport parameters), trace in N2:H2 1:1, 1/D = sum x_j/D_kj; exponent fitted from 300 to 1000 K (as N2); wall loss: Sun et al. 2022, supplement, Table S1 (from Hong et al. 2017); diffusion taken equal to that of N2"
   },
   "N2(V4) em N2+H2": {
     "difusao": {
@@ -325,7 +325,7 @@
       "expoente": 1.696
     },
     "perda_na_parede": 0.00045,
-    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do N2"
+    "fonte": "diffusion by kinetic theory (Cantera 3.2, GRI-Mech 3.0 transport parameters), trace in N2:H2 1:1, 1/D = sum x_j/D_kj; exponent fitted from 300 to 1000 K (as N2); wall loss: Sun et al. 2022, supplement, Table S1 (from Hong et al. 2017); diffusion taken equal to that of N2"
   },
   "N2(V5) em N2+H2": {
     "difusao": {
@@ -334,7 +334,7 @@
       "expoente": 1.696
     },
     "perda_na_parede": 0.00045,
-    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do N2"
+    "fonte": "diffusion by kinetic theory (Cantera 3.2, GRI-Mech 3.0 transport parameters), trace in N2:H2 1:1, 1/D = sum x_j/D_kj; exponent fitted from 300 to 1000 K (as N2); wall loss: Sun et al. 2022, supplement, Table S1 (from Hong et al. 2017); diffusion taken equal to that of N2"
   },
   "N2(V6) em N2+H2": {
     "difusao": {
@@ -343,7 +343,7 @@
       "expoente": 1.696
     },
     "perda_na_parede": 0.00045,
-    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do N2"
+    "fonte": "diffusion by kinetic theory (Cantera 3.2, GRI-Mech 3.0 transport parameters), trace in N2:H2 1:1, 1/D = sum x_j/D_kj; exponent fitted from 300 to 1000 K (as N2); wall loss: Sun et al. 2022, supplement, Table S1 (from Hong et al. 2017); diffusion taken equal to that of N2"
   },
   "N2(V7) em N2+H2": {
     "difusao": {
@@ -352,7 +352,7 @@
       "expoente": 1.696
     },
     "perda_na_parede": 0.00045,
-    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do N2"
+    "fonte": "diffusion by kinetic theory (Cantera 3.2, GRI-Mech 3.0 transport parameters), trace in N2:H2 1:1, 1/D = sum x_j/D_kj; exponent fitted from 300 to 1000 K (as N2); wall loss: Sun et al. 2022, supplement, Table S1 (from Hong et al. 2017); diffusion taken equal to that of N2"
   },
   "N2(V8) em N2+H2": {
     "difusao": {
@@ -361,7 +361,7 @@
       "expoente": 1.696
     },
     "perda_na_parede": 0.00045,
-    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do N2"
+    "fonte": "diffusion by kinetic theory (Cantera 3.2, GRI-Mech 3.0 transport parameters), trace in N2:H2 1:1, 1/D = sum x_j/D_kj; exponent fitted from 300 to 1000 K (as N2); wall loss: Sun et al. 2022, supplement, Table S1 (from Hong et al. 2017); diffusion taken equal to that of N2"
   },
   "H2(V1) em N2+H2": {
     "difusao": {
@@ -370,7 +370,7 @@
       "expoente": 1.67
     },
     "perda_na_parede": 0.0001,
-    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como H2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do H2"
+    "fonte": "diffusion by kinetic theory (Cantera 3.2, GRI-Mech 3.0 transport parameters), trace in N2:H2 1:1, 1/D = sum x_j/D_kj; exponent fitted from 300 to 1000 K (as H2); wall loss: Sun et al. 2022, supplement, Table S1 (from Hong et al. 2017); diffusion taken equal to that of H2"
   },
   "H2(V2) em N2+H2": {
     "difusao": {
@@ -379,7 +379,7 @@
       "expoente": 1.67
     },
     "perda_na_parede": 0.0001,
-    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como H2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do H2"
+    "fonte": "diffusion by kinetic theory (Cantera 3.2, GRI-Mech 3.0 transport parameters), trace in N2:H2 1:1, 1/D = sum x_j/D_kj; exponent fitted from 300 to 1000 K (as H2); wall loss: Sun et al. 2022, supplement, Table S1 (from Hong et al. 2017); diffusion taken equal to that of H2"
   },
   "H2(V3) em N2+H2": {
     "difusao": {
@@ -388,7 +388,7 @@
       "expoente": 1.67
     },
     "perda_na_parede": 0.0001,
-    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como H2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do H2"
+    "fonte": "diffusion by kinetic theory (Cantera 3.2, GRI-Mech 3.0 transport parameters), trace in N2:H2 1:1, 1/D = sum x_j/D_kj; exponent fitted from 300 to 1000 K (as H2); wall loss: Sun et al. 2022, supplement, Table S1 (from Hong et al. 2017); diffusion taken equal to that of H2"
   },
   "N2(A3) em N2+H2": {
     "difusao": {
@@ -397,7 +397,7 @@
       "expoente": 1.696
     },
     "perda_na_parede": 0.001,
-    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do N2"
+    "fonte": "diffusion by kinetic theory (Cantera 3.2, GRI-Mech 3.0 transport parameters), trace in N2:H2 1:1, 1/D = sum x_j/D_kj; exponent fitted from 300 to 1000 K (as N2); wall loss: Sun et al. 2022, supplement, Table S1 (from Hong et al. 2017); diffusion taken equal to that of N2"
   },
   "N2(A'1) em N2+H2": {
     "difusao": {
@@ -406,7 +406,7 @@
       "expoente": 1.696
     },
     "perda_na_parede": 0.001,
-    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N2); perda na parede: Sun et al. 2022, suplemento, Tabela S1 (de Hong et al. 2017); difusão tomada igual à do N2"
+    "fonte": "diffusion by kinetic theory (Cantera 3.2, GRI-Mech 3.0 transport parameters), trace in N2:H2 1:1, 1/D = sum x_j/D_kj; exponent fitted from 300 to 1000 K (as N2); wall loss: Sun et al. 2022, supplement, Table S1 (from Hong et al. 2017); diffusion taken equal to that of N2"
   },
   "N2(B3) em N2+H2": {
     "difusao": {
@@ -415,7 +415,7 @@
       "expoente": 1.696
     },
     "perda_na_parede": 0.001,
-    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N2); perda na parede tomada igual à do N2(A3) (estimativa; o N2(B3) radia em microssegundos); difusão igual à do N2"
+    "fonte": "diffusion by kinetic theory (Cantera 3.2, GRI-Mech 3.0 transport parameters), trace in N2:H2 1:1, 1/D = sum x_j/D_kj; exponent fitted from 300 to 1000 K (as N2); wall loss taken equal to that of N2(A3) (estimate; N2(B3) radiates within microseconds); diffusion equal to that of N2"
   },
   "N2(C3) em N2+H2": {
     "difusao": {
@@ -424,7 +424,7 @@
       "expoente": 1.696
     },
     "perda_na_parede": 0.001,
-    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N2); perda na parede tomada igual à do N2(A3) (estimativa; o N2(C3) radia em dezenas de ns); difusão igual à do N2"
+    "fonte": "diffusion by kinetic theory (Cantera 3.2, GRI-Mech 3.0 transport parameters), trace in N2:H2 1:1, 1/D = sum x_j/D_kj; exponent fitted from 300 to 1000 K (as N2); wall loss taken equal to that of N2(A3) (estimate; N2(C3) radiates within tens of ns); diffusion equal to that of N2"
   },
   "N(2D) em N2+H2": {
     "difusao": {
@@ -433,7 +433,7 @@
       "expoente": 1.685
     },
     "perda_na_parede": 1.0,
-    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N); perda na parede 1 (estimativa: desexcitação de metaestável na parede); difusão igual à do N"
+    "fonte": "diffusion by kinetic theory (Cantera 3.2, GRI-Mech 3.0 transport parameters), trace in N2:H2 1:1, 1/D = sum x_j/D_kj; exponent fitted from 300 to 1000 K (as N); wall loss 1 (estimate: de-excitation of the metastable at the wall); diffusion equal to that of N"
   },
   "N(2P) em N2+H2": {
     "difusao": {
@@ -442,7 +442,7 @@
       "expoente": 1.685
     },
     "perda_na_parede": 1.0,
-    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N); perda na parede 1 (estimativa: desexcitação de metaestável na parede); difusão igual à do N"
+    "fonte": "diffusion by kinetic theory (Cantera 3.2, GRI-Mech 3.0 transport parameters), trace in N2:H2 1:1, 1/D = sum x_j/D_kj; exponent fitted from 300 to 1000 K (as N); wall loss 1 (estimate: de-excitation of the metastable at the wall); diffusion equal to that of N"
   },
   "N em N2+H2": {
     "difusao": {
@@ -451,7 +451,7 @@
       "expoente": 1.685
     },
     "perda_na_parede": 2.16e-06,
-    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como N); perda na parede: a do N em quartzo da entrada N em N2 (recombinação na parede de quartzo, gama = 2,16e-6 (Mazánková, Trunec e Krčma, 2015, pós-descarga a 1000 Pa)...)"
+    "fonte": "diffusion by kinetic theory (Cantera 3.2, GRI-Mech 3.0 transport parameters), trace in N2:H2 1:1, 1/D = sum x_j/D_kj; exponent fitted from 300 to 1000 K (as N); wall loss: that of N on quartz of the entry N em N2 (recombination at the quartz wall, gamma = 2.16e-6 (Mazánková, Trunec and Krčma, 2015, afterglow at 1000 Pa)...)"
   },
   "H em N2+H2": {
     "difusao": {
@@ -460,7 +460,7 @@
       "expoente": 1.706
     },
     "perda_na_parede": 0.001,
-    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como H); perda na parede 1e-3 (estimativa para H em quartzo a 300 a 700 K; sem medida conferida)"
+    "fonte": "diffusion by kinetic theory (Cantera 3.2, GRI-Mech 3.0 transport parameters), trace in N2:H2 1:1, 1/D = sum x_j/D_kj; exponent fitted from 300 to 1000 K (as H); wall loss 1e-3 (estimate for H on quartz at 300 to 700 K; no measurement checked)"
   },
   "NH em N2+H2": {
     "difusao": {
@@ -469,7 +469,7 @@
       "expoente": 1.689
     },
     "perda_na_parede": 0.001,
-    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como NH); perda na parede 1e-3 (estimativa, sem medida)"
+    "fonte": "diffusion by kinetic theory (Cantera 3.2, GRI-Mech 3.0 transport parameters), trace in N2:H2 1:1, 1/D = sum x_j/D_kj; exponent fitted from 300 to 1000 K (as NH); wall loss 1e-3 (estimate, no measurement)"
   },
   "NH2 em N2+H2": {
     "difusao": {
@@ -478,7 +478,7 @@
       "expoente": 1.689
     },
     "perda_na_parede": 0.001,
-    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como NH2); perda na parede 1e-3 (estimativa, sem medida)"
+    "fonte": "diffusion by kinetic theory (Cantera 3.2, GRI-Mech 3.0 transport parameters), trace in N2:H2 1:1, 1/D = sum x_j/D_kj; exponent fitted from 300 to 1000 K (as NH2); wall loss 1e-3 (estimate, no measurement)"
   },
   "NH3 em N2+H2": {
     "difusao": {
@@ -487,7 +487,7 @@
       "expoente": 1.798
     },
     "perda_na_parede": 0.0,
-    "fonte": "difusão pela teoria cinética (Cantera 3.2, parâmetros de transporte do GRI-Mech 3.0), traço em N2:H2 1:1, 1/D = soma x_j/D_kj; expoente do ajuste de 300 a 1000 K (como NH3); perda na parede 0 (molécula estável, quartzo sem catalisador)"
+    "fonte": "diffusion by kinetic theory (Cantera 3.2, GRI-Mech 3.0 transport parameters), trace in N2:H2 1:1, 1/D = sum x_j/D_kj; exponent fitted from 300 to 1000 K (as NH3); wall loss 0 (stable molecule, quartz without catalyst)"
   },
   "N^+ em N2+H2": {
     "mobilidade": {
@@ -538,7 +538,7 @@
       ],
       "acima": "raiz"
     },
-    "fonte": "lei de Blanc na mistura 1:1: em N2 a tabela medida da entrada N^+ em N2 (Ellis et al. 1976); em H2 K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%), 11.63"
+    "fonte": "Blanc's law in the 1:1 mixture: in N2 the measured table of the entry N^+ em N2 (Ellis et al. 1976); in H2 Langevin K0, 13.853/sqrt(alpha mu), alpha of N2 1.740 and of H2 0.8045 Å3 (estimate; against the measurements in N2 of N2+, N+, N3+ and N4+, it overestimates by 5% to 50%), 11.63"
   },
   "N2^+ em N2+H2": {
     "mobilidade": {
@@ -593,7 +593,7 @@
       ],
       "acima": "raiz"
     },
-    "fonte": "lei de Blanc na mistura 1:1: em N2 a tabela medida da entrada N2^+ em N2 (Ellis et al. 1976); em H2 K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%), 11.26"
+    "fonte": "Blanc's law in the 1:1 mixture: in N2 the measured table of the entry N2^+ em N2 (Ellis et al. 1976); in H2 Langevin K0, 13.853/sqrt(alpha mu), alpha of N2 1.740 and of H2 0.8045 Å3 (estimate; against the measurements in N2 of N2+, N+, N3+ and N4+, it overestimates by 5% to 50%), 11.26"
   },
   "N3^+ em N2+H2": {
     "mobilidade": {
@@ -642,7 +642,7 @@
       ],
       "acima": "raiz"
     },
-    "fonte": "lei de Blanc na mistura 1:1: em N2 a tabela medida da entrada N3^+ em N2 (Ellis et al. 1976); em H2 K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%), 11.14"
+    "fonte": "Blanc's law in the 1:1 mixture: in N2 the measured table of the entry N3^+ em N2 (Ellis et al. 1976); in H2 Langevin K0, 13.853/sqrt(alpha mu), alpha of N2 1.740 and of H2 0.8045 Å3 (estimate; against the measurements in N2 of N2+, N+, N3+ and N4+, it overestimates by 5% to 50%), 11.14"
   },
   "N4^+ em N2+H2": {
     "mobilidade": {
@@ -675,69 +675,69 @@
       ],
       "acima": "raiz"
     },
-    "fonte": "lei de Blanc na mistura 1:1: em N2 a tabela medida da entrada N4^+ em N2 (Ellis et al. 1976); em H2 K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%), 11.07"
+    "fonte": "Blanc's law in the 1:1 mixture: in N2 the measured table of the entry N4^+ em N2 (Ellis et al. 1976); in H2 Langevin K0, 13.853/sqrt(alpha mu), alpha of N2 1.740 and of H2 0.8045 Å3 (estimate; against the measurements in N2 of N2+, N+, N3+ and N4+, it overestimates by 5% to 50%), 11.07"
   },
   "H^+ em N2+H2": {
     "mobilidade": {
       "tipo": "constante",
       "K0": 13.6052
     },
-    "fonte": "lei de Blanc na mistura 1:1 de K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%): 10.65 em N2 e 18.84 em H2; sem dependência com E/N"
+    "fonte": "Blanc's law in the 1:1 mixture of Langevin K0, 13.853/sqrt(alpha mu), alpha of N2 1.740 and of H2 0.8045 Å3 (estimate; against the measurements in N2 of N2+, N+, N3+ and N4+, it overestimates by 5% to 50%): 10.65 in N2 and 18.84 in H2; no dependence on E/N"
   },
   "H2^+ em N2+H2": {
     "mobilidade": {
       "tipo": "constante",
       "K0": 10.2256
     },
-    "fonte": "lei de Blanc na mistura 1:1 de K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%): 7.66 em N2 e 15.38 em H2; sem dependência com E/N"
+    "fonte": "Blanc's law in the 1:1 mixture of Langevin K0, 13.853/sqrt(alpha mu), alpha of N2 1.740 and of H2 0.8045 Å3 (estimate; against the measurements in N2 of N2+, N+, N3+ and N4+, it overestimates by 5% to 50%): 7.66 in N2 and 15.38 in H2; no dependence on E/N"
   },
   "H3^+ em N2+H2": {
     "mobilidade": {
       "tipo": "constante",
       "K0": 8.7519
     },
-    "fonte": "lei de Blanc na mistura 1:1 de K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%): 6.36 em N2 e 14.04 em H2; sem dependência com E/N"
+    "fonte": "Blanc's law in the 1:1 mixture of Langevin K0, 13.853/sqrt(alpha mu), alpha of N2 1.740 and of H2 0.8045 Å3 (estimate; against the measurements in N2 of N2+, N+, N3+ and N4+, it overestimates by 5% to 50%): 6.36 in N2 and 14.04 in H2; no dependence on E/N"
   },
   "NH^+ em N2+H2": {
     "mobilidade": {
       "tipo": "constante",
       "K0": 5.2079
     },
-    "fonte": "lei de Blanc na mistura 1:1 de K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%): 3.36 em N2 e 11.58 em H2; sem dependência com E/N"
+    "fonte": "Blanc's law in the 1:1 mixture of Langevin K0, 13.853/sqrt(alpha mu), alpha of N2 1.740 and of H2 0.8045 Å3 (estimate; against the measurements in N2 of N2+, N+, N3+ and N4+, it overestimates by 5% to 50%): 3.36 in N2 and 11.58 in H2; no dependence on E/N"
   },
   "N2H^+ em N2+H2": {
     "mobilidade": {
       "tipo": "constante",
       "K0": 4.4603
     },
-    "fonte": "lei de Blanc na mistura 1:1 de K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%): 2.78 em N2 e 11.25 em H2; sem dependência com E/N"
+    "fonte": "Blanc's law in the 1:1 mixture of Langevin K0, 13.853/sqrt(alpha mu), alpha of N2 1.740 and of H2 0.8045 Å3 (estimate; against the measurements in N2 of N2+, N+, N3+ and N4+, it overestimates by 5% to 50%): 2.78 in N2 and 11.25 in H2; no dependence on E/N"
   },
   "NH2^+ em N2+H2": {
     "mobilidade": {
       "tipo": "constante",
       "K0": 5.1197
     },
-    "fonte": "lei de Blanc na mistura 1:1 de K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%): 3.29 em N2 e 11.54 em H2; sem dependência com E/N"
+    "fonte": "Blanc's law in the 1:1 mixture of Langevin K0, 13.853/sqrt(alpha mu), alpha of N2 1.740 and of H2 0.8045 Å3 (estimate; against the measurements in N2 of N2+, N+, N3+ and N4+, it overestimates by 5% to 50%): 3.29 in N2 and 11.54 in H2; no dependence on E/N"
   },
   "NH3^+ em N2+H2": {
     "mobilidade": {
       "tipo": "constante",
       "K0": 5.04
     },
-    "fonte": "lei de Blanc na mistura 1:1 de K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%): 3.23 em N2 e 11.50 em H2; sem dependência com E/N"
+    "fonte": "Blanc's law in the 1:1 mixture of Langevin K0, 13.853/sqrt(alpha mu), alpha of N2 1.740 and of H2 0.8045 Å3 (estimate; against the measurements in N2 of N2+, N+, N3+ and N4+, it overestimates by 5% to 50%): 3.23 in N2 and 11.50 in H2; no dependence on E/N"
   },
   "NH4^+ em N2+H2": {
     "mobilidade": {
       "tipo": "constante",
       "K0": 4.9675
     },
-    "fonte": "lei de Blanc na mistura 1:1 de K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%): 3.17 em N2 e 11.47 em H2; sem dependência com E/N"
+    "fonte": "Blanc's law in the 1:1 mixture of Langevin K0, 13.853/sqrt(alpha mu), alpha of N2 1.740 and of H2 0.8045 Å3 (estimate; against the measurements in N2 of N2+, N+, N3+ and N4+, it overestimates by 5% to 50%): 3.17 in N2 and 11.47 in H2; no dependence on E/N"
   },
   "H^- em N2+H2": {
     "mobilidade": {
       "tipo": "constante",
       "K0": 13.6052
     },
-    "fonte": "lei de Blanc na mistura 1:1 de K0 de Langevin, 13,853/raiz(alfa mu), alfa do N2 1,740 e do H2 0,8045 Å3 (estimativa; contra as medidas em N2 do N2+, N+, N3+ e N4+, superestima de 5% a 50%): 10.65 em N2 e 18.84 em H2; sem dependência com E/N"
+    "fonte": "Blanc's law in the 1:1 mixture of Langevin K0, 13.853/sqrt(alpha mu), alpha of N2 1.740 and of H2 0.8045 Å3 (estimate; against the measurements in N2 of N2+, N+, N3+ and N4+, it overestimates by 5% to 50%): 10.65 in N2 and 18.84 in H2; no dependence on E/N"
   }
 }

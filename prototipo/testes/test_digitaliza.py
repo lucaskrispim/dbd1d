@@ -16,7 +16,7 @@ import digitaliza as dg  # noqa: E402
 
 # the vector reading passes the PDF through pdftocairo (package poppler-utils)
 precisa_pdftocairo = pytest.mark.skipif(shutil.which("pdftocairo") is None,
-                                        reason="pdftocairo (poppler-utils) não instalado")
+                                        reason="pdftocairo (poppler-utils) not installed")
 
 X_PONTOS = np.array([100.0, 300.0, 500.0, 650.0])
 Y_PONTOS = np.array([0.559, 0.935, 1.535, 2.474])

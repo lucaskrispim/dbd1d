@@ -1,4 +1,4 @@
-# Takashima 2012, gerador CPT, a partir do campo aplicado a 60 Torr (fig. 7), ε = 4.2; t (s), V (V)
+# Takashima 2012, CPT generator, from the applied field at 60 Torr (fig. 7), eps = 4.2; t (s), V (V)
 0.000000e+00 0.000000e+00
 5.000000e-10 -4.072683e+01
 1.000000e-09 -8.145367e+01

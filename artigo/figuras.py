@@ -66,6 +66,9 @@ def stankov(base):
     for n, cor in ((100, "C0"), (400, "C3")):
         r = ultimo_periodo(st / f"S100_n{n}")
         e[0, 0].plot(r["t"] * 1e6, r["I"] * 1e3, cor, lw=0.9, label=f"dbd1d, {n} cells")
+    if (st / "J100").is_dir():
+        r = ultimo_periodo(st / "J100")
+        e[0, 0].plot(r["t"] * 1e6, r["I"] * 1e3, "C2", lw=0.9, label="dbd1d, Jovanović coefficients")
     e[0, 0].set(xlabel="t (µs)", ylabel="I (mA)", title="(a) current, 100 mbar, 1.8 kV")
     legenda(e[0, 0])
     pres = [100, 300, 500, 650]
@@ -74,6 +77,12 @@ def stankov(base):
     e[0, 1].plot(f7[:, 0], f7[:, 1], "ks-", label="measured")
     e[0, 1].plot(f7[:, 0], f7[:, 4], "^--", color="gray", label=r"model of Stankov, $\gamma$ = 0.02")
     e[0, 1].plot(pres, p1d, "C0o-", label="dbd1d")
+    # variants: coefficients of Jovanovic et al. 2023 and electron reflection 0.7
+    for prefixo, sufixo, estilo, rot in (("J", "", "C2v-", "dbd1d, Jovanović coefficients"),
+                                         ("R", "_r07", "C1D-", r"dbd1d, $r_e$ = 0.7")):
+        if all((st / f"{prefixo}{p}{sufixo}").is_dir() for p in pres):
+            e[0, 1].plot(pres, [ultimo_periodo(st / f"{prefixo}{p}{sufixo}")["P"] for p in pres], estilo,
+                         ms=4, lw=0.8, label=rot)
     e[0, 1].set(xlabel="p (mbar)", ylabel="P (W)", title="(b) mean power")
     legenda(e[0, 1])
     gamas = [0.005, 0.01, 0.02, 0.04, 0.08]
@@ -103,6 +112,9 @@ def stankov(base):
     nr = le("stankov2020", "fig4_ne_medio_modelo_gama0.02.csv")
     fig, e = plt.subplots(1, 2, figsize=(7.2, 3.5))
     e[0].plot(r["t"] * 1e6, r["Ugap"], "C0", label="dbd1d")
+    if (st / "J100").is_dir():
+        rj = ultimo_periodo(st / "J100")
+        e[0].plot(rj["t"] * 1e6, rj["Ugap"], "C2", lw=0.9, label="dbd1d, Jovanović coefficients")
     e[0].plot(ug[:, 0], ug[:, 1], "k--", lw=0.9, label="model of Stankov")
     e[0].set(xlabel="t (µs)", ylabel=r"$U_{gap}$ (V)", title="(a) gap voltage")
     e[1].semilogy(tn * 1e6, ne, "C0", label="dbd1d")
@@ -114,22 +126,28 @@ def stankov(base):
 
 
 def loffhagen(base):
-    us, rz = [], []
     fig, e = plt.subplots(1, 2, figsize=(7.2, 3.5))
-    for d in sorted(x for x in (base / "validacao_loffhagen").glob("L[0-9]*") if x.is_dir()):
-        a = json.loads((d / "parametros.json").read_text())["argumentos"]
-        s = np.loadtxt(d / "superficie.dat", skiprows=1)
-        t, v, phi = s[:, 0], s[:, 1], s[:, 2]
-        i = np.gradient(EPS0 * a["eps_dieletrico"] * (v - phi) / a["espessura"] * 8e-4, t)
-        per = a["periodo"]
-        m = t >= 9 * per - 1e-12
-        c = EPS0 * 8e-4 / (a["gap"] + 2 * a["espessura"] / a["eps_dieletrico"])
-        us.append(a["v_pico"] / 1e3)
-        rz.append(np.abs(i[m]).max() / np.abs(np.gradient(c * v, t))[m].max())
-        if a["v_pico"] in (2800, 2850, 3500):
-            e[1].plot((t[m] - 9 * per) * 1e6, i[m] * 1e3, label=f"$U_0$ = {a['v_pico'] / 1e3:.2f} kV")
-    o = np.argsort(us)
-    e[0].plot(np.array(us)[o], np.array(rz)[o], "C0o-", ms=3.5, label="dbd1d, 10th period")
+    series = (("L[0-9]*", "C0o-", r"dbd1d, $\gamma$ = 0.02"), ("LG0.01_*", "C1s--", r"$\gamma$ = 0.01"),
+              ("LG0.08_*", "C3^--", r"$\gamma$ = 0.08"), ("LJ_*", "C2v-", "Jovanović coefficients"))
+    for padrao, estilo, rot in series:
+        us, rz = [], []
+        for d in sorted(x for x in (base / "validacao_loffhagen").glob(padrao) if x.is_dir()):
+            a = json.loads((d / "parametros.json").read_text())["argumentos"]
+            s = np.loadtxt(d / "superficie.dat", skiprows=1, ndmin=2)
+            t, v, phi = s[:, 0], s[:, 1], s[:, 2]
+            per = a["periodo"]
+            if t[-1] < 10 * per * (1 - 1e-9):
+                continue  # run not finished
+            i = np.gradient(EPS0 * a["eps_dieletrico"] * (v - phi) / a["espessura"] * 8e-4, t)
+            m = t >= 9 * per - 1e-12
+            c = EPS0 * 8e-4 / (a["gap"] + 2 * a["espessura"] / a["eps_dieletrico"])
+            us.append(a["v_pico"] / 1e3)
+            rz.append(np.abs(i[m]).max() / np.abs(np.gradient(c * v, t))[m].max())
+            if padrao == "L[0-9]*" and a["v_pico"] in (2800, 2850, 3500):
+                e[1].plot((t[m] - 9 * per) * 1e6, i[m] * 1e3, label=f"$U_0$ = {a['v_pico'] / 1e3:.2f} kV")
+        if us:
+            o = np.argsort(us)
+            e[0].plot(np.array(us)[o], np.array(rz)[o], estilo, ms=3.5, lw=0.8, label=rot)
     e[0].axvspan(2.865, 3.174, color="tab:orange", alpha=0.3, label="measured ignition")
     e[0].axvline(3.649, color="gray", ls="--", label="model of Loffhagen")
     e[0].set(xlabel=r"$U_0$ (kV)", ylabel="peak current / capacitive peak", title="(a) ignition, Ar at 1 atm")

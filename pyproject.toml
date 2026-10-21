@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dbd1d"
-version = "1.2.0"
+version = "1.2.1"
 description = "One-dimensional fluid model of dielectric barrier discharges generated from ZDPlasKin chemistry files"
 readme = "README.md"
 license = "GPL-3.0-or-later"
@@ -16,8 +16,8 @@ figures = ["matplotlib>=3.5", "pillow>=9"]
 test = ["pytest>=7", "matplotlib>=3.5", "pillow>=9"]
 
 [tool.setuptools]
-# o programa roda das pastas do repositório (prototipo/, ferramentas/); instalar
-# o projeto só instala as dependências
+# the program runs from the folders of the repository (prototipo/, ferramentas/);
+# installing the project only installs the dependencies
 packages = []
 
 [tool.pytest.ini_options]
