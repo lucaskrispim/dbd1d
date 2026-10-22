@@ -36,7 +36,7 @@ import numpy as np
 from scipy.optimize import brentq
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(RAIZ / "prototipo"))
+sys.path.insert(0, str(RAIZ / "dbd1d"))
 
 ME = 9.1093837015e-31
 T_TRANSITORIO = 1.0e-5   # s: a few ion transit times in a gap of 1 to 2 mm at 100 Torr
@@ -117,7 +117,7 @@ def ruptura_referencia(gap, pressao, gama, r=0.0, sem_termico=False, sem_difusao
 
 def roda(destino, gap, pressao, gama, v, celulas, py, t_end, reflexao=0.0):
     gap, pressao, gama, v = (float(x) for x in (gap, pressao, gama, v))
-    cmd = [py, str(RAIZ / "prototipo" / "simula.py"), str(destino), "--gap", repr(gap), "--thickness", "0",
+    cmd = [py, str(RAIZ / "dbd1d" / "simula.py"), str(destino), "--gap", repr(gap), "--thickness", "0",
            "--pressure", repr(pressao), "--gamma", repr(gama), "--cells", str(celulas), "--clustering", "3.0",
            "--waveform", "step", "--rise", "1e-9", "--v-peak", repr(v), "--neutral", "--ne0", "1e2",
            "--atol", "1e-14", "--t-end", repr(t_end), "--dt-output", repr(t_end / 100),

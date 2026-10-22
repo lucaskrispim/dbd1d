@@ -505,7 +505,7 @@ def gera_transporte(pasta, biblioteca=None, quimica=None, estimar=False):
     (Langevin and Blanc) and diffusion (kinetic theory), with the source marked
     as an estimate; the wall loss is not estimated."""
     import json
-    sys.path.insert(0, str(RAIZ / "prototipo"))
+    sys.path.insert(0, str(RAIZ / "dbd1d"))
     from quimica_zdp import Quimica
     pasta = pathlib.Path(pasta)
     q = quimica if quimica is not None else Quimica(pasta / "zdplaskin_m.F90")
@@ -635,7 +635,7 @@ def estima_entalpias(pasta):
     (propaga_entalpias). Keeps what exists, records the origin of each new value
     in the source of the block and returns the missing species."""
     import json
-    sys.path.insert(0, str(RAIZ / "prototipo"))
+    sys.path.insert(0, str(RAIZ / "dbd1d"))
     from quimica_zdp import Quimica
     pasta = pathlib.Path(pasta)
     q = Quimica(pasta / "zdplaskin_m.F90")
@@ -712,7 +712,7 @@ def exporta(pasta):
     chemistry the simulator uses without the code of ZDPlasKin (to distribute
     the case, which cannot carry zdplaskin_m.F90)."""
     pasta = pathlib.Path(pasta)
-    sys.path.insert(0, str(RAIZ / "prototipo"))
+    sys.path.insert(0, str(RAIZ / "dbd1d"))
     from quimica_zdp import Quimica
     for nome in ("zdplaskin_m.F90", "bolsigdb.dat"):
         if not (pasta / nome).exists():
@@ -738,7 +738,7 @@ def main():
         return
     if len(sys.argv) != 3 or sys.argv[1] not in ACOES:
         sys.exit(__doc__)
-    sys.path.insert(0, str(RAIZ / "prototipo"))
+    sys.path.insert(0, str(RAIZ / "dbd1d"))
     from quimica_zdp import ErroQuimica
     try:
         for acao in ACOES[sys.argv[1]]:

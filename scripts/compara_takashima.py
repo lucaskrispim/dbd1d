@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""V5 of validacao/LEIAME.md: energy coupled in the fifth pulse (restarts of
+"""V5 of validacao/README.md: energy coupled in the fifth pulse (restarts of
 remoto/validacao_takashima_pulso.sh or scripts/retoma_fina.py) versus pressure,
 compared with Takashima et al. 2012 (fig. 8, CPT generator, 20 and 40 kHz).
 E = integral of V dQ over the pulse, with Q = eps0 eps_d (V - phi_left) A / Delta

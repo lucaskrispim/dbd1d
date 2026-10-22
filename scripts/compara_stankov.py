@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""V1 of validacao/LEIAME.md: runs of remoto/validacao_stankov.sh against Stankov
+"""V1 of validacao/README.md: runs of remoto/validacao_stankov.sh against Stankov
 et al. 2020 (docs/literatura/dados/stankov2020/).
 
 From superficie.dat: charge on the powered electrode Q = eps0 eps_d (V - phi_left)

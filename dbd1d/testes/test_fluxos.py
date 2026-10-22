@@ -17,7 +17,7 @@ import fluxos  # noqa: E402
 @pytest.fixture(scope="module")
 def execucao(tmp_path_factory):
     d = tmp_path_factory.mktemp("fluxo") / "ar"
-    subprocess.run([sys.executable, str(RAIZ / "prototipo" / "simula.py"), str(d), "--n-celulas", "12", "--agrupamento", "2.0",
+    subprocess.run([sys.executable, str(RAIZ / "dbd1d" / "simula.py"), str(d), "--n-celulas", "12", "--agrupamento", "2.0",
                     "--v-pico", "5e3", "--espessura", "1.75e-3", "--energia", "--neutro", "--ne0", "1e9",
                     "--t-end", "2e-8", "--dt-saida", "1e-9"], check=True, capture_output=True,
                    env={"OPENBLAS_NUM_THREADS": "1", "PATH": ""})

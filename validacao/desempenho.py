@@ -13,7 +13,7 @@ import re
 import sys
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(RAIZ / "prototipo"))
+sys.path.insert(0, str(RAIZ / "dbd1d"))
 
 
 def mistura(caso):

@@ -7,7 +7,7 @@ import sys
 from conftest import RAIZ
 
 sys.path.insert(0, str(RAIZ / "scripts"))
-sys.path.insert(0, str(RAIZ / "prototipo"))
+sys.path.insert(0, str(RAIZ / "dbd1d"))
 import retoma_fina  # noqa: E402
 from simula import cria_parser  # noqa: E402
 

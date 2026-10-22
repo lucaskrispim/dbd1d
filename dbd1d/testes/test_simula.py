@@ -234,7 +234,7 @@ def test_parametros_com_malha_por_arquivo_e_identificacao_do_codigo(tmp_path):
     assert p["argumentos"]["faces"] == str(arq.resolve())
     assert p["sha256"]["faces"] == hashlib.sha256(arq.read_bytes()).hexdigest()
     for nome in ("tabela_energia.dat", "tabela_energia_tg.dat", "tabela_bolsig.dat", "zdplaskin_m.F90", "quimica.json",
-                 "bolsigdb.dat", "transporte.json", "prototipo/modelo.py"):
+                 "bolsigdb.dat", "transporte.json", "dbd1d/modelo.py"):
         # the distributed package has neither zdplaskin_m.F90 nor bolsigdb.dat: it records what exists
         if (RAIZ / nome).exists():
             assert p["sha256"][nome] == hashlib.sha256((RAIZ / nome).read_bytes()).hexdigest()
@@ -599,7 +599,7 @@ def test_nomes_antigos_das_opcoes_continuam_aceitos(tmp_path):
 
 
 def test_versao_igual_a_do_pyproject():
-    # one version: prototipo/versao.py, repeated in pyproject.toml (at the root of the
+    # one version: dbd1d/versao.py, repeated in pyproject.toml (at the root of the
     # package, or in empacotamento/raiz in the research repository)
     sys.path.insert(0, str(PROTOTIPO))
     from versao import VERSAO

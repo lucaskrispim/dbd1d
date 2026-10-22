@@ -19,11 +19,11 @@ PULSO=validacao/takashima2012/pulso_cpt.txt
 export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
 DIR=execucoes/validacao_takashima
 echo "start: $(date)"
-python3 -c "import sys; sys.path.insert(0, 'prototipo'); from versao import VERSAO; print('dbd1d', VERSAO)"; git rev-parse HEAD 2>/dev/null
+python3 -c "import sys; sys.path.insert(0, 'dbd1d'); from versao import VERSAO; print('dbd1d', VERSAO)"; git rev-parse HEAD 2>/dev/null
 for p in "$@"; do
     t0=$(python3 -c "print(repr(($p - 1) * 2.5e-5))")
     fim=$(python3 -c "print(repr(($p - 1) * 2.5e-5 + 2.4e-7))")
-    ( /usr/bin/time -f "wall time: %e s" $PY prototipo/simula.py $DIR/${ORIGEM}_p$p --case casos/ar_n2_o2 \
+    ( /usr/bin/time -f "wall time: %e s" $PY dbd1d/simula.py $DIR/${ORIGEM}_p$p --case casos/ar_n2_o2 \
         --restart $DIR/$ORIGEM $t0 \
         --cells $N --clustering 3.0 --energy --heating \
         --gap 1e-2 --thickness 1.75e-3 --eps-dielectric $EPS \

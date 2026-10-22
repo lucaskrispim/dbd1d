@@ -8,7 +8,7 @@ set -e
 cd "$(dirname "$0")/.."
 export OPENBLAS_NUM_THREADS=1
 T=4.1666666666666665e-05
-python3 prototipo/simula.py execucoes/quickstart --cells 50 --clustering 3.0 --energy \
+python3 dbd1d/simula.py execucoes/quickstart --cells 50 --clustering 3.0 --energy \
     --gap 3e-3 --thickness 1e-3 --eps-dielectric 4.2 --gamma 0.02 --eps-sec 2 \
     --pressure 1e4 --t-gas 300 --waveform sine --period $T --v-peak -1800 \
     --neutral --ne0 1e6 --t-end $(python3 -c "print(repr(3 * $T))") --dt-output $(python3 -c "print(repr($T / 400))")

@@ -1,6 +1,7 @@
 # Record of the measurements used to validate the 1D simulator
 
-Complete rereading of the articles in `docs/artigos/` on 20/10/2026. For each article: the
+Complete rereading of the articles on 20/10/2026 (their PDFs are kept in `docs/artigos/` of the
+research repository and are not redistributed). For each article: the
 conditions of the experiment (input of the simulator), each measured or computed quantity that can
 be compared, where it came from, the file with the numbers and the corresponding quantity of the
 simulator. The numbers were extracted from the figures by `ferramentas/digitaliza.py` (vector when

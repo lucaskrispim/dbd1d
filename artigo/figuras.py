@@ -48,8 +48,13 @@ def fecha(fig, saida):
             continue
         abaixo = (eixo.get_window_extent(r).y0 - eixo.get_tightbbox(r).y0) * 72.0 / fig.dpi + 3.0
         desloca = eixo.transAxes + ScaledTranslation(0.0, -abaixo / 72.0, fig.dpi_scale_trans)
-        eixo.legend(loc="upper center", bbox_to_anchor=(0.5, 0.0), bbox_transform=desloca, borderaxespad=0.0,
-                    ncol=2, frameon=False, columnspacing=1.2, handlelength=1.8, **kw)
+        # two columns when they fit within the width of the panel, otherwise one: wider legends
+        # ran into the legend of the panel beside it
+        for ncol in (2, 1):
+            leg = eixo.legend(loc="upper center", bbox_to_anchor=(0.5, 0.0), bbox_transform=desloca,
+                              borderaxespad=0.0, ncol=ncol, frameon=False, columnspacing=1.2, handlelength=1.8, **kw)
+            if leg.get_window_extent(r).width <= eixo.get_window_extent(r).width:
+                break
     fig.tight_layout()
     fig.savefig(saida)
 
@@ -273,7 +278,7 @@ def enxame():
 
 def main():
     # folder with validacao_stankov, validacao_loffhagen, validacao_takashima and validacao_yang
-    # (artigo/LEIAME.md lists the runs)
+    # (artigo/README.md lists the runs)
     base = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else RAIZ / "execucoes"
     SAIDA.mkdir(exist_ok=True)
     plt.rcParams.update(ESTILO)

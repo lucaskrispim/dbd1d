@@ -262,7 +262,7 @@ def test_svg_do_poppler_22_e_do_24_dao_os_mesmos_tracos():
     # pdftocairo 22.02 and 24.02: 24 (cairo 1.18) replaces the style attribute
     # by presentation attributes, puts spaces inside rgb() and leaves the
     # fill of the text in the enclosing <g>
-    dados = RAIZ / "prototipo" / "testes" / "dados"
+    dados = RAIZ / "dbd1d" / "testes" / "dados"
     a = dg.tracos_svg(dados / "figura_poppler22.svg")
     b = dg.tracos_svg(dados / "figura_poppler24.svg")
     assert len(a) == len(b) > 0

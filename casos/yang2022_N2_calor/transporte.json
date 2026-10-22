@@ -1,6 +1,6 @@
 {
   "_formato": [
-    "Transport data of the heavy species, read by the simulator (prototipo/modelo.py) or given by --transport.",
+    "Transport data of the heavy species, read by the simulator (dbd1d/modelo.py) or given by --transport.",
     "Each transported species except E needs massa_u, the mass in u. The background gas is transported only with --free-gas.",
     "Positive ions of charge 1 need mobilidade, reduced to the Loschmidt density in cm2/(V s), of tipo constante (K0), frost (K0 and EN_aquecimento in Td, with K = K0 (1 + (E/N)/EN_aquecimento)^(-1/2)) or tabela (E_N in Td, increasing, and K0, interpolated linearly; below the first point, clamped; above the last, clamped or, with acima = raiz, K = K_last (E/N_last / (E/N))^(1/2)).",
     "Neutrals need difusao, D = (D0/p) (T/T0)^expoente in m2/s with p in atm, and perda_na_parede, the probability gamma of loss per collision with the wall (flux gamma/(2 - gamma) n v/2; the free background gas does not need it).",

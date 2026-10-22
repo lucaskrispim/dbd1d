@@ -39,3 +39,21 @@ def test_legenda_fica_abaixo_dos_dados_e_do_rotulo(tmp_path):
         x.get_legend().set_visible(False)
         assert leg.y1 <= x.get_tightbbox(r).y0 + 0.5
     plt.close(fig)
+
+
+def test_legendas_de_paineis_lado_a_lado_nao_se_tocam(tmp_path):
+    # long labels in two columns are wider than the panel and ran into the legend of the
+    # panel beside it (Fig. 2 of the article): the legends must not overlap
+    import matplotlib.pyplot as plt
+    plt.rcParams.update(figuras.ESTILO)
+    fig, e = plt.subplots(1, 2, figsize=(7.2, 3.5))
+    for x in e:
+        for k in range(5):
+            x.plot([0, 1], [k, k + 1], label=f"dbd1d, Jovanović coefficients, series {k}")
+        figuras.legenda(x)
+    figuras.fecha(fig, tmp_path / "f.pdf")
+    r = fig.canvas.get_renderer()
+    a, b = (x.get_legend().get_window_extent(r) for x in e)
+    assert a.x1 < b.x0
+    plt.close(fig)
+    plt.rcdefaults()

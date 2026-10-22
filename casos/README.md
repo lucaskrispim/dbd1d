@@ -24,7 +24,7 @@ The actions are `zdplaskin`, `tables`, `transport`, `estimate`, `enthalpies`, `h
 `export` and `all`; the Portuguese names of earlier versions are still accepted.
 
 Running a case needs only `quimica.json`, the tables, `gas.json` and `transporte.json`:
-`python3 prototipo/simula.py OUTPUT --case casos/NAME ...`.
+`python3 dbd1d/simula.py OUTPUT --case casos/NAME ...`.
 
 ## Cases used in the article that are not distributed
 

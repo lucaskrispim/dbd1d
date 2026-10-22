@@ -19,7 +19,28 @@ complete model (species, reactions, electron coefficients, transport) without ed
 
 Options, messages and comments are in English. Identifiers, file names and the keys of the data
 files keep their original Portuguese names, and the earlier Portuguese option names (`--pressao`,
-`--forma seno`, ...) are still accepted as aliases.
+`--forma seno`, ...) are still accepted as aliases. Up to version 1.2.2 the folder `dbd1d/` was
+called `prototipo/`.
+
+## Layout of the repository
+
+| Folder | Content |
+|---|---|
+| `dbd1d/` | the simulator: `simula.py` (command line), `modelo.py` (model), `jacobiano.py` and `bdf_dae.py` (integration), `quimica_zdp.py` (chemistry), `tabela.py` (electron tables); tests in `dbd1d/testes/` |
+| `ferramentas/` | tools: `caso.py` builds a case from ZDPlasKin files, with the Fortran programs that generate the electron tables; the digitizer of published figures and an electron swarm Monte Carlo |
+| `casos/` | cases (gas mixtures); the argon case is at the repository root; see `casos/README.md` |
+| `biblioteca/` | library of transport data per species and background gas |
+| `validacao/` | validation and verification: `curta.py` (short validation), `townsend.py`, the input pulses of the pulsed cases; see `validacao/README.md` |
+| `scripts/` | comparison and analysis scripts (`compara_*.py`, `resumo.py`, `fluxos.py`, `retoma_fina.py`, ...) |
+| `remoto/` | scripts that start the validation runs (`validacao_*.sh`) |
+| `docs/literatura/` | record of the measurements and the data digitized from the articles, with the extraction scripts |
+| `artigo/` | the figure script of the article and `artigo/README.md`, the command of every run |
+| `exemplos/` | `quickstart.sh` |
+| `referencias/` | reference outputs of the regression test |
+
+Folder and file names are in Portuguese (*ferramentas*: tools, *casos*: cases, *biblioteca*: library,
+*validacao*: validation, *remoto*: remote, *referencias*: references); the options, messages,
+comments and documentation are in English.
 
 ## Installation
 
@@ -69,10 +90,10 @@ package `poppler-utils`); without it, its four vector tests are skipped.
 
 Tested with numpy 2.2 and 2.5, scipy 1.15 and 1.18. The integrator builds on the internal BDF
 implementation of scipy (`scipy.integrate._ivp`), so scipy is bounded below 1.19 until a newer
-version is tested. With the command above, 450 tests pass, 59 are skipped and 14 slow ones (marked
+version is tested. With the command above, 451 tests pass, 59 are skipped and 14 slow ones (marked
 `lento`) are deselected; without `-m "not lento"`, 72 are skipped. Each skipped test states, before
 running, the file it needs: ZDPlasKin and BOLSIG+ (to generate cases), the gas mixtures whose
-mechanisms and cross sections we cannot redistribute (`casos/LEIAME.md`), or the old Fortran code of
+mechanisms and cross sections we cannot redistribute (`casos/README.md`), or the old Fortran code of
 the research repository with its references. With `ZDPLASKIN_DIR` set and those cases rebuilt, the
 first two groups run too.
 
@@ -86,7 +107,7 @@ runs reduced versions of the comparisons of the article in a few minutes (about 
 checks them: the argon DBD of Stankov et al. 2020 for 3 periods with 50 cells, the ignition of argon
 at 1 atm below and above the measured band of Loffhagen et al. 2020, the Townsend breakdown against
 its continuous reference and the electron swarm data of argon. The full runs of the article, which
-take hours to days, are listed with their commands in `artigo/LEIAME.md`.
+take hours to days, are listed with their commands in `artigo/README.md`.
 
 ## Quick start
 
@@ -101,10 +122,10 @@ mean power 0.647 W (measured 0.559 W) and current peak of about 24 mA at 19.6 µ
 ## Running
 
 ```
-python3 prototipo/simula.py OUTPUT_DIR [--case casos/NAME] --gap 3e-3 --thickness 1e-3 \
+python3 dbd1d/simula.py OUTPUT_DIR [--case casos/NAME] --gap 3e-3 --thickness 1e-3 \
     --eps-dielectric 4.2 --pressure 1e4 --waveform sine --period 4e-5 --v-peak 1800 \
     --energy --t-end 4e-4 --dt-output 5e-8
-python3 prototipo/simula.py --help
+python3 dbd1d/simula.py --help
 ```
 
 `--t-end` must be a whole number of `--dt-output` intervals.
@@ -126,13 +147,13 @@ and must be credited to those articles.
 
 ## New gas mixtures
 
-See `casos/LEIAME.md`. Generating a case needs ZDPlasKin and BOLSIG+, which are free for
+See `casos/README.md`. Generating a case needs ZDPlasKin and BOLSIG+, which are free for
 non-commercial use but cannot be redistributed: download them from
 www.zdplaskin.laplace.univ-tlse.fr and set `ZDPLASKIN_DIR`. Running a case does not need them.
 
 ## Validation
 
-`validacao/LEIAME.md` defines the comparisons of the article (Stankov et al. 2020, Loffhagen et
+`validacao/README.md` defines the comparisons of the article (Stankov et al. 2020, Loffhagen et
 al. 2020, Yang et al. 2022, Takashima et al. 2012, electron swarm data); the measured data
 extracted from the figures of these articles are in `docs/literatura/dados/`, each with the script
 that extracts them. The runs are started by `remoto/validacao_*.sh` and compared by

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""V4 of validacao/LEIAME.md: swarm parameters of BOLSIG+ with the argon cross
+"""V4 of validacao/README.md: swarm parameters of BOLSIG+ with the argon cross
 sections (tabela_bolsig.dat at the repository root) against the data compiled in figures 7
 to 10 of Crispim et al. 2024 (docs/literatura/dados/crispim2024/).
 

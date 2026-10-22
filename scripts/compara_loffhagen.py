@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""V2 of validacao/LEIAME.md: amplitude scan of remoto/validacao_loffhagen.sh
+"""V2 of validacao/README.md: amplitude scan of remoto/validacao_loffhagen.sh
 against the ignition voltage of Loffhagen et al. 2020 (3.02 kV measured in pure
 Ar, 2.87 to 3.17 kV; 3.65 kV in their model).
 

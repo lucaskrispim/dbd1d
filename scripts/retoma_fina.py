@@ -17,7 +17,7 @@ import subprocess
 import sys
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(RAIZ / "prototipo"))
+sys.path.insert(0, str(RAIZ / "dbd1d"))
 
 # the ones the restart changes; the others are repeated as they are
 TROCADAS = ("dir", "retoma", "t_end", "dt_saida")
@@ -54,7 +54,7 @@ def main():
     for n in a.pulsos:
         t0 = inicio_do_pulso(n, arg["periodo"])
         destino = a.origem.parent / f"{a.origem.name}_p{n}"
-        cmd = ["/usr/bin/time", "-f", "wall time: %e s", a.python, str(RAIZ / "prototipo" / "simula.py")] + \
+        cmd = ["/usr/bin/time", "-f", "wall time: %e s", a.python, str(RAIZ / "dbd1d" / "simula.py")] + \
             linha_de_comando(arg, destino, t0, t0 + a.janela, a.dt)
         log = open(f"{destino}.log", "w")
         procs.append(subprocess.Popen(cmd, stdout=log, stderr=subprocess.STDOUT, env=env, cwd=RAIZ))

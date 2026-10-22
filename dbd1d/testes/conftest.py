@@ -45,7 +45,7 @@ def precisa_arquivo(*caminhos):
     of them is missing."""
     faltam = [c for c in caminhos if not (RAIZ / c).exists()]
     return pytest.mark.skipif(bool(faltam), reason=f"needs {', '.join(faltam)}, which is not distributed "
-                                                   "(casos/LEIAME.md)")
+                                                   "(casos/README.md)")
 
 
 def precisa_caso(nome):
@@ -54,4 +54,4 @@ def precisa_caso(nome):
     caso = RAIZ / "casos" / nome
     tem = ((caso / "zdplaskin_m.F90").exists() or (caso / "quimica.json").exists()) \
         and (caso / "tabela_energia_tg.dat").exists()
-    return pytest.mark.skipif(not tem, reason=f"casos/{nome} without chemistry or tables (not distributed, casos/LEIAME.md)")
+    return pytest.mark.skipif(not tem, reason=f"casos/{nome} without chemistry or tables (not distributed, casos/README.md)")

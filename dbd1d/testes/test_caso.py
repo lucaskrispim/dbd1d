@@ -196,7 +196,7 @@ def pecas_argonio():
 def _com_taxas(tmp_path, *linhas, depois="rrt(15) = 1.0D-29"):
     """Synthetic module of the authors (testes/dados/taxas_zdp.F90, distributed with
     the package) with new lines before the rates and rate 15 replaced."""
-    texto = (RAIZ / "prototipo" / "testes" / "dados" / "taxas_zdp.F90").read_text()
+    texto = (RAIZ / "dbd1d" / "testes" / "dados" / "taxas_zdp.F90").read_text()
     texto = texto.replace("  TEFF = TGAS + 0.12D0 * EN**2", "  TEFF = TGAS + 0.12D0 * EN**2\n" + "\n".join(linhas))
     texto = texto.replace("  rrt(15) = 1.0D-29", "  " + depois)
     (tmp_path / "z.F90").write_text(texto)
@@ -704,7 +704,7 @@ def test_reduz_aceita_o_reduzido_sem_o_fim_de_linha(tmp_path):
 
 
 def test_simula_mostra_os_avisos_da_quimica(tmp_path, capsys):
-    sys.path.insert(0, str(RAIZ / "prototipo"))
+    sys.path.insert(0, str(RAIZ / "dbd1d"))
     import simula
     q = _com_taxas(tmp_path, depois="rrt(15) = 1.0D-7*(3/2)")
 
@@ -845,7 +845,7 @@ def test_exporta_grava_quimica_json(tmp_path):
     for nome in ("zdplaskin_m.F90", "bolsigdb.dat"):
         shutil.copy(RAIZ / "casos" / "n2" / nome, tmp_path / nome)
     caso.exporta(tmp_path)
-    sys.path.insert(0, str(RAIZ / "prototipo"))
+    sys.path.insert(0, str(RAIZ / "dbd1d"))
     from quimica_zdp import Quimica
     j = Quimica.de_json(tmp_path / "quimica.json")
     assert j.reacoes == Quimica(tmp_path / "zdplaskin_m.F90").reacoes
@@ -862,7 +862,7 @@ def test_ajuda_sai_com_sucesso_e_acao_desconhecida_com_erro():
 
 def test_exporta_com_quimica_invalida_da_mensagem_sem_traceback(tmp_path):
     # an error of the chemistry reader in export is reported like the errors of the case
-    texto = (RAIZ / "prototipo" / "testes" / "dados" / "taxas_zdp.F90").read_text()
+    texto = (RAIZ / "dbd1d" / "testes" / "dados" / "taxas_zdp.F90").read_text()
     (tmp_path / "zdplaskin_m.F90").write_text(texto.replace("rrt(15) = 1.0D-29", "rrt(15) = 1.0D-29 * * 2"))
     (tmp_path / "bolsigdb.dat").write_text("")
     r = subprocess.run([sys.executable, str(RAIZ / "ferramentas" / "caso.py"), "export", str(tmp_path)],

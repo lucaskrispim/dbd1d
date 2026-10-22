@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Short validation: reduced versions of the comparisons of the article that run in
 a few minutes on a laptop, to check an installation or a code change without the
-full runs (hours to days) listed in artigo/LEIAME.md.
+full runs (hours to days) listed in artigo/README.md.
 
 Each item runs short simulations (in parallel) and checks a few quantities: against
 the value that the same short run gave for version 1.2.2 (REFERENCIA, with a tolerance
@@ -36,7 +36,7 @@ import numpy as np
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "scripts"))
 sys.path.insert(0, str(RAIZ / "validacao"))
-sys.path.insert(0, str(RAIZ / "prototipo"))
+sys.path.insert(0, str(RAIZ / "dbd1d"))
 
 T_STANKOV = 4.1666666666666665e-05
 T_LOFFHAGEN = 1.1600928074245939e-05
@@ -74,7 +74,7 @@ def simulacoes(itens, saida):
 
 def roda(runs, py):
     env = dict(os.environ, OPENBLAS_NUM_THREADS="1", OMP_NUM_THREADS="1", MKL_NUM_THREADS="1")
-    procs = {nome: subprocess.Popen([py, str(RAIZ / "prototipo" / "simula.py"), *args], stdout=subprocess.DEVNULL,
+    procs = {nome: subprocess.Popen([py, str(RAIZ / "dbd1d" / "simula.py"), *args], stdout=subprocess.DEVNULL,
                                     stderr=subprocess.PIPE, text=True, env=env)
              for nome, args in runs.items()}
     falhas = {}

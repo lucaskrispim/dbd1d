@@ -23,7 +23,7 @@ def tabela():
 
 def referencia(tipo=None):
     tab, fon, reac, aquec = {}, {}, {}, {}
-    for l in (RAIZ / "prototipo/testes/referencia_cinetica.txt").read_text().splitlines():
+    for l in (RAIZ / "dbd1d/testes/referencia_cinetica.txt").read_text().splitlines():
         c = l.split()
         if c[0] == "tabela":
             tab[float(c[1])] = np.array([float(x) for x in c[2:]])

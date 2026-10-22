@@ -6,7 +6,7 @@
 ! the total density of neutrals (ALL_NEUTRAL), the BOLSIG+ rates in the order of
 ! bolsig_pointer, the rate of each reaction (cm-3/s) and the source of each species
 ! (cm-3/s). The simulator, with the same inputs, must reproduce the rates and the
-! sources (prototipo/testes/test_geracao_zdplaskin.py).
+! sources (dbd1d/testes/test_geracao_zdplaskin.py).
 ! Run in the case folder (BOLSIG+ reads bolsigdb.dat from there), with stdin closed.
 program sonda_zdplaskin
     use ZDPlasKin

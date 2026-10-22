@@ -15,7 +15,7 @@ which reads `execucoes/validacao_stankov`, `validacao_loffhagen`, `validacao_tak
 `validacao_yang` and writes `artigo/figuras/*.pdf`. The numbers of the text come from the
 comparison scripts named below. `PY` is the Python of the run (`python3` or a virtual
 environment). The cases `ar_n2_o2`, `yang2022_*` and their variants need the files described in
-`casos/LEIAME.md`; the argon cases run as distributed.
+`casos/README.md`; the argon cases run as distributed.
 
 ## Argon, sine excitation (Stankov et al. 2020)
 

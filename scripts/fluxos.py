@@ -19,7 +19,7 @@ import numpy as np
 AQUI = pathlib.Path(__file__).resolve().parent
 RAIZ = AQUI.parent
 sys.path.insert(0, str(AQUI))
-sys.path.insert(0, str(RAIZ / "prototipo"))
+sys.path.insert(0, str(RAIZ / "dbd1d"))
 from resumo import blocos  # noqa: E402
 
 PADRAO = ("N(2D)", "NH", "NH2", "NH3", "NH4^+", "H")

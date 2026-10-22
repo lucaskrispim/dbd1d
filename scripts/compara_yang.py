@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""V3 of validacao/LEIAME.md: runs of remoto/validacao_yang.sh (and the restarts of
+"""V3 of validacao/README.md: runs of remoto/validacao_yang.sh (and the restarts of
 scripts/retoma_fina.py) against Yang et al. 2022 (docs/literatura/dados/yang2022/).
 
 From the main run (records every 1 us): N, H and N2(A3) averaged over the gap and

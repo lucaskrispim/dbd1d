@@ -3,7 +3,7 @@
 step and order) and writes superficie.dat and perfil.dat in the format of the
 original Fortran code.
 
-Usage: python3 prototipo/simula.py DIR --v-peak 1e3 --t-end 2e-8 [options]
+Usage: python3 dbd1d/simula.py DIR --v-peak 1e3 --t-end 2e-8 [options]
        --restart ORIGIN T  starts from the state saved in ORIGIN at time T (s)
 
 The options have English names; the Portuguese names of earlier versions
@@ -484,7 +484,7 @@ def grava_parametros(a, md):
     try:
         commit = git("rev-parse", "HEAD").strip()
         diff = git("diff", "HEAD")
-        novos = git("ls-files", "--others", "--exclude-standard", "prototipo", "scripts")
+        novos = git("ls-files", "--others", "--exclude-standard", "dbd1d", "scripts")
         alteracoes = {"diff_sha256": hashlib.sha256(diff.encode()).hexdigest() if diff else None,
                       "arquivos_novos": novos.split()}
     except (OSError, subprocess.CalledProcessError):
@@ -501,7 +501,7 @@ def grava_parametros(a, md):
              "zdplaskin_m.F90", "quimica.json", "bolsigdb.dat", "transporte.json", "gas.json", "kinet.inp",
              "composicao.txt",
              "calor_rapido.txt", "tabela_calor_tg.dat"]
-    codigo = sorted(str(f.relative_to(RAIZ)) for f in (RAIZ / "prototipo").glob("*.py"))
+    codigo = sorted(str(f.relative_to(RAIZ)) for f in (RAIZ / "dbd1d").glob("*.py"))
     hashes = {nome: sha256(caso / nome) for nome in dados if (caso / nome).exists()}
     hashes.update({nome: sha256(RAIZ / nome) for nome in codigo})
     if a.faces:
@@ -620,7 +620,7 @@ def cria_parser():
     op("--free-gas", "--gas-solto", action="store_true",
        help="solve the background gas density, with diffusion and return of atoms at the walls")
     op("--case", "--caso", type=pathlib.Path, default=RAIZ,
-       help="case folder (casos/LEIAME.md): chemistry, tables, transporte.json and gas.json; default: the "
+       help="case folder (casos/README.md): chemistry, tables, transporte.json and gas.json; default: the "
             "argon case at the repository root")
     op("--transport", "--transporte", type=pathlib.Path,
        help="transport data per species (default: transporte.json of the case folder)")

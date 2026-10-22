@@ -89,5 +89,5 @@ the same wall conditions as the code (options `--meshes`, `--gamma`, `--electron
 
 `validacao/curta.py` runs reduced versions of V1, V2, V4 and the Townsend verification in a few
 minutes and checks them against reference values of the same short runs and against the measurements;
-the test `prototipo/testes/test_validacao_curta.py` runs its fast items in every test run and the
+the test `dbd1d/testes/test_validacao_curta.py` runs its fast items in every test run and the
 complete set when the slow tests are selected.
