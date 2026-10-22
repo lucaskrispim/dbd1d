@@ -24,7 +24,7 @@
     "massa_u": 39.948,
     "mobilidade": {"tipo": "frost", "K0": 1.61, "EN_aquecimento": 210.0},
     "atomos_do_fundo": 1,
-    "fonte": "Golyatina e Maiorov, Plasma Phys. Rep. 43, 75 (2017), a 300 K; Ellis et al. 1976 medem K0 = 1,53"
+    "fonte": "Golyatina and Maiorov, Plasma Phys. Rep. 43, 75 (2017), at 300 K; Ellis et al. 1976 measure K0 = 1.53"
   },
   "AR2^+": {
     "massa_u": 79.896,

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Observables of the ionisation front used in the convergence study
+"""Observables of the ionization front used in the convergence study
 (scripts/convergencia.py), on a synthetic profile with a known answer."""
 import pathlib
 import sys
@@ -217,6 +217,8 @@ def test_metricas_mostra_todas_as_grandezas(tmp_path):
 # ---------------------------------------------------------- Eça and Hoekstra (K2)
 from convergencia import incerteza_eca_hoekstra  # noqa: E402
 
+from conftest import precisa_arquivo
+
 
 def _h(n=5):
     return 0.5 ** np.arange(n)          # from the coarsest to the finest
@@ -349,6 +351,7 @@ def _execucao_n2(d, m, fator=1.0):
     (d / "parametros.json").write_text(json.dumps({"argumentos": {"caso": str(caso), "t_parede": 300.0}}))
 
 
+@precisa_arquivo("casos/n2/kinet.inp")
 def test_convergencia_usa_as_especies_do_caso(tmp_path):
     # N2: the main ion is the ion_inicial of gas.json (N2^+); each species of the profile
     # enters integrated, except the background gas
@@ -366,6 +369,7 @@ def test_convergencia_usa_as_especies_do_caso(tmp_path):
     assert float(linha.split()[-1]) == pytest.approx(4e11 * (1 + 0.1 / 4) * 800e-6, rel=1e-9)
 
 
+@precisa_arquivo("casos/n2/kinet.inp")
 def test_serie_usa_as_especies_do_caso(tmp_path):
     _execucao_n2(tmp_path / "a", 80)
     _execucao_n2(tmp_path / "b", 80, fator=1.01)
@@ -375,6 +379,7 @@ def test_serie_usa_as_especies_do_caso(tmp_path):
     assert "int N2 (cm-3 m)" not in r.stdout
 
 
+@precisa_arquivo("casos/n2/kinet.inp")
 def test_metricas_usa_o_ion_do_caso(tmp_path):
     _execucao_n2(tmp_path / "a", 80)
     _execucao_n2(tmp_path / "b", 80, fator=1.01)
@@ -383,6 +388,7 @@ def test_metricas_usa_o_ion_do_caso(tmp_path):
     assert "peak N2^+ at (um)" in r.stdout and "int N2(A) (cm-3 m)" in r.stdout
 
 
+@precisa_arquivo("casos/n2/kinet.inp")
 def test_caso_gravado_em_outra_maquina(tmp_path):
     # parametros.json from mercury: the absolute path does not exist here; a case of the
     # casos/ folder becomes the local casos/NAME, the root becomes the local root
@@ -407,6 +413,7 @@ def test_kinet_sem_species_da_erro_claro(tmp_path):
         especies_do_caso(tmp_path)
 
 
+@precisa_arquivo("casos/n2/kinet.inp")
 def test_resumo_usa_as_especies_do_caso(tmp_path):
     _execucao_n2(tmp_path / "a", 40)
     r = _roda("resumo.py", tmp_path / "a")
@@ -414,6 +421,7 @@ def test_resumo_usa_as_especies_do_caso(tmp_path):
     assert "N2^+" in r.stdout and "N4^+" in r.stdout and "NaN: 0" in r.stdout and "negative density: 0" in r.stdout
 
 
+@precisa_arquivo("casos/n2/kinet.inp")
 def test_resumo_mostra_a_densidade_mais_negativa(tmp_path):
     # the count alone does not say whether the negative value is integrator noise (below
     # atol) or an error: the summary shows the most negative value and the atol of the run

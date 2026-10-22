@@ -57,9 +57,9 @@
     ],
     "fonte": [
       "enthalpies in eV per particle, relative to N2 in the ground state; N and N3 with the enthalpy of formation at 298 K (at 0 K, N lies 0.02 eV lower)",
-      "N: 472,68 kJ/mol (CODATA, Cox, Wagman et al. 1984; JANAF, Chase 1998); N3: 414,22 kJ/mol (Chase 1998)",
+      "N: 472.68 kJ/mol (CODATA, Cox, Wagman et al. 1984; JANAF, Chase 1998); N3: 414.22 kJ/mol (Chase 1998)",
       "excited states of N2: thresholds of the bolsigdb.dat of the case (BOLSIG+ cross-section set), A at v = 0",
-      "ionisation: N 14.534 eV (Lide 1992), N2 15.581 eV (NIST, Lias), N3 11.06 eV (Dyke et al. 1982)",
+      "ionization: N 14.534 eV (Lide 1992), N2 15.581 eV (NIST, Lias), N3 11.06 eV (Dyke et al. 1982)",
       "N4^+: N2^+ minus the N2^+-N2 bond, about 1.1 eV (approximate)",
       "fast process: the rotational excitation of N2 relaxes within picoseconds at 1 bar; the vibrational one (slow V-T relaxation) is left out"
     ]

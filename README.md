@@ -8,10 +8,11 @@ complete model (species, reactions, electron coefficients, transport) without ed
   charge accumulated on the dielectric barriers, electron energy equation (local mean energy
   approximation) and gas heating;
 - reaction rates read from the `zdplaskin_m.F90` that the ZDPlasKin preprocessor generates,
-  reproducing the rates and source terms of ZDPlasKin itself to 1e-11 (including user variables,
-  IF blocks, single precision literals and integer division as in Fortran);
-- adaptive BDF integration with the electric potential in the state vector and an analytic sparse
-  Jacobian;
+  reproducing the rates and source terms of ZDPlasKin itself to a relative accuracy of 1e-11 (including user variables,
+  IF blocks, single-precision literals and integer division as in Fortran);
+- adaptive BDF integration of a differential-algebraic system with the electric potential in the
+  state vector and a structured sparse Jacobian (coloured finite differences for the local
+  terms, exact rows for the Poisson equation);
 - applied voltage: sine, step, trapezoidal pulse train or a tabulated measured pulse repeated
   periodically;
 - optional electron reflection at the walls (`--electron-reflection`, Hagelaar et al. 2000).
@@ -22,22 +23,70 @@ files keep their original Portuguese names, and the earlier Portuguese option na
 
 ## Installation
 
-Python 3.10 or newer:
+You need Python 3.10 or newer and git (or the zip of the release on Zenodo,
+https://doi.org/10.5281/zenodo.23535841). The program runs from the folder of the repository; the
+installation only creates a Python virtual environment with its dependencies, so that their versions
+do not interfere with other Python projects on the machine.
+
+Linux and macOS (on Debian and Ubuntu, first install the packages that the virtual environment
+needs: `sudo apt install python3-venv git`):
 
 ```
+git clone https://github.com/lucaskrispim/dbd1d
+cd dbd1d
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
+python3 validacao/curta.py
+```
+
+Windows (PowerShell; the program should run there, but it was not tested on Windows):
+
+```
+git clone https://github.com/lucaskrispim/dbd1d
+cd dbd1d
+py -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+python validacao/curta.py
+```
+
+The last command checks the installation in a few minutes (see Short validation below) and ends
+with `N of N checks passed`. Afterwards, activate the environment again in each new terminal
+(`source .venv/bin/activate`, or `.venv\Scripts\activate` on Windows) before running the program.
+To run the automated tests:
+
+```
 OPENBLAS_NUM_THREADS=1 python3 -m pytest -q -m "not lento"
 ```
+
+Running the cases is pure Python and was tested on Linux (Ubuntu 22.04 and 24.04); it should run
+wherever numpy and scipy run. Generating a new case (`ferramentas/caso.py`) needs ZDPlasKin, whose BOLSIG+ library is
+distributed for Linux x86-64, and a Fortran compiler (gfortran).
 
 The digitizer of the validation data reads vector figures with `pdftocairo` (Debian and Ubuntu
 package `poppler-utils`); without it, its four vector tests are skipped.
 
 Tested with numpy 2.2 and 2.5, scipy 1.15 and 1.18. The integrator builds on the internal BDF
 implementation of scipy (`scipy.integrate._ivp`), so scipy is bounded below 1.19 until a newer
-version is tested. In this package 371 tests pass and 109 are
-skipped, each with the reason: they generate cases (ZDPlasKin and BOLSIG+ needed) or use the
-gas mixtures whose mechanisms and cross sections we cannot redistribute (`casos/LEIAME.md`). With
-`ZDPLASKIN_DIR` set and those cases rebuilt, they run too.
+version is tested. With the command above, 450 tests pass, 59 are skipped and 14 slow ones (marked
+`lento`) are deselected; without `-m "not lento"`, 72 are skipped. Each skipped test states, before
+running, the file it needs: ZDPlasKin and BOLSIG+ (to generate cases), the gas mixtures whose
+mechanisms and cross sections we cannot redistribute (`casos/LEIAME.md`), or the old Fortran code of
+the research repository with its references. With `ZDPLASKIN_DIR` set and those cases rebuilt, the
+first two groups run too.
+
+## Short validation
+
+```
+python3 validacao/curta.py
+```
+
+runs reduced versions of the comparisons of the article in a few minutes (about 4 on a laptop) and
+checks them: the argon DBD of Stankov et al. 2020 for 3 periods with 50 cells, the ignition of argon
+at 1 atm below and above the measured band of Loffhagen et al. 2020, the Townsend breakdown against
+its continuous reference and the electron swarm data of argon. The full runs of the article, which
+take hours to days, are listed with their commands in `artigo/LEIAME.md`.
 
 ## Quick start
 
@@ -63,15 +112,17 @@ python3 prototipo/simula.py --help
 Output: `superficie.dat` (applied voltage, potentials and surface charge of both barriers) and
 `perfil.dat` (profiles of every species, fields, electron energy and gas temperature), plus
 `parametros.json` with the arguments, the sha256 of every input and the code version. A run can be
-resumed from any saved instant with `--restart DIR T`, repeating the options of the original run
-(the program refuses a different mesh, case or voltage form).
+resumed from any saved instant with `--restart DIR T`, repeating the options of the original run.
+The restart refuses a different mesh, voltage waveform or initial gas temperature and refuses to drop
+the energy, heating or free-gas variables; other options may change, for sensitivity studies from
+a saved state, and the program lists every option that differs from the original run.
 
 ## Data
 
 The argon tables were generated with the argon cross sections of the SIGLO database
 (www.lxcat.net, L. C. Pitchford and J. P. Boeuf), which is not redistributed here. The measured
 data in `docs/literatura/dados/` were digitized from the figures of the cited articles for comparison
-and must be cited to them.
+and must be credited to those articles.
 
 ## New gas mixtures
 
@@ -95,4 +146,8 @@ ion inventory (a few seconds per voltage).
 ## License
 
 GPL-3.0-or-later (`LICENSE`). ZDPlasKin, BOLSIG+ and the LXCat cross sections are not part of this
-package and keep their own conditions of use.
+package and keep their own conditions of use. `ferramentas/gera_tabela_energia.f90` and
+`ferramentas/sonda_zdplaskin.f90` are compiled by `ferramentas/caso.py` on the user's machine
+against the user's copy of ZDPlasKin and BOLSIG+; no combined program is distributed. The argon
+mechanism at the repository root takes its heavy-particle coefficients from the argon example of
+ZDPlasKin, and its tables were generated from the SIGLO cross sections (LXCat).

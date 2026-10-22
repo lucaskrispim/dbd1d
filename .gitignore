@@ -4,3 +4,4 @@ execucoes/
 *.mod
 *.o
 *.x
+.venv/

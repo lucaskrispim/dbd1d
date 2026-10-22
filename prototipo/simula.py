@@ -34,6 +34,7 @@ from bdf_dae import BDFMassa                 # noqa: E402
 from jacobiano import ModeloRapido, SistemaDAE  # noqa: E402
 from modelo import KB, ErroGas, ErroTransporte  # noqa: E402
 from quimica_zdp import ErroQuimica             # noqa: E402
+from versao import VERSAO  # noqa: E402
 from malha_adaptativa import faces_por_equidistribuicao, monitor, transfere, transfere_energia  # noqa: E402
 from quimica_zdp import Quimica              # noqa: E402
 from tabela import TabelaEEDF, TabelaEnergiaTg, TabelaTg     # noqa: E402
@@ -443,11 +444,16 @@ def valida(p, a):
     for ok, mensagem in regras:
         if not ok:
             p.error(mensagem)
+    for nome, valor in vars(a).items():
+        if isinstance(valor, float) and not np.isfinite(valor):
+            p.error(f"--{NOMES.get(nome, nome)} must be a finite number")
     a.tabela = None
     if a.forma == "tabela":
         d = np.loadtxt(a.tensao_tabela, ndmin=2)
         if d.shape[1] != 2:
             p.error("--voltage-table needs two columns, t (s) and V (V)")
+        if d.shape[0] < 2 or not np.all(np.isfinite(d)):
+            p.error("--voltage-table needs at least two lines of finite numbers")
         a.tabela = (d[:, 0], d[:, 1])
         if np.any(np.diff(a.tabela[0]) <= 0.0) or a.tabela[0][-1] >= a.periodo:
             p.error("--voltage-table: times must increase and be shorter than --period")
@@ -508,7 +514,7 @@ def grava_parametros(a, md):
         hashes["parametros_da_origem"] = sha256(pathlib.Path(a.retoma[0]) / "parametros.json")
     import scipy
     registro = {"argumentos": argumentos, "argv": sys.argv, "cwd": os.getcwd(),
-                "commit": commit, "alteracoes_locais": alteracoes, "sha256": hashes,
+                "versao": VERSAO, "commit": commit, "alteracoes_locais": alteracoes, "sha256": hashes,
                 "modelo": {"n_gas": md.n_gas, "t_gas": md.t_gas, "transporte": md.transporte,
                            "gama_sec": md.gama, "eps_sec": md.eps_sec, "eps_gas": md.eps_gas,
                            "reflexao_eletrons": md.reflexao_eletrons,
@@ -553,8 +559,9 @@ def cria_parser():
     p = argparse.ArgumentParser(formatter_class=_Ajuda,
                                 description="One-dimensional fluid model of a dielectric barrier discharge.")
 
-    def op(ingles, portugues, **kw):
-        nomes = [ingles] if portugues is None or portugues == ingles else [ingles, portugues]
+    def op(ingles, portugues, *outros, **kw):
+        # outros: earlier English names, accepted as aliases like the Portuguese one
+        nomes = ([ingles] if portugues is None or portugues == ingles else [ingles, portugues]) + list(outros)
         kw.setdefault("dest", (portugues or ingles)[2:].replace("-", "_"))
         if kw.get("action") != "store_true":
             kw.setdefault("metavar", ingles[2:].upper().replace("-", "_"))
@@ -575,66 +582,68 @@ def cria_parser():
        help="with --waveform table: file with two columns, t (s, within one period) and V (V), starting and "
             "ending at V = 0; --v-peak does not apply")
     op("--t-gas", None, type=float, default=300.0,
-       help="initial gas temperature, K; with --pressure it gives the density (with --heating, use the same "
-            "--t-wall for a preheated gas)")
+       help="initial gas temperature, K; with --pressure it gives the density (with --heating, set --t-wall to "
+            "the same value for a preheated gas)")
     op("--rise", "--subida", type=float, default=0.0, help="rise time of the step or of the pulse, s")
     op("--width", "--largura", type=float, default=0.0, help="duration of the plateau of the pulse, s")
     op("--fall", "--descida", type=float, default=0.0, help="fall time of the pulse, s")
     op("--thickness", "--espessura", type=float, default=0.0,
-       help="dielectric barrier on each electrode, m (0: bare metal electrodes)")
+       help="thickness of the dielectric barrier on each electrode, m (0: bare metal electrodes)")
     op("--thickness-right", "--espessura-dir", type=float, default=None,
-       help="barrier of the right electrode, m (default: --thickness)")
+       help="thickness of the barrier on the right electrode, m (default: --thickness)")
     op("--eps-dielectric-right", "--eps-dieletrico-dir", type=float, default=None,
        help="relative permittivity of the right barrier (default: --eps-dielectric)")
     op("--pressure", "--pressao", type=float, default=101325.0,
        help="gas pressure, Pa; with --t-gas it gives the density N = p/(k T)")
-    op("--gap", None, type=float, default=8.0e-4, help="distance between the surfaces, m")
+    op("--gap", None, type=float, default=8.0e-4, help="gas gap width, between the barrier surfaces, m")
     op("--eps-dielectric", "--eps-dieletrico", type=float, default=4.8, help="relative permittivity of the barriers")
     op("--eps-gas", None, type=float, default=1.0, help="relative permittivity of the gas")
     op("--gamma", "--gama", type=float, default=0.05, help="secondary electron emission yield per ion")
     op("--electron-reflection", "--reflexao-eletrons", type=float, default=0.0,
-       help="reflection coefficient of the electrons at the walls (Hagelaar et al. 2000), from 0 to 1")
+       help="reflection coefficient of the electrons at the walls (Hagelaar et al. 2000), in [0, 1)")
     op("--ne0", None, type=float, default=1.0, help="initial electron density, cm-3")
     op("--neutral", "--neutro", action="store_true",
-       help="initial ion of gas.json with the same density as the electrons")
-    op("--no-wall-brake", "--sem-freio", action="store_true",
-       help="thermal wall flux without the Boltzmann factor of half a cell")
+       help="start quasi-neutral: the initial ion of gas.json at the electron density")
+    op("--no-wall-boltzmann", "--sem-freio", "--no-wall-brake", action="store_true",
+       help="thermal wall flux without the Boltzmann factor over half a cell")
     op("--t-end", None, type=float, default=1.0e-6, help="final time, s")
     op("--dt-output", "--dt-saida", type=float, default=1.0e-9, help="output interval, s")
     op("--rtol", None, type=float, default=1.0e-4, help="relative tolerance of the integrator")
     op("--atol", None, type=float, default=1.0e-10,
-       help="absolute tolerance of the densities, cm-3 (and of the energy and temperature); with 1e-4 the "
-            "electrons depleted between avalanches had no error control")
+       help="absolute tolerance of the densities, cm-3 (also used for the energy density and the temperature); "
+            "values above ~1e-4 leave the electrons between avalanches without error control")
     op("--restart", "--retoma", nargs=2, metavar=("ORIGIN", "T"),
        help="start from the state saved in ORIGIN at time T (s), with the same options")
     op("--energy", "--energia", action="store_true",
-       help="electron energy equation (tabela_energia_tg.dat, versus mean energy and T_g)")
+       help="solve the electron energy equation (tabela_energia_tg.dat, versus mean energy and T_g)")
     op("--eps-sec", None, type=float, default=5.0, help="energy of the secondary electrons, eV")
     op("--free-gas", "--gas-solto", action="store_true",
-       help="background gas in the state, with diffusion and return of atoms by the wall")
+       help="solve the background gas density, with diffusion and return of atoms at the walls")
     op("--case", "--caso", type=pathlib.Path, default=RAIZ,
        help="case folder (casos/LEIAME.md): chemistry, tables, transporte.json and gas.json; default: the "
-            "root, argon")
+            "argon case at the repository root")
     op("--transport", "--transporte", type=pathlib.Path,
        help="transport data per species (default: transporte.json of the case folder)")
     op("--k0-ar-ion", None, type=float,
        help="reduced mobility of Ar+ in Ar (Frost), cm2/(V s); overrides transporte.json")
     op("--en-heating-ar-ion", "--en-aquecimento-ar-ion", type=float,
-       help="heating field of Ar+ in the formula of Frost, Td; overrides transporte.json")
+       help="heating field of Ar+ in Frost's formula, Td; overrides transporte.json")
     op("--k0-ar2-ion", None, type=float, help="reduced mobility of Ar2+, cm2/(V s); overrides transporte.json")
     op("--t-wall", "--t-parede", type=float, default=300.0, help="wall temperature with --heating, K")
     op("--three-body-gain", "--ganho-tres-corpos", type=float, default=0.0,
-       help="energy (eV) of the electron left in three-body recombination; from 0 to the ionization energy")
+       help="energy (eV) given to the electron left in three-body recombination; non-negative, physically at "
+            "most the ionization energy")
     op("--heating", "--aquecimento", action="store_true",
-       help="gas temperature in the state, at constant volume (walls at --t-wall)")
+       help="solve the gas temperature at constant volume (walls at --t-wall)")
     op("--adaptive", "--adaptativa", action="store_true", help="moving mesh by equidistribution")
     op("--dt-mesh", "--dt-malha", type=float, default=2.0e-11, help="interval between mesh adaptations, s")
-    op("--adaptive-weight", "--peso-adaptativo", type=float, default=1.0, help="weight of the moving mesh monitor")
+    op("--adaptive-weight", "--peso-adaptativo", type=float, default=1.0, help="weight of the moving-mesh monitor")
     op("--jac", None, type=_escolha(JACOBIANOS, "dae, structured or fd"), default="dae",
        metavar="{dae,structured,fd}",
-       help="dae: potential in the state, sparse Jacobian (default); structured: Jacobian J_local + S*G; fd: "
-            "finite differences of scipy")
-    op("--faces", None, type=pathlib.Path, help="file with the m+1 faces of the mesh, m")
+       help="dae (default): differential-algebraic system with the potential in the state vector and a structured "
+            "sparse Jacobian; structured: structured Jacobian with the potential eliminated (J_local + S G); fd: scipy "
+            "finite differences")
+    op("--faces", None, type=pathlib.Path, help="file with the m+1 face positions of the mesh, from 0 to --gap, in m")
     return p
 
 
@@ -646,10 +655,12 @@ def le_faces(p, a):
     """Faces given by --faces (the number of cells follows from them) or None."""
     if not a.faces:
         return None
-    faces = np.loadtxt(a.faces)
+    faces = np.atleast_1d(np.loadtxt(a.faces))
     a.n_celulas = len(faces) - 1
-    if a.n_celulas < 3 or np.any(np.diff(faces) <= 0.0):
-        p.error("--faces needs at least 4 faces in increasing order")
+    if a.n_celulas < 3 or not np.all(np.isfinite(faces)) or np.any(np.diff(faces) <= 0.0):
+        p.error("--faces needs at least 4 finite faces that increase")
+    if abs(faces[0]) > 1e-12 * a.gap or abs(faces[-1] - a.gap) > 1e-9 * a.gap:
+        p.error(f"--faces must go from 0 to --gap ({a.gap:g} m); the file goes from {faces[0]:g} to {faces[-1]:g} m")
     return faces
 
 
@@ -688,7 +699,8 @@ def monta_modelo(a, caso, faces):
             tabela_energia=TabelaEnergiaTg(caso / "tabela_energia_tg.dat") if a.energia else None,
             bolsigdb=bolsigdb, gas=caso / "gas.json",
             tabela_calor=TabelaEnergiaTg(calor) if calor.exists() else None)
-    except (ErroTransporte, ErroGas, ErroQuimica) as e:
+    except (ErroTransporte, ErroGas, ErroQuimica, ValueError) as e:
+        # ValueError: an electron table that cannot be interpolated (tabela.py)
         sys.exit(f"error: {e}")
     md.caso = caso
     confere_faixa_de_tg(a, md)
@@ -722,15 +734,22 @@ def estado_da_retomada(p, a, md):
     origem = pathlib.Path(a.retoma[0])
     if (origem / "parametros.json").exists():
         antes = json.loads((origem / "parametros.json").read_text())["argumentos"]
-        for opcao in ("aquecimento", "gas_solto"):
+        for opcao in ("aquecimento", "gas_solto", "energia"):
             if antes.get(opcao) and not getattr(a, opcao):
                 p.error(f"--{NOMES[opcao]}: the origin used it; restarting without it would drop variables")
-        for opcao in ("forma", "subida", "largura", "descida", "t_gas", "tensao_tabela"):
+        def valor(opcao):
             agora = getattr(a, opcao)
             if isinstance(agora, pathlib.Path):
                 agora = str(agora.resolve())  # the origin records the absolute path
-            if opcao in antes and antes[opcao] != agora:
+            return agora
+        for opcao in ("forma", "subida", "largura", "descida", "t_gas", "tensao_tabela"):
+            if opcao in antes and antes[opcao] != valor(opcao):
                 p.error(f"--{NOMES[opcao]}: the origin used {antes[opcao]}; the restart needs the same value")
+        # other options may change (sensitivity from a saved state), but they are reported
+        mudou = [f"--{NOMES.get(k, k.replace('_', '-'))} {antes[k]} -> {valor(k)}" for k in sorted(antes)
+                 if k not in ("dir", "retoma", "t_end", "dt_saida") and hasattr(a, k) and antes[k] != valor(k)]
+        if mudou:
+            print("NOTE: the restart changes options of the origin: " + "; ".join(mudou))
     t_ini = float(a.retoma[1])
     return t_ini, estado_gravado(md, origem, t_ini)
 

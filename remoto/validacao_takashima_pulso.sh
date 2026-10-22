@@ -19,7 +19,7 @@ PULSO=validacao/takashima2012/pulso_cpt.txt
 export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
 DIR=execucoes/validacao_takashima
 echo "start: $(date)"
-cat VERSAO 2>/dev/null || git rev-parse HEAD 2>/dev/null
+python3 -c "import sys; sys.path.insert(0, 'prototipo'); from versao import VERSAO; print('dbd1d', VERSAO)"; git rev-parse HEAD 2>/dev/null
 for p in "$@"; do
     t0=$(python3 -c "print(repr(($p - 1) * 2.5e-5))")
     fim=$(python3 -c "print(repr(($p - 1) * 2.5e-5 + 2.4e-7))")

@@ -219,7 +219,7 @@ def roda_simula(destino, *extra):
                                          (["--gas-solto"], 1e-4)])
 def test_modos_do_simula_concordam_com_o_padrao(tmp_path, extra, rtol):
     # same case in the default mode (DAE, fixed gas): structured Jacobian
-    # equal; free gas equal with low ionisation; adaptive mesh close
+    # equal; free gas equal with low ionization; adaptive mesh close
     base = roda_simula(tmp_path / "base")
     outro = roda_simula(tmp_path / "outro", *extra)
     np.testing.assert_allclose(outro[:, 2:6], base[:, 2:6], rtol=rtol, atol=rtol * np.abs(base[:, 2:6]).max())

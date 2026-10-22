@@ -12,7 +12,7 @@ import numpy as np
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "scripts"))
-from compara_stankov import ultimo_periodo  # noqa: E402
+from compara_stankov import potencias_por_periodo, ultimo_periodo  # noqa: E402
 from detalha_stankov import ne_medio  # noqa: E402
 import compara_yang  # noqa: E402
 
@@ -72,17 +72,18 @@ def stankov(base):
     e[0, 0].set(xlabel="t (µs)", ylabel="I (mA)", title="(a) current, 100 mbar, 1.8 kV")
     legenda(e[0, 0])
     pres = [100, 300, 500, 650]
-    p1d = [ultimo_periodo(st / f"S{p}_n100")["P"] for p in pres]
     f7 = le("stankov2020", "fig7_potencia.csv")
     e[0, 1].plot(f7[:, 0], f7[:, 1], "ks-", label="measured")
     e[0, 1].plot(f7[:, 0], f7[:, 4], "^--", color="gray", label=r"model of Stankov, $\gamma$ = 0.02")
-    e[0, 1].plot(pres, p1d, "C0o-", label="dbd1d")
-    # variants: coefficients of Jovanovic et al. 2023 and electron reflection 0.7
-    for prefixo, sufixo, estilo, rot in (("J", "", "C2v-", "dbd1d, Jovanović coefficients"),
+    # mean of the last three periods and their range: at 300 mbar the discharge is not periodic
+    for prefixo, sufixo, estilo, rot in (("S", "_n100", "C0o-", "dbd1d"),
+                                         ("J", "", "C2v-", "dbd1d, Jovanović coefficients"),
                                          ("R", "_r07", "C1D-", r"dbd1d, $r_e$ = 0.7")):
         if all((st / f"{prefixo}{p}{sufixo}").is_dir() for p in pres):
-            e[0, 1].plot(pres, [ultimo_periodo(st / f"{prefixo}{p}{sufixo}")["P"] for p in pres], estilo,
-                         ms=4, lw=0.8, label=rot)
+            ps = np.array([potencias_por_periodo(st / f"{prefixo}{p}{sufixo}", 3) for p in pres])
+            media = ps.mean(axis=1)
+            e[0, 1].errorbar(pres, media, yerr=[media - ps.min(axis=1), ps.max(axis=1) - media], fmt=estilo,
+                             ms=4, lw=0.8, capsize=2, label=rot)
     e[0, 1].set(xlabel="p (mbar)", ylabel="P (W)", title="(b) mean power")
     legenda(e[0, 1])
     gamas = [0.005, 0.01, 0.02, 0.04, 0.08]
@@ -160,7 +161,7 @@ def loffhagen(base):
 def takashima(base):
     tk = base / "validacao_takashima"
     res = []
-    for d in sorted(x for x in tk.glob("T*_p5") if x.is_dir()):
+    for d in sorted(x for x in tk.glob("T[0-9]*_p5") if x.is_dir()):
         a = json.loads((d / "parametros.json").read_text())["argumentos"]
         s = np.loadtxt(d / "superficie.dat", skiprows=1)
         q = EPS0 * a["eps_dieletrico"] * (s[:, 1] - s[:, 2]) / a["espessura"] * 9.1e-4
@@ -178,17 +179,26 @@ def takashima(base):
     fecha(fig, SAIDA / "takashima.pdf")
 
 
+PULSOS_DO_ARTIGO = {"YN2_n50": 40, "YH2_n50": 25}
+
+
 def yang(base):
     """Bursts of ns pulses in N2 and N2 + 1% H2 (Yang et al. 2022): what the runs of
     150 pulses have reached."""
     yg = base / "validacao_yang"
     per = compara_yang.PERIODO
-    fim = 1e6 * max(compara_yang.series(yg / x)[0][-1] for x in ("YN2_n50", "YH2_n50"))
+
+    def series(nome):
+        # the article shows the pulses computed when it was submitted, also when the run has more
+        t, med, cen, tg = compara_yang.series(yg / nome)
+        m = t <= PULSOS_DO_ARTIGO[nome] * per * (1 + 1e-9)
+        return t[m], {k: v[m] for k, v in med.items()}, cen, tg[m]
+    fim = 1e6 * max(series(x)[0][-1] for x in ("YN2_n50", "YH2_n50"))
     ate = 1.15 * fim  # window of the plots: what the runs reached and a little more
     fig, e = plt.subplots(2, 2, figsize=(7.2, 6.8))
     for nome, rot, cor, arq in (("YN2_n50", "N$_2$", "C0", "fig9_N_acumulado_N2.csv"),
                                 ("YH2_n50", "N$_2$ + 1% H$_2$", "C3", "fig14_N_acumulado_1pcH2.csv")):
-        t, med, _, tg = compara_yang.series(yg / nome)
+        t, med, _, tg = series(nome)
         n = np.arange(1, int(np.floor(t[-1] / per + 1e-9)) + 1)
         antes = [int(np.argmin(np.abs(t - k * per + 1e-6))) for k in n]
         m = le("yang2022", arq)
@@ -262,7 +272,9 @@ def enxame():
 
 
 def main():
-    base = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else RAIZ / "execucoes" / "validacao"
+    # folder with validacao_stankov, validacao_loffhagen, validacao_takashima and validacao_yang
+    # (artigo/LEIAME.md lists the runs)
+    base = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else RAIZ / "execucoes"
     SAIDA.mkdir(exist_ok=True)
     plt.rcParams.update(ESTILO)
     stankov(base)

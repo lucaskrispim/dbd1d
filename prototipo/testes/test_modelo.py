@@ -38,6 +38,45 @@ def test_scharfetter_gummel_exato_para_perfil_de_equilibrio(pecas):
     assert np.max(np.abs(G[md.i_e, 1:-1])) < 1e-12 * dd * np.max(n[md.i_e]) / np.min(md.d)
 
 
+def test_fluxo_na_face_com_salto_de_difusao_e_o_de_resistencias_em_serie(pecas):
+    # without field and with D piecewise constant (D1 in one cell, D2 in the next, uniform
+    # mesh), the steady flux between the two centres is that of two half cells in series,
+    # (n1 - n2) / (h/(2 D1) + h/(2 D2)): the harmonic mean of D at the face over h
+    md = Modelo(*pecas, n_celulas=4, agrupamento=0.0)
+    h = md.d[1]
+    n = np.array([[3.0e9, 1.0e9, 1.0e9, 1.0e9]])
+    d_c = np.array([[1.0e-3, 9.0e-3, 9.0e-3, 9.0e-3]])
+    mu_c = np.array([[0.1, 0.9, 0.9, 0.9]])
+    g = md.sg(n, np.array([1.0]), mu_c, d_c, np.zeros(md.m + 1))
+    esperado = (3.0e9 - 1.0e9) / (h / (2 * 1.0e-3) + h / (2 * 9.0e-3))
+    assert g[0, 0] == pytest.approx(esperado, rel=1e-12)
+    # with field and without diffusion, the upwind drift uses the same mean of the mobility
+    e = np.full(md.m + 1, 1.0e4)
+    g = md.sg(n, np.array([1.0]), mu_c, np.zeros_like(d_c), e)
+    assert g[0, 0] == pytest.approx(2 * 0.1 * 0.9 / (0.1 + 0.9) * 1.0e4 * 3.0e9, rel=1e-12)
+
+
+def test_fluxo_que_sai_pela_parede_esquerda_aponta_para_menos_x(pecas):
+    # fluxes are positive towards +x: what leaves through the left wall is -out and
+    # what leaves through the right wall is +out, out >= 0 being the absorbed flux;
+    # for the electrons the secondary emission enters back (+ at the left)
+    md = Modelo(*pecas, n_celulas=8, agrupamento=0.0, gama_sec=0.05)
+    r = np.random.default_rng(1)
+    n = 10.0 ** r.uniform(8, 11, (md.n_esp, md.m))
+    mob = r.uniform(0.01, 0.1, (md.n_esp, md.m))
+    dif = r.uniform(1e-4, 1e-3, (md.n_esp, md.m))
+    temp = np.full((md.n_esp, md.m), 300.0)
+    temp[md.i_e] = 2e4
+    campo = np.linspace(-3e4, 5e4, md.m + 1)
+    G, out, gama = md.fluxos(n, campo, mob, dif, temp)
+    assert (out > 0.0).all()
+    outros = [k for k in range(md.n_esp) if k != md.i_e]
+    np.testing.assert_allclose(G[outros, 0], -out[outros, 0], rtol=1e-15)
+    np.testing.assert_allclose(G[outros, -1], out[outros, 1], rtol=1e-15)
+    assert G[md.i_e, 0] == pytest.approx(-out[md.i_e, 0] + gama[0], rel=1e-14)
+    assert G[md.i_e, -1] == pytest.approx(out[md.i_e, 1] - gama[1], rel=1e-14)
+
+
 def test_poisson_linear_na_malha_agrupada(pecas):
     md = Modelo(*pecas, n_celulas=40, agrupamento=2.0)
     phi, campo = md.poisson(np.zeros(md.m), 0.0, 0.0, 1.0e3)
@@ -69,13 +108,13 @@ def test_carga_total_conservada(pecas):
 
 def test_relaxacao_de_maxwell(pecas):
     # uniform quasi-neutral plasma with a charge perturbation sin(k x), k = pi/L,
-    # grounded electrodes. Linearising (zero-field mobilities and diffusions),
+    # grounded electrodes. Linearizing (zero-field mobilities and diffusions),
     # the charge relaxes at the rate nu (1 + eps), nu = e(mu_e n_e + mu_i n_i)/eps0 and
     # eps = (D_e + D_i) k^2/nu ~ (lambda_D k)^2, down to the Boltzmann plateau
     # eps/(1 + eps): after t = 2/nu, R = [eps + exp(-2(1 + eps))]/(1 + eps).
     # The perturbation of 1e-6 gives a field below the first node of the table, where the
     # coefficients are constant (with 1e-4 the field reaches 2e-3 Td, where mu_e
-    # varies by 27%, Ramsauer region, and the linearisation fails)
+    # varies by 27%, Ramsauer region, and the linearization fails)
     md = Modelo(*pecas, n_celulas=60, v_pico=0.0)
     n0 = 1.0e11
     n = np.zeros((md.n_esp, md.m))

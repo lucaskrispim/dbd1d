@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Labels of the swarm figure of the article (artigo/figuras.py): proper names
-capitalised and the temperature when the series is not at 300 K."""
+capitalized and the temperature when the series is not at 300 K."""
 import sys
 
 import pytest

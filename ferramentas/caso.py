@@ -5,7 +5,7 @@ ZDPlasKin already uses, without writing code for each gas.
 A case folder holds the kinet.inp and bolsigdb.dat of the mixture. The tool
 generates zdplaskin_m.F90 with the ZDPlasKin preprocessor (version 2.0a) and
 applies the edits listed in EDICOES_ZDPLASKIN: an internal BOLSIG+ table 10 times
-denser and two messages switched off.
+denser and two messages suppressed.
 
 The electron tables (tabela_energia.dat, tabela_eedf.dat, tabela_energia_tg.dat
 and the check table) come from BOLSIG+ through the generator
@@ -16,14 +16,14 @@ ZDPlasKin and BOLSIG+ are not distributed with the tool (the licence of ZDPlasKi
 allows use, not redistribution): ZDPLASKIN_DIR points to the downloaded ZDPlasKin
 folder (preprocessor, dvode_f90_m.F90 and bolsig_x86_64.so) and BOLSIG_SO,
 optional, to another BOLSIG+ library. Only generating a new case needs them:
-caso.py export writes quimica.json, with the chemistry and the thresholds, with
-which the simulator runs without zdplaskin_m.F90 and without bolsigdb.dat.
+caso.py export writes quimica.json (chemistry and thresholds), which lets the
+simulator run without zdplaskin_m.F90 and without bolsigdb.dat.
 
 A cross section with more than 900 points crashes BOLSIG+: caso.py reduce keeps
-bolsigdb_original.dat and writes the reduced one, with the error in
-reducao_secoes.txt; caso.py all reduces by itself when needed. If BOLSIG+
-crashes at high E/N, the generation of the tables writes en_max.txt below the
-crash point and repeats (tabelas_topo.txt).
+bolsigdb_original.dat, writes the reduced one and records the reduction error in
+reducao_secoes.txt; caso.py all reduces automatically when needed. If BOLSIG+
+crashes at high E/N, the generation of the tables writes an E/N limit below the
+crash point to en_max.txt and retries (tabelas_topo.txt).
 
 caso.py estimate completes transporte.json with estimates marked in the source
 field: ion mobility from the Langevin limit with Blanc's law and neutral
@@ -266,8 +266,9 @@ FRACAO_DO_TOPO = 0.9
 TENTATIVAS_DE_TOPO = 4
 
 
-# the same options as the release profile of the original Makefile
-OPCOES_FORTRAN = ["-O2", "-march=native", "-g", "-ffp-contract=off"]
+# the release profile of the original Makefile without -march=native, so that the tables do not depend
+# on the machine (with -ffp-contract=off they come out identical, checked in test_tabelas_do_argonio)
+OPCOES_FORTRAN = ["-O2", "-g", "-ffp-contract=off"]
 
 
 def _roda_gerador(pasta):
@@ -732,8 +733,13 @@ ACOES.update({"heat": ACOES["calor"], "tables": ACOES["tabelas"], "transport": A
 
 
 def main():
+    if len(sys.argv) == 2 and sys.argv[1] in ("-h", "--help"):
+        print(__doc__)
+        return
     if len(sys.argv) != 3 or sys.argv[1] not in ACOES:
         sys.exit(__doc__)
+    sys.path.insert(0, str(RAIZ / "prototipo"))
+    from quimica_zdp import ErroQuimica
     try:
         for acao in ACOES[sys.argv[1]]:
             r = acao(sys.argv[2])
@@ -749,7 +755,7 @@ def main():
                 print("enthalpies complete")
             else:
                 print(r)
-    except ErroCaso as e:
+    except (ErroCaso, ErroQuimica) as e:
         sys.exit(f"error: {e}")
 
 

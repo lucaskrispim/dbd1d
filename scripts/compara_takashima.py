@@ -29,7 +29,7 @@ def energia(d):
 
 def main():
     base = pathlib.Path(sys.argv[1])
-    res = sorted(energia(d) for d in base.glob("T*_p5") if d.is_dir())
+    res = sorted(energia(d) for d in base.glob("T[0-9]*_p5") if d.is_dir())
     m40 = np.loadtxt(DADOS / "fig8_energia_CPT_40kHz.csv", delimiter=",")
     m20 = np.loadtxt(DADOS / "fig8_energia_CPT_20kHz.csv", delimiter=",")
     print(f"{'p (Torr)':>8s} {'E dbd1d (mJ)':>12s} {'E meas. 40 kHz (mJ)':>20s}")

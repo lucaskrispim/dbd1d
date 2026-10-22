@@ -9,7 +9,7 @@ import json
 import numpy as np
 import pytest
 
-from conftest import RAIZ, quimica_do
+from conftest import RAIZ, quimica_do, precisa_arquivo
 from modelo import KB, ME, ErroTransporte, Modelo
 from quimica_zdp import Quimica
 from tabela import Tabela
@@ -184,6 +184,7 @@ def test_estado_inicial_neutro_semeia_o_primeiro_ion(pecas):
     assert np.all(n[[k for k in md.ions[1:]]] == 0.0)
 
 
+@precisa_arquivo("src/parametros.f90")
 def test_mobilidades_iguais_as_do_fortran(dados):
     # fortran_contra_prototipo depends on the defaults of the two codes being
     # equal; src/parametros.f90 has those of the Fortran code

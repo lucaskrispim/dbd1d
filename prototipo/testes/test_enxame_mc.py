@@ -6,12 +6,13 @@ import sys
 
 import pytest
 
-from conftest import RAIZ
+from conftest import RAIZ, precisa_arquivo
 
 sys.path.insert(0, str(RAIZ / "ferramentas"))
 import enxame_mc  # noqa: E402
 
 
+@precisa_arquivo("casos/amonia_sun2022/bolsigdb.dat")
 def test_le_o_bolsigdb_da_amonia():
     s = enxame_mc.le_secoes(RAIZ / "casos" / "amonia_sun2022" / "bolsigdb.dat")
     assert s[("EXCITATION", "N2 -> N2(v1)")][0] == pytest.approx(0.29)
@@ -20,6 +21,7 @@ def test_le_o_bolsigdb_da_amonia():
     assert len(s[("ATTACHMENT", "H2 -> H^-")][1]) > 2
 
 
+@precisa_arquivo("bolsigdb.dat")
 def test_le_o_bolsigdb_do_argonio_como_antes():
     s = enxame_mc.le_secoes(RAIZ / "bolsigdb.dat")
     assert s[("IONIZATION", "Ar -> Ar^+")][0] == 15.8

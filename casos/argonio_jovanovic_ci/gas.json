@@ -1,0 +1,25 @@
+{
+  "_formato": [
+    "Properties of the background gas of the case, read by the simulator (prototipo/modelo.py).",
+    "fundo: species of kinet.inp that form the background gas and their fractions.",
+    "cv_por_kb: specific heat at constant volume per heavy particle, in units of k_B (1.5 for a monatomic gas, 2.5 for a diatomic one without vibration).",
+    "condutividade: thermal conductivity in W/(m K); tipo linear_com_raiz, (a T + b) escala, times (T/t_raiz)^(1/2) above t_raiz, or tipo tabela, with T (K) and kappa, interpolated linearly and clamped at the ends.",
+    "ion_inicial: positive ion seeded with the electrons in the neutral initial plasma.",
+    "calor (optional): enthalpies of formation (eV) of the species; each heavy-particle reaction with more than one reactant releases -sum(nu h) as gas heat (those of BOLSIG+ and the single-reactant, radiative ones are left out); with --energy, the mean energy of the consumed electrons too. Without the block, the gas is heated only by the elastic loss and by ion Joule heating.",
+    "calor.processos_rapidos (optional): processes of bolsigdb.dat whose energy becomes gas heat within picoseconds (for example N2 -> N2(rot)); ferramentas/caso.py heat and tables write their power to tabela_calor_tg.dat (net of de-excitation, limited by the inelastic loss), which the gas receives.",
+    "The fonte fields are only a record of the source."
+  ],
+  "fundo": {
+    "AR": 1.0
+  },
+  "cv_por_kb": 1.5,
+  "condutividade": {
+    "tipo": "linear_com_raiz",
+    "a": 0.0307313,
+    "b": 10.006,
+    "escala": 0.001,
+    "t_raiz": 3000.0
+  },
+  "ion_inicial": "AR^+",
+  "fonte": "conductivity of the Fortran code (DF in termico.f90); cv of a monatomic gas"
+}

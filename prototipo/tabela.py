@@ -118,6 +118,9 @@ class TabelaEnergiaTg:
                   if l.strip() and not l.startswith("#")]
         dados = np.array([[float(x) for x in l] for l in linhas])
         self.t_gas = np.unique(dados[:, 0])
+        if len(self.t_gas) < 2:
+            raise ValueError(f"{arquivo}: the table needs at least two T_g nodes for the interpolation in T_g "
+                             f"(it has {len(self.t_gas)})")
         self.blocos = [TabelaEnergia(dados=dados[dados[:, 0] == t, 1:]) for t in self.t_gas]
         # compatibility with TabelaEnergia: energies of the first node
         self.e_n, self.eps = self.blocos[0].e_n, self.blocos[0].eps
@@ -250,6 +253,9 @@ class TabelaTg:
                   if l.strip() and not l.startswith("#")]
         dados = np.array([[float(x) for x in l] for l in linhas])
         self.t_gas = np.unique(dados[:, 0])
+        if len(self.t_gas) < 2:
+            raise ValueError(f"{arquivo}: the table needs at least two T_g nodes for the interpolation in T_g "
+                             f"(it has {len(self.t_gas)})")
         self.blocos = []
         for t in self.t_gas:
             d = dados[dados[:, 0] == t, 1:]

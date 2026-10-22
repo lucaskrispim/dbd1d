@@ -2,7 +2,7 @@
 """Recorded EEDF (Q15): the generator writes the BOLSIG+ EEDF at nodes of the energy
 table (tabela_eedf.dat), and simula.py writes, as the Fortran code
 (eedf_borda0.dat, eedf_centro.dat, eedf_borda1.dat), the EEDF interpolated by the
-mean energy of the cell at nodes 2, n/2 and n-1. BOLSIG+ normalisation:
+mean energy of the cell at nodes 2, n/2 and n-1. BOLSIG+ normalization:
 integral of sqrt(u) f du = 1, and the mean energy is the integral of u^(3/2) f du."""
 import subprocess
 import sys

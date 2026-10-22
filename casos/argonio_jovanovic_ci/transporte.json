@@ -1,0 +1,35 @@
+{
+  "_formato": [
+    "Transport data of the heavy species, read by the simulator (prototipo/modelo.py) or given by --transport.",
+    "Each transported species except E needs massa_u, the mass in u. The background gas is transported only with --free-gas.",
+    "Positive ions of charge 1 need mobilidade, reduced to the Loschmidt density in cm2/(V s), of tipo constante (K0), frost (K0 and EN_aquecimento in Td, with K = K0 (1 + (E/N)/EN_aquecimento)^(-1/2)) or tabela (E_N in Td, increasing, and K0, interpolated linearly; below the first point, clamped; above the last, clamped or, with acima = raiz, K = K_last (E/N_last / (E/N))^(1/2)).",
+    "Neutrals need difusao, D = (D0/p) (T/T0)^expoente in m2/s with p in atm, and perda_na_parede, the probability gamma of loss per collision with the wall (flux gamma/(2 - gamma) n v/2; the free background gas does not need it).",
+    "With --free-gas, the species need atomos_do_fundo, the atoms of the background gas that the wall returns per absorbed particle.",
+    "The fonte fields are only a record of the source."
+  ],
+  "AR": {
+    "massa_u": 39.948,
+    "difusao": {"D0": 17.0e-6, "T0": 273.0, "expoente": 1.9},
+    "atomos_do_fundo": 0,
+    "fonte": "diffusion: the same value as Ar*, as in the Fortran code (DK); used only with --free-gas"
+  },
+  "AR*": {
+    "massa_u": 39.948,
+    "difusao": {"D0": 17.0e-6, "T0": 273.0, "expoente": 1.9},
+    "perda_na_parede": 1.0,
+    "atomos_do_fundo": 1,
+    "fonte": "diffusion of the Fortran code (DK in termico.f90), no primary source recorded; loss of every metastable that reaches the wall, as in the Fortran code"
+  },
+  "AR^+": {
+    "massa_u": 39.948,
+    "mobilidade": {"tipo": "frost", "K0": 1.61, "EN_aquecimento": 210.0},
+    "atomos_do_fundo": 1,
+    "fonte": "Golyatina and Maiorov, Plasma Phys. Rep. 43, 75 (2017), at 300 K; Ellis et al. 1976 measure K0 = 1.53"
+  },
+  "AR2^+": {
+    "massa_u": 79.896,
+    "mobilidade": {"tipo": "constante", "K0": 1.95},
+    "atomos_do_fundo": 2,
+    "fonte": "Phys. Rev. 160, 130 (1967), authors not recorded in the project; no high-field data"
+  }
+}

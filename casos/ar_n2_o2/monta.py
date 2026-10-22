@@ -3,7 +3,7 @@
 of ZDPlasKin (Pancheshnyi, version 1.03) as adapted by the user for the air2D
 simulations (original/, md5 ef36e221 and 08eb361e: processes without a cross
 section commented out; 53 species, negative ions, NxOy, @B/@R blocks and DENSITY
-in BOLSIG+) and from the argon mechanism of the root, plus six cross reactions
+in BOLSIG+) and from the argon mechanism at the repository root, plus six cross reactions
 with typical coefficients from the literature (here they serve the test of the
 tool on a new mixture, not a study of air):
   Ar^+ + N2 => N2^+ + Ar          1.0e-11 cm3/s
@@ -36,7 +36,7 @@ kinet = troca_uma(kinet, r"^(BOLSIG\s*\n.*?)^END", r"\1Ar Ar*\nEND")
 kinet = troca_uma(kinet, r"^(SPECIES\s*\n.*?)^END", r"\1Ar Ar* Ar^+ Ar2^+\nEND")
 cruzadas = """
 #==================================================================================================================================
-# argon (kinet.inp of the root) and cross reactions (casos/ar_n2_o2/monta.py)
+# argon (kinet.inp at the repository root) and cross reactions (casos/ar_n2_o2/monta.py)
 #==================================================================================================================================
 """ + reacoes_ar + """
 

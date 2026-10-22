@@ -42,8 +42,9 @@ def test_raizes_satisfazem_a_equacao_caracteristica():
         assert 0.3 * lam * lam - W * lam + NU == pytest.approx(0.0, abs=1e-6 * NU)
 
 
-@pytest.mark.parametrize("gama, reflexao", [(0.05, 0.0), (0.05, 0.5)])
-def test_ruptura_do_simulador_bate_com_a_referencia(tmp_path, gama, reflexao):
+@pytest.mark.parametrize("gama, reflexao, sinal", [(0.05, 0.0, 1.0), (0.05, 0.5, 1.0), (0.05, 0.0, -1.0)],
+                         ids=["catodo_direito", "catodo_direito_reflexao", "catodo_esquerdo"])
+def test_ruptura_do_simulador_bate_com_a_referencia(tmp_path, gama, reflexao, sinal):
     # end to end: argon at 100 Torr, gap of 1.5 mm (p d = 15 Torr cm),
     # metal electrodes, local field. With 200 cells the discrete breakdown lies
     # 0.2 to 0.3% below the continuous reference (mesh study from 100 to 800
@@ -53,9 +54,10 @@ def test_ruptura_do_simulador_bate_com_a_referencia(tmp_path, gama, reflexao):
     vs = v_ref * np.array([0.99, 1.01])
     taxas = []
     for v in vs:
+        # negative voltage on the left electrode: the cathode is the left wall
         d = tmp_path / f"v{v:.1f}"
-        townsend.roda(d, gap, pressao, gama, v, 200, sys.executable, 3e-5, reflexao)
+        townsend.roda(d, gap, pressao, gama, sinal * v, 200, sys.executable, 3e-5, reflexao)
         taxas.append(townsend.taxa_de_crescimento(d))
-    assert taxas[0] < 0.0 < taxas[1] or taxas[0] < taxas[1]
+    assert taxas[0] < 0.0 < taxas[1]          # below and above breakdown: the growth rate changes sign
     v_b = vs[0] - taxas[0] * (vs[1] - vs[0]) / (taxas[1] - taxas[0])
     assert v_b == pytest.approx(v_ref, rel=5e-3)

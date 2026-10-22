@@ -36,7 +36,7 @@ especies = " ".join(bloco(ar, "SPECIES") + bloco(n2, "SPECIES")).split()
 especies = list(dict.fromkeys(especies))
 bolsig = list(dict.fromkeys(" ".join(bloco(ar, "BOLSIG") + bloco(n2, "BOLSIG")).split()))
 kinet = f"""#
-# Ar:N2 montado de kinet.inp (argônio) e casos/n2/kinet.inp por casos/ar_n2/monta.py
+# Ar:N2 assembled from kinet.inp (argon) and casos/n2/kinet.inp by casos/ar_n2/monta.py
 #
 
 ELEMENTS
@@ -52,13 +52,13 @@ SPECIES
 END
 
 REACTIONS
-#--------------------------------------------------------------------------- argônio
+#--------------------------------------------------------------------------- argon
 {reacoes(ar)}
 
 #--------------------------------------------------------------------------- N2
 {reacoes(n2)}
 
-#--------------------------------------------------------------------------- cruzadas
+#--------------------------------------------------------------------------- cross reactions
 Ar^+ + N2 => N2^+ + Ar             !   1.0d-11
 Ar* + N2 => Ar + N2(C)             !   3.0d-11
 Ar2^+ + N2 => N2^+ + Ar + Ar       !   1.0d-11

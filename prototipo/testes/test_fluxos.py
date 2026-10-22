@@ -45,3 +45,17 @@ def test_fracoes_somam_um_e_a_ionizacao_produz_o_ar_mais(execucao):
     assert sum(f for _, f in prod) == pytest.approx(1.0, abs=1e-12)
     assert sum(f for _, f in cons) == pytest.approx(1.0, abs=1e-12)
     assert "AR->AR^+" in prod[0][0].upper().replace(" ", "")
+
+
+def test_execucao_antiga_sem_opcoes_novas_e_lida(execucao, tmp_path):
+    # parametros.json of a run made before an option existed (reflexao_eletrons came in 1.1):
+    # the missing options take the default of simula.py
+    import json
+    import shutil
+    velha = tmp_path / "velha"
+    shutil.copytree(execucao, velha)
+    p = json.loads((velha / "parametros.json").read_text())
+    del p["argumentos"]["reflexao_eletrons"]
+    (velha / "parametros.json").write_text(json.dumps(p))
+    md = fluxos.modelo_da_execucao(velha)
+    assert md.absorcao_eletrons == 1.0

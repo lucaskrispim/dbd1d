@@ -27,6 +27,7 @@ Usage: python3 validacao/townsend.py [--meshes 100 200 400 800] [--pd 10 15 20] 
 import argparse
 import functools
 import json
+import os
 import pathlib
 import subprocess
 import sys
@@ -123,7 +124,9 @@ def roda(destino, gap, pressao, gama, v, celulas, py, t_end, reflexao=0.0):
            "--electron-reflection", repr(float(reflexao))]
     # above breakdown the current grows up to the nonlinear regime, which metal
     # electrodes do not limit, and the integrator may stop: the part written before counts
-    subprocess.run(cmd, capture_output=True, env={"OPENBLAS_NUM_THREADS": "1", "PATH": ""})
+    r = subprocess.run(cmd, capture_output=True, text=True, env=dict(os.environ, OPENBLAS_NUM_THREADS="1"))
+    if not (pathlib.Path(destino) / "perfil.dat").exists():
+        raise RuntimeError(f"{destino}: the simulation did not start: {r.stderr.strip()[-500:]}")
 
 
 def taxa_de_crescimento(destino):
@@ -155,7 +158,7 @@ def main():
     p.add_argument("--pd", type=float, nargs="+", default=[10.0, 15.0, 20.0], help="p d in Torr cm")
     p.add_argument("--pressure-torr", "--pressao-torr", dest="pressao_torr", type=float, default=100.0)
     p.add_argument("--gamma", "--gama", dest="gama", type=float, default=0.05)
-    p.add_argument("--reflection", "--reflexao", dest="reflexao", type=float, default=0.0,
+    p.add_argument("--electron-reflection", "--reflection", "--reflexao", dest="reflexao", type=float, default=0.0,
                    help="electron reflection at the walls")
     p.add_argument("--t-end", type=float, default=3e-5)
     p.add_argument("--python", default=sys.executable)

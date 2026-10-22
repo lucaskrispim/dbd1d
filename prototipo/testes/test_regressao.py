@@ -25,11 +25,31 @@ from conftest import PROTOTIPO, RAIZ
 AMBIENTE = {"OPENBLAS_NUM_THREADS": "1", "PATH": ""}
 
 
+# the two short cases, as the variables of the same name in the Makefile of the
+# research repository (test_argumentos_iguais_aos_do_makefile keeps them equal)
+ARGUMENTOS = {
+    "CURTO_PROTOTIPO": ["--v-peak", "5e3", "--cells", "20", "--clustering", "1.5", "--thickness", "1.75e-3",
+                        "--energy", "--dt-output", "2e-9", "--ne0", "1e9", "--neutral", "--t-end", "8e-9"],
+    "CURTO_PROTOTIPO_LFA": ["--v-peak", "5e3", "--cells", "20", "--clustering", "1.5", "--thickness", "1.75e-3",
+                            "--dt-output", "2e-9", "--ne0", "1e9", "--neutral", "--t-end", "8e-9"],
+}
+
+
 def caso(nome):
-    """Arguments of the case from the Makefile variable."""
+    return ARGUMENTOS[nome]
+
+
+@pytest.mark.skipif(not (RAIZ / "Makefile").exists(), reason="Makefile of the research repository, not distributed")
+def test_argumentos_iguais_aos_do_makefile():
+    # the Makefile writes the options with their Portuguese names (internal name with - for _)
+    sys.path.insert(0, str(PROTOTIPO))
+    from simula import NOMES
+    interno = {v: k for k, v in NOMES.items()}
     texto = (RAIZ / "Makefile").read_text().replace("\\\n", " ")
-    linha = next(l for l in texto.splitlines() if l.startswith(nome + " ") or l.startswith(nome + "="))
-    return linha.split("=", 1)[1].split()
+    for nome, args in ARGUMENTOS.items():
+        linha = next(l for l in texto.splitlines() if l.startswith(nome + " ") or l.startswith(nome + "="))
+        portugues = ["--" + interno.get(x[2:], x[2:]).replace("_", "-") if x.startswith("--") else x for x in args]
+        assert linha.split("=", 1)[1].split() == portugues, nome
 
 
 CASOS = [("CURTO_PROTOTIPO", "prototipo_curto"), ("CURTO_PROTOTIPO_LFA", "prototipo_curto_lfa")]
@@ -56,7 +76,7 @@ def test_caso_curto_igual_a_referencia(tmp_path, variavel, referencia):
                         "--tol", str(tol), "--estrito"], capture_output=True, text=True, env=AMBIENTE)
     assert r.returncode == 0, f"{r.stdout}\nversions different from the reference: {diferentes}"
     # the local field case covers the table in E/N (Q3)
-    assert ("--energia" in caso(variavel)) == (variavel == "CURTO_PROTOTIPO")
+    assert ("--energy" in caso(variavel)) == (variavel == "CURTO_PROTOTIPO")
 
 
 def test_execucao_deterministica(tmp_path):

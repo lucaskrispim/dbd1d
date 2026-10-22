@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Ions of charge greater than 1 (doubly ionised Ar2+, N^2+...): the mobility of
+"""Ions of charge greater than 1 (doubly ionized Ar2+, N^2+...): the mobility of
 transporte.json is the measured one of the ion itself (v = K E), so the drift uses
 only the sign of the charge; the Einstein diffusion is mu k T/(|z| e), the Joule
 heating |z| e n mu E^2, and the charge z enters Poisson, the surface charge and
-the wall brake. Test chemistry: argon with the charge of Ar2+ changed to +2."""
+the Boltzmann factor at the wall. Test chemistry: argon with the charge of Ar2+ changed to +2."""
 import copy
 
 import numpy as np
@@ -76,7 +76,7 @@ def test_joule_com_a_carga(modelos):
 
 def test_freio_da_parede_com_a_carga(modelos):
     # field +x: the positive ion moves away from the left wall, and the thermal flux reaching
-    # it is braked by exp(-|z| e E d/(k T)); on the right the drift does not depend on z
+    # it is reduced by exp(-|z| e E d/(k T)); on the right the drift does not depend on z
     um, dois = modelos
     k = dois.nomes.index("AR2^+")
     out1 = um.fluxos(*_estado(um))[1]

@@ -54,7 +54,7 @@ def test_deriva_no_sentido_oposto(pecas):
 
 def test_preso_no_volume_pelo_campo_e_sem_emissao_secundaria(pecas):
     # field +x: the negative ion goes to the left wall (drift enters fully) and
-    # on the right only the thermal flux braked by exp(-e E d/(k T)); it does not extract electrons
+    # on the right only the thermal flux reduced by exp(-e E d/(k T)); it does not extract electrons
     _, neg = _modelos(pecas)
     k = neg.nomes.index("AR2^+")
     n = np.zeros((neg.n_esp, neg.m))

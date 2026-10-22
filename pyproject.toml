@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "dbd1d"
-version = "1.2.1"
+version = "1.2.2"
 description = "One-dimensional fluid model of dielectric barrier discharges generated from ZDPlasKin chemistry files"
 readme = "README.md"
 license = "GPL-3.0-or-later"

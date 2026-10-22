@@ -19,7 +19,7 @@ Discretization (the geometry and wall conditions of the original Fortran code):
 - chemistry: reactions of the case with the electron impact rate coefficients
   and Te of the table in E/N, at the field of the cell centre.
 
-With energia=True, the electron energy density n_eps (eV cm-3) is in the state
+With energia=True, the electron energy density n_eps (eV cm-3) is in the state vector
 (local mean energy approximation, Hagelaar and Pitchford 2005): the electron
 coefficients (mobility, diffusion, Te, rates) come from the mean energy
 n_eps/n_e and T_g (tabela_energia_tg.dat through TabelaEnergiaTg, or
@@ -35,7 +35,7 @@ energy and the ionization). At the wall, each electron leaving by thermal motion
 takes (5/2)kTe, as in Hagelaar et al. 2000, and the drift takes mu_eps*E*n_eps;
 secondary electrons enter with eps_sec.
 
-With aquecimento=True, the gas temperature T (K) is in the state, at constant
+With aquecimento=True, the gas temperature T (K) is in the state vector, at constant
 volume, as in the Fortran code and in ZDPlasKin with GAS_HEATING:
   c_v N k_B dT/dt = d/dx(kappa(T) dT/dx) + Q_el + Q_J,
 with N the heavy particles of the cell, c_v and kappa(T) from gas.json (in
@@ -47,7 +47,7 @@ wall fluxes. With the energy table in T_g (TabelaEnergiaTg), the local T_g also
 enters the electron coefficients, the elastic loss and the floor of the mean
 energy; with the table at 300 K, they stay those of 300 K.
 
-With gas_solto=True, the background gas is in the state: it diffuses with its
+With gas_solto=True, the background gas is in the state vector: it diffuses with its
 coefficient from transporte.json, takes part in the chemistry and receives back
 from the wall, as neutral atoms, the particles the wall absorbs, each with its
 atomos_do_fundo (Ar2+ counts two). The N of the electrons (E/N, coefficients of
@@ -320,7 +320,7 @@ class Modelo:
         self.ion_inicial = nomes.index(ion)
         self.neutros = [k for k, s in enumerate(nomes) if carga[k] == 0 and s != "E"]
         if gas_solto:
-            # each background species in the state; atomos[j, k]: particles of the
+            # each background species in the state vector; atomos[j, k]: particles of the
             # background j that the wall returns per absorbed particle k (in a
             # mixture, atomos_do_fundo is an object per background species, such as
             # {"N2": 0.5, "H2": 1.5} for NH3)
@@ -348,8 +348,8 @@ class Modelo:
         radiation is not subtracted). The BOLSIG+ reactions are left out: their
         energy comes from bolsigdb.dat."""
         # chemistry from quimica.json: the thresholds come from it, never from the
-        # bolsigdb.dat of the root (argon); read from zdplaskin_m.F90 without a given
-        # bolsigdb, the one of the root
+        # bolsigdb.dat at the repository root (argon); read from zdplaskin_m.F90 without a given
+        # bolsigdb, the one at the repository root
         if bolsigdb is None and not getattr(quimica, "do_json", False):
             bolsigdb = RAIZ / "bolsigdb.dat"
         energia = quimica.energia_eletronica(bolsigdb, [nome for nome, _ in fundos])
@@ -714,7 +714,7 @@ class Modelo:
         v_term = np.sqrt(8.0 * KB * temp / (np.pi * self.massa[:, None]))
         out = np.zeros((self.n_esp, 2))
         for lado, (cel, face, sinal) in enumerate(((0, 0, -1.0), (self.m - 1, self.m, 1.0))):
-            ce = self.carga * campo[face]                  # force per e: the brake uses |z| and E
+            ce = self.carga * campo[face]                  # force per e: the Boltzmann factor uses |z| and E
             w_n = sinal * mob[:, cel] * self.sinal * campo[face]      # drift towards the wall
             meia = self.d[face]
             with np.errstate(over="ignore"):
@@ -739,7 +739,7 @@ class Modelo:
     def fluxos_energia(self, n, n_eps, campo, mob, temp, extra, gama_ions):
         """Electron energy flux at the m+1 faces (eV cm-3 m/s, positive towards +x):
         Scharfetter-Gummel in the interior; at the walls, 5/2 kTe per electron of
-        the braked thermal flux (energy flux (5/6) v_th n_eps of Hagelaar et al.,
+        the thermal flux reduced by the Boltzmann factor (energy flux (5/6) v_th n_eps of Hagelaar et al.,
         Phys. Rev. E 62, 1452, 2000), mu_eps*E*n_eps in the drift towards the wall
         and eps_sec per incoming secondary electron."""
         mu_e = extra["mu_eps"][None, :]

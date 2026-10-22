@@ -8,7 +8,7 @@ import json
 import numpy as np
 import pytest
 
-from conftest import RAIZ, quimica_do
+from conftest import RAIZ, quimica_do, precisa_arquivo
 from modelo import ErroGas, Modelo, condutividade_termica
 from quimica_zdp import Quimica
 from tabela import TabelaTg
@@ -99,6 +99,7 @@ def test_mistura_tira_do_fundo_a_energia_das_colisoes(pecas, gas):
     assert np.all(mist.energia_reacao == 0.0)
 
 
+@precisa_arquivo("casos/n2/quimica.json")
 def test_massa_da_troca_elastica_na_mistura(pecas_n2):
     # 1/M = sum of x_i/M_i (approximation: weighted by the fraction, not by the collision
     # frequency of each gas)
@@ -132,6 +133,7 @@ def _modelo_n2(pecas_n2, calor, **kw):
                   transporte=N2 / "transporte.json", **kw)
 
 
+@precisa_arquivo("casos/n2/quimica.json")
 def test_calor_de_cada_reacao_pelas_entalpias(pecas_n2):
     md = _modelo_n2(pecas_n2, {"entalpias": ENTALPIAS_N2})
     q = md.q
@@ -144,6 +146,7 @@ def test_calor_de_cada_reacao_pelas_entalpias(pecas_n2):
     assert calor("bolsig:N2->N2(B3)") == 0.0                            # electron energy, already in P_inel
 
 
+@precisa_arquivo("casos/n2/quimica.json")
 def test_calor_das_reacoes_entra_no_aquecimento(pecas_n2):
     # dT/dt with heat = without heat + sum of the rates times the heat of each reaction,
     # divided by cv N k_B (in local field; with --energy the mean energy of the
@@ -167,6 +170,7 @@ def test_calor_das_reacoes_entra_no_aquecimento(pecas_n2):
     assert np.all(d_com > d_sem)
 
 
+@precisa_arquivo("casos/n2/quimica.json")
 def test_entalpia_faltando_e_erro(pecas_n2):
     ent = dict(ENTALPIAS_N2)
     del ent["N4^+"]
@@ -174,6 +178,7 @@ def test_entalpia_faltando_e_erro(pecas_n2):
         _modelo_n2(pecas_n2, {"entalpias": ent})
 
 
+@precisa_arquivo("casos/n2/quimica.json")
 def test_com_energia_os_eletrons_consumidos_levam_a_energia_media_ao_gas(pecas_n2):
     # with --energy, the mean energy of the electrons lost in common reactions
     # (which d_energia removes) also becomes gas heat
@@ -197,6 +202,7 @@ def test_com_energia_os_eletrons_consumidos_levam_a_energia_media_ao_gas(pecas_n
     np.testing.assert_allclose(d_com, d_sem + q / (com.cv_por_kb * 1.380649e-23 * com.n_pesadas(n) * 1e6), rtol=1e-9)
 
 
+@precisa_arquivo("casos/n2/quimica.json")
 def test_calor_rapido_dos_eletrons_entra_no_aquecimento(pecas_n2, tmp_path):
     # fast heat table (constant P/N, eV cm3/s): the gas receives P N n_e
     from tabela import TabelaEnergiaTg
@@ -217,11 +223,13 @@ def test_calor_rapido_dos_eletrons_entra_no_aquecimento(pecas_n2, tmp_path):
     np.testing.assert_allclose(d_com, d_sem + q / (com.cv_por_kb * 1.380649e-23 * com.n_pesadas(n) * 1e6), rtol=1e-9)
 
 
+@precisa_arquivo("casos/n2/quimica.json")
 def test_processos_rapidos_sem_tabela_e_erro(pecas_n2):
     with pytest.raises(ErroGas, match="tabela_calor"):
         _modelo_n2(pecas_n2, {"entalpias": ENTALPIAS_N2, "processos_rapidos": ["N2->N2(ROT)"]})
 
 
+@precisa_arquivo("casos/n2/quimica.json")
 def test_caso_n2_monta_com_o_proprio_calor(pecas_n2):
     # the gas.json of the case has the enthalpy of every species and the generated fast
     # heat table; the fast heat of the table is positive in a discharge field

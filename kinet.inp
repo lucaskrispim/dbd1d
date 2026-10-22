@@ -27,7 +27,7 @@ e + Ar => e + e + Ar^+         !   Bolsig+ Ar  -> Ar^+
 e + Ar => Ar* + e              !   Bolsig+ Ar  -> Ar*
 Ar* + e => Ar + e              !   Bolsig+ Ar* -> Ar
 e + Ar* => Ar^+ + e + e        !   Bolsig+ Ar* -> Ar^+
-# 5-10: recombination, ion conversion, chemo-ionization and quenching
+# 5-10: recombination, ion conversion, chemi-ionization and quenching
 Ar2^+ + e => Ar* + Ar          !   8.5d-7 * (Te/300.0d0)**(-0.67d0)
 Ar2^+ + Ar => Ar^+ + Ar + Ar   !   6.06d-6 / Tgas * exp(-15130.0d0/Tgas)
 Ar* + Ar* => Ar2^+ + e         !   6.0d-10

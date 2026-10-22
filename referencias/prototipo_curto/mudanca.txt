@@ -1,0 +1,2 @@
+superficie.dat: 5 registros, 6 colunas comuns, OK
+perfil.dat: 110 registros, 19 colunas comuns, OK

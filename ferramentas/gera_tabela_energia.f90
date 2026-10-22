@@ -203,7 +203,7 @@ contains
                 if(trim(adjustl(nome)) == trim(rap_nome(a)))rap_k(a)=b
             end do
             if(rap_k(a) == 0)then
-                write(*,'(a)')"processo de calor_rapido.txt fora do BOLSIG+: "//trim(rap_nome(a))
+                write(*,'(a)')"process of calor_rapido.txt not in BOLSIG+: "//trim(rap_nome(a))
                 stop 1
             end if
         end do

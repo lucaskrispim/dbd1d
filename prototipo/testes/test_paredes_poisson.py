@@ -62,9 +62,9 @@ def test_fluxo_termico_de_cada_especie_sem_campo(pecas):
 def test_deriva_dos_ions_nas_duas_paredes(pecas):
     # uniform field +E: the ions drift to the right. At the right wall
     # Gamma = n (v_th/2 + mu E); on the left the drift moves away and the thermal
-    # flux is braked by exp(-e E (h/2)/(k T)); mu of Ar+ by Frost with
+    # flux is reduced by exp(-e E (h/2)/(k T)); mu of Ar+ by Frost with
     # K0 = 1.61 cm2/(V s) and 210 Td, of Ar2+ constant with K0 = 1.95. With 500 V/m
-    # and a half cell of 40 um the brake is ~0.46, so the half cell counts
+    # and a half cell of 40 um the Boltzmann factor is ~0.46, so the half cell counts
     md = Modelo(*pecas, n_celulas=10)
     n = estado_paredes(md)
     campo_v = 500.0

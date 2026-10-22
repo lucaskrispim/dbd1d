@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """V4 of validacao/LEIAME.md: swarm parameters of BOLSIG+ with the argon cross
-sections (tabela_bolsig.dat of the root) against the data compiled in figures 7
+sections (tabela_bolsig.dat at the repository root) against the data compiled in figures 7
 to 10 of Crispim et al. 2024 (docs/literatura/dados/crispim2024/).
 
 From the table: v_d = muN (E/N), D/mu = DN/muN (V, equal to eV per electron) and

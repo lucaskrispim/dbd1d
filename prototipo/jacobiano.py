@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Structured Jacobian of the coupled model and differential-algebraic form with
-the potential in the state.
+the potential in the state vector.
 
 1. ModeloRapido.jacobiano(t, y): dense Jacobian with the structure
        J = J_local + S G,
@@ -11,7 +11,7 @@ the potential in the state.
    evaluations of scipy's finite-difference Jacobian, whose adaptive step
    collapsed during current pulses and turned the Jacobian into round-off noise.
 
-2. SistemaDAE: the potential at the m+2 nodes is in the state, 0 = A phi - b(n,
+2. SistemaDAE: the potential at the m+2 nodes is in the state vector, 0 = A phi - b(n,
    sigma, t) (an index-one DAE), with a sparse banded Jacobian, integrated by
    bdf_dae.BDFMassa (zero mass matrix in the rows of the Poisson equation) with
    sparse LU.

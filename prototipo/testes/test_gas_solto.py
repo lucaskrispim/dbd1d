@@ -7,7 +7,7 @@ coefficients) is that of the neutrals of the cell, Ar + Ar*."""
 import numpy as np
 import pytest
 
-from conftest import RAIZ, quimica_do
+from conftest import RAIZ, quimica_do, precisa_arquivo
 from jacobiano import ModeloRapido
 from quimica_zdp import Quimica
 from tabela import Tabela
@@ -150,6 +150,7 @@ def _modelo_amonia(amonia, **kw):
                         gas=AMONIA / "gas.json", transporte=transporte, gas_solto=True, **kw)
 
 
+@precisa_arquivo("casos/amonia_sun2022/quimica.json")
 def test_mistura_solta_comeca_nas_fracoes(amonia):
     md = _modelo_amonia(amonia)
     n = md.separa(md.estado_inicial(n_e0=1e9, neutro=True))[0]
@@ -157,6 +158,7 @@ def test_mistura_solta_comeca_nas_fracoes(amonia):
         np.testing.assert_allclose(n[md.nomes.index(nome)], 0.5 * md.n_gas, rtol=1e-15)
 
 
+@precisa_arquivo("casos/amonia_sun2022/quimica.json")
 def test_mistura_solta_conserva_os_atomos_de_cada_elemento(amonia):
     # transport, walls (return as N2 and H2) and chemistry: the N atoms and
     # the H atoms in the gap do not change, each on its own
@@ -174,6 +176,7 @@ def test_mistura_solta_conserva_os_atomos_de_cada_elemento(amonia):
         assert abs(a @ total) < 1e-12 * escala, el
 
 
+@precisa_arquivo("casos/amonia_sun2022/quimica.json")
 def test_mistura_solta_pede_os_atomos_por_fundo(amonia):
     from modelo import ErroTransporte
     q, tab, transporte = amonia

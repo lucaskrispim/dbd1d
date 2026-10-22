@@ -8,7 +8,7 @@ import json
 import numpy as np
 import pytest
 
-from conftest import RAIZ
+from conftest import RAIZ, precisa_arquivo
 from quimica_zdp import Quimica
 
 CASOS = [RAIZ, RAIZ / "casos" / "n2", RAIZ / "casos" / "amonia_sun2022", RAIZ / "casos" / "ar_n2_o2"]
@@ -37,7 +37,8 @@ def _avalia(q, estado):
         return k, q.taxas(dens, k), q.fontes(dens, k)
 
 
-@pytest.mark.parametrize("caso", CASOS, ids=lambda c: c.name)
+@pytest.mark.parametrize("caso", [pytest.param(c, marks=precisa_arquivo(str((c / "zdplaskin_m.F90").relative_to(RAIZ))))
+                                  for c in CASOS], ids=lambda c: c.name or "argonio")
 def test_json_igual_ao_zdplaskin_m(tmp_path, caso):
     q = Quimica(caso / "zdplaskin_m.F90")
     arq = tmp_path / "quimica.json"
@@ -54,6 +55,7 @@ def test_json_igual_ao_zdplaskin_m(tmp_path, caso):
     assert np.array_equal(j.energia_eletronica(None, fundos), q.energia_eletronica(caso / "bolsigdb.dat", fundos))
 
 
+@precisa_arquivo("casos/ar_n2_o2/zdplaskin_m.F90")
 def test_json_com_literal_alterado_e_detectado(tmp_path):
     # a number of the program changed by 1% must change the coefficients: the
     # bit for bit comparison of the test above does not let badly copied text through
@@ -71,6 +73,7 @@ def test_json_com_literal_alterado_e_detectado(tmp_path):
     assert not np.array_equal(_avalia(q, est)[0], _avalia(Quimica.de_json(arq), est)[0], equal_nan=True)
 
 
+@precisa_arquivo("casos/n2/zdplaskin_m.F90")
 def test_json_sem_reacao_e_recusado(tmp_path):
     caso = RAIZ / "casos" / "n2"
     q = Quimica(caso / "zdplaskin_m.F90")
@@ -83,6 +86,7 @@ def test_json_sem_reacao_e_recusado(tmp_path):
         _avalia(Quimica.de_json(arq), _estados(q))
 
 
+@precisa_arquivo("casos/n2/zdplaskin_m.F90")
 def test_simulacao_so_com_quimica_json(tmp_path):
     # case without zdplaskin_m.F90 and without bolsigdb.dat, only with quimica.json: the
     # run is identical to that of the original case
@@ -109,7 +113,7 @@ def test_simulacao_so_com_quimica_json(tmp_path):
 
 def test_json_sem_limiar_necessario_e_erro_e_nao_usa_o_bolsigdb_da_raiz(tmp_path):
     # a case exported without the thresholds it needs cannot run with the
-    # bolsigdb.dat of the root argon, which is of another gas
+    # bolsigdb.dat of the argon case at the repository root, which is of another gas
     import shutil
     import subprocess
     import sys
@@ -156,3 +160,71 @@ def test_json_cobre_if_divisao_inteira_e_any_neutral(tmp_path):
     tg, en = est[1], est[3]
     ramo = np.where((tg > 600) & (en < 100), 2.0, np.where(tg > 450, 3.0, 1.0))
     assert len(set(ramo)) == 3
+
+
+def _com_texto(tmp_path, texto):
+    """quimica.json of the argon root with the first expression replaced."""
+    d = json.loads((RAIZ / "quimica.json").read_text())
+    p = next(p for p in d["programa"] if "texto" in p)
+    p["texto"] = texto
+    arq = tmp_path / "quimica.json"
+    arq.write_text(json.dumps(d))
+    return arq
+
+
+@pytest.mark.parametrize("texto", [
+    "().__class__.__mro__[1].__subclasses__().__len__()",
+    "__import__('os').getcwd()",
+    "exp.__globals__",
+    "(lambda: 1)()",
+    "[x for x in (1, 2)][0]",
+    "'texto'",
+    "exp(tgas, out=None)",
+    "open",
+])
+def test_json_com_codigo_fora_da_aritmetica_e_recusado(tmp_path, texto):
+    # quimica.json is the format for sharing cases: its expressions are evaluated,
+    # so anything beyond arithmetic on the known names is refused when loading
+    from quimica_zdp import ErroQuimica
+    with pytest.raises(ErroQuimica, match="not allowed"):
+        Quimica.de_json(_com_texto(tmp_path, texto))
+
+
+def test_json_com_aritmetica_valida_carrega(tmp_path):
+    q = Quimica.de_json(_com_texto(tmp_path, "_s(1.0e-10) * exp(-_s(100.0) / tgas) * (te / 300.0) ** 0.5"))
+    k = q.coeficientes(np.full((2, 4), 1e-9), np.array([300.0, 600.0]), np.array([1e4, 2e4]))
+    assert np.isfinite(k).all()
+
+
+def _com_entrada(tmp_path, muda):
+    """quimica.json of the argon root with the first BOLSIG+ entry of the program changed."""
+    d = json.loads((RAIZ / "quimica.json").read_text())
+    p = next(p for p in d["programa"] if "texto" not in p)
+    muda(p)
+    arq = tmp_path / "quimica.json"
+    arq.write_text(json.dumps(d))
+    return arq
+
+
+@pytest.mark.parametrize("muda", [
+    lambda p: p.update(coluna_bolsig="().__class__.__base__.__subclasses__() or 0*tgas"),
+    lambda p: p.update(coluna_bolsig=-1),
+    lambda p: p.update(coluna_bolsig=10**6),
+    lambda p: p.update(coluna_bolsig=1.5),
+    lambda p: p.update(alvo="__import__"),
+    lambda p: p.update(alvo=10**6),
+], ids=["texto", "negativa", "grande", "real", "alvo_dunder", "alvo_fora"])
+def test_entrada_do_bolsig_invalida_e_recusada(tmp_path, muda):
+    # the entries without expression are a column of the BOLSIG+ table: an integer in
+    # range, for a reaction in range; anything else would reach eval or index outside
+    from quimica_zdp import ErroQuimica
+    with pytest.raises(ErroQuimica, match="not allowed"):
+        Quimica.de_json(_com_entrada(tmp_path, muda))
+
+
+@pytest.mark.parametrize("texto", ["9**9**9**9", "tgas ** 1000", "2 ** -100"])
+def test_potencia_com_expoente_enorme_e_recusada(tmp_path, texto):
+    # an integer power tower would block the process before any evaluation
+    from quimica_zdp import ErroQuimica
+    with pytest.raises(ErroQuimica, match="not allowed"):
+        Quimica.de_json(_com_texto(tmp_path, texto))

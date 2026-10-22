@@ -29,7 +29,9 @@ def modelo_da_execucao(d):
     """Model built with the arguments recorded in parametros.json; the case of
     another machine becomes the local casos/NAME."""
     import simula
-    a = argparse.Namespace(**json.loads((d / "parametros.json").read_text())["argumentos"])
+    # defaults of simula.py for the options that did not exist when the run was made
+    a = simula.cria_parser().parse_args([str(d)])
+    vars(a).update(json.loads((d / "parametros.json").read_text())["argumentos"])
     caso = pathlib.Path(a.caso)
     if not caso.exists():
         caso = RAIZ / "casos" / caso.name if caso.parent.name == "casos" else RAIZ

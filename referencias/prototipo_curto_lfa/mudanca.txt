@@ -1,0 +1,18 @@
+superficie.dat: 5 registros, 6 colunas comuns, DIFERE
+           phi esq  dif. relativa máx. 4.779e-13
+           phi dir  dif. relativa máx. 1.524e-12
+         sigma esq  dif. relativa máx. 1.376e-09
+         sigma dir  dif. relativa máx. 4.471e-10
+perfil.dat: 110 registros, 18 colunas comuns, DIFERE
+              volt  dif. relativa máx. 1.692e-12
+                De  dif. relativa máx. 2.773e-13
+                Me  dif. relativa máx. 5.401e-13
+             veloc  dif. relativa máx. 3.113e-12
+              freq  dif. relativa máx. 5.862e-13
+                Te  dif. relativa máx. 5.293e-13
+                 E  dif. relativa máx. 1.996e-08
+               AR*  dif. relativa máx. 1.439e-08
+              AR^+  dif. relativa máx. 3.676e-09
+             AR2^+  dif. relativa máx. 1.388e-09
+               E/N  dif. relativa máx. 3.645e-12
+             campo  dif. relativa máx. 3.648e-12

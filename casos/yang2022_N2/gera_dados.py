@@ -75,10 +75,10 @@ for chave, ent in bib.items():
         if medida and medida.get("tipo") == "tabela":
             k0 = [round(1.0 / (X["N2"] / k + X["H2"] / lang("H2")), 4) for k in medida["K0"]]
             novo["mobilidade"] = {"tipo": "tabela", "E_N": medida["E_N"], "K0": k0, "acima": medida.get("acima", "preso")}
-            novo["fonte"] = "Blanc's law in pure N2 with the measurement in N2 (Ellis et al. 1976) and Langevin in H2"
+            novo["fonte"] = "the measurement in N2 (Ellis et al. 1976)"
         else:
             novo["mobilidade"] = {"tipo": "constante", "K0": round(1.0 / (X["N2"] / lang("N2") + X["H2"] / lang("H2")), 4)}
-            novo["fonte"] = "Blanc's law in pure N2 with the Langevin limit in both gases (estimate)"
+            novo["fonte"] = "Langevin limit in N2 (estimate)"
     transporte[esp] = novo
 # in pure N2 the H2 is not background: it becomes a transported species, with trace
 # diffusion in N2 and no wall loss (stable molecule)

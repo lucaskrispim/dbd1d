@@ -1,6 +1,6 @@
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Cost of the structured Jacobian with the potential in the state (--jac dae,
+# Cost of the structured Jacobian with the potential in the state vector (--jac dae,
 # default) against scipy's finite-difference Jacobian (--jac fd), over the same
 # stretch: the first 8 us of the argon case of Stankov et al. 2020 at 100 mbar
 # with 50 cells, which include the first breakdown (near 6 us).

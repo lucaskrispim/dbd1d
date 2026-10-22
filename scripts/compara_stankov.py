@@ -29,6 +29,23 @@ AREA = 7.26e-4  # m2
 MEDIDA = {100: 0.559, 300: 0.935, 500: 1.535, 650: 2.474}  # W, fig. 7
 
 
+def potencias_por_periodo(d, n):
+    """Mean power (W) of each of the last n complete periods, oldest first: at 300 mbar the
+    discharge is not periodic and one period is not representative."""
+    a = json.loads((d / "parametros.json").read_text())["argumentos"]
+    per = a["periodo"]
+    sup = np.loadtxt(d / "superficie.dat", skiprows=1, ndmin=2)
+    t, v, phi_e = sup[:, 0], sup[:, 1], sup[:, 2]
+    q = EPS0 * a["eps_dieletrico"] * (v - phi_e) / a["espessura"] * AREA
+    i = np.gradient(q, t)
+    k = int(np.floor(t[-1] / per + 1e-9))
+    out = []
+    for j in range(k - n + 1, k + 1):
+        m = (t >= (j - 1) * per - 1e-12) & (t <= j * per + 1e-12)
+        out.append(float(np.trapezoid(v[m] * i[m], t[m]) / per))
+    return out
+
+
 def ultimo_periodo(d):
     """Electrical quantities in the last complete period written."""
     a = json.loads((d / "parametros.json").read_text())["argumentos"]

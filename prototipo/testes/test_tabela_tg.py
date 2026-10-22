@@ -266,3 +266,15 @@ def test_jacobiano_de_campo_local_com_o_gas_quente(tab_lfa):
     peso = np.abs(y)
     escala = np.abs(J_ref * peso).max(axis=1, keepdims=True) + 1e-300
     assert np.max(np.abs(J - J_ref) * peso / escala) < 1e-4
+
+
+@pytest.mark.parametrize("classe", ["TabelaTg", "TabelaEnergiaTg"])
+def test_tabela_com_um_so_no_de_tg_e_recusada(tmp_path, classe):
+    # with one T_g node the interpolation in T_g has no interval and returned NaN without error
+    import tabela
+    linhas = [l for l in (RAIZ / "tabela_energia_tg.dat").read_text().splitlines() if l.strip() and not l.startswith("#")]
+    primeiro = linhas[0].split()[0]
+    arq = tmp_path / "um_no.dat"
+    arq.write_text("\n".join(l for l in linhas if l.split()[0] == primeiro) + "\n")
+    with pytest.raises(ValueError, match="two T_g nodes"):
+        getattr(tabela, classe)(arq)

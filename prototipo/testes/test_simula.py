@@ -4,13 +4,15 @@ of the Fortran code and the restart from a recorded instant reproduces the
 continuous run within the integrator tolerance (with the DAE, the continuous run
 does not restart the integrator at the outputs and the restart does)."""
 import json
+import re
+import shutil
 import subprocess
 import sys
 
 import numpy as np
 import pytest
 
-from conftest import PROTOTIPO, RAIZ, quimica_do, precisa_caso
+from conftest import PROTOTIPO, RAIZ, quimica_do, precisa_caso, precisa_arquivo
 
 sys.path.insert(0, str(RAIZ / "scripts"))
 from resumo import blocos  # noqa: E402
@@ -60,7 +62,7 @@ def test_roda_grava_e_retoma(tmp_path):
 
 def test_dae_reproduz_o_caminho_original(tmp_path):
     # same physics by the two paths: finite difference Jacobian of scipy
-    # with Poisson inside the right-hand side, and DAE with the potential in the state and
+    # with Poisson inside the right-hand side, and DAE with the potential in the state vector and
     # structured Jacobian; with a tight tolerance, the outputs coincide
     fd, dae = tmp_path / "fd", tmp_path / "dae"
     roda(fd, "--t-end", "8e-9", "--jac", "fd", "--rtol", "1e-7")
@@ -151,6 +153,8 @@ def test_serie_temporal_numa_posicao(tmp_path):
     # argon): the table would clamp at the end node without warning
     (["--t-gas", "250"], "t_nos.txt"),
     (["--aquecimento", "--t-parede", "2000"], "t_nos.txt"),
+    (["--v-peak", "nan"], "finite"),
+    (["--pressure", "inf"], "finite"),
 ])
 def test_entrada_invalida_e_recusada(tmp_path, extra, mensagem):
     # as entrada.f90: meaningless parameters stop the run with a message
@@ -160,6 +164,22 @@ def test_entrada_invalida_e_recusada(tmp_path, extra, mensagem):
     assert mensagem in r.stderr + r.stdout
     assert "Traceback" not in r.stderr               # refused with a message, not with a crash
     assert not (tmp_path / "x" / "perfil.dat").exists()
+
+
+@pytest.mark.parametrize("arquivo, conteudo, mensagem", [
+    ("--voltage-table", "0 0\n", "two lines"),
+    ("--faces", "0\n2e-4\n4e-4\n6e-4\n", "from 0 to --gap"),
+    ("--faces", "0\n4e-4\n2e-4\n8e-4\n", "increase"),
+])
+def test_arquivo_de_entrada_invalido_e_recusado(tmp_path, arquivo, conteudo, mensagem):
+    # a voltage table of one line or faces that do not span the gap end in a message, not in a traceback
+    arq = tmp_path / "entrada.txt"
+    arq.write_text(conteudo)
+    extra = ["--waveform", "table"] if arquivo == "--voltage-table" else []
+    r = subprocess.run([sys.executable, str(PROTOTIPO / "simula.py"), str(tmp_path / "x"), "--t-end", "2e-9",
+                        *extra, arquivo, str(arq)], capture_output=True, text=True,
+                       env={"OPENBLAS_NUM_THREADS": "1", "PATH": ""})
+    assert r.returncode != 0 and mensagem in r.stderr + r.stdout and "Traceback" not in r.stderr
 
 
 def test_parametros_gravados_e_mobilidades_configuraveis(tmp_path):
@@ -177,8 +197,11 @@ def test_parametros_gravados_e_mobilidades_configuraveis(tmp_path):
     mob = p["modelo"]["transporte"]
     assert mob["AR^+"]["mobilidade"] == {"tipo": "frost", "K0": 1.5, "EN_aquecimento": 200.0}
     assert mob["AR2^+"]["mobilidade"]["K0"] == 1.9
-    for chave in ("commit", "numpy", "scipy", "python", "OPENBLAS_NUM_THREADS"):
+    for chave in ("commit", "versao", "numpy", "scipy", "python", "OPENBLAS_NUM_THREADS"):
         assert chave in p
+    # the version of the program is recorded even outside a git checkout (the zip of Zenodo)
+    from versao import VERSAO
+    assert p["versao"] == VERSAO
     assert p["OPENBLAS_NUM_THREADS"] == "1"
     # the wall temperature reaches the model (wall nodes in the profile)
     tb, nomes, linhas = list(blocos(d / "perfil.dat"))[-1]
@@ -330,6 +353,29 @@ def test_retomada_recusa_descartar_variaveis_da_origem(tmp_path, origem, retomad
     assert r.returncode != 0 and mensagem in r.stderr + r.stdout
 
 
+def test_retomada_recusa_descartar_a_energia_da_origem(tmp_path):
+    # without --energy the mean energy of the origin would be dropped without warning
+    roda(tmp_path / "a", "--t-end", "2e-9")
+    sem_energia = [x for x in BASE if x != "--energy"]
+    r = subprocess.run([sys.executable, str(PROTOTIPO / "simula.py"), str(tmp_path / "b"), *sem_energia,
+                        "--t-end", "4e-9", "--restart", str(tmp_path / "a"), "2e-9"], capture_output=True, text=True,
+                       env={"OPENBLAS_NUM_THREADS": "1", "PATH": ""})
+    assert r.returncode != 0 and "--energy" in r.stderr + r.stdout
+
+
+def test_retomada_com_fisica_diferente_avisa_o_que_mudou(tmp_path):
+    # changing the physics from a saved state is allowed (sensitivity studies), but
+    # every physical option that differs from the origin is reported
+    roda(tmp_path / "a", "--t-end", "2e-9")
+    r = subprocess.run([sys.executable, str(PROTOTIPO / "simula.py"), str(tmp_path / "b"), *BASE,
+                        "--t-end", "4e-9", "--restart", str(tmp_path / "a"), "2e-9", "--pressure", "9e4",
+                        "--gamma", "0.07"], capture_output=True, text=True,
+                       env={"OPENBLAS_NUM_THREADS": "1", "PATH": ""})
+    assert r.returncode == 0, r.stderr
+    nota = [l for l in r.stdout.splitlines() if l.startswith("NOTE")]
+    assert len(nota) == 1 and "--pressure" in nota[0] and "--gamma" in nota[0] and "--t-end" not in nota[0]
+
+
 def test_retomada_com_gas_solto(tmp_path):
     continua, parte, resto = tmp_path / "c", tmp_path / "p", tmp_path / "r"
     roda(continua, "--t-end", "8e-9", "--rtol", "1e-7", "--gas-solto")
@@ -339,6 +385,7 @@ def test_retomada_com_gas_solto(tmp_path):
     iguais(colunas(resto, nomes), colunas(continua, nomes), 1e-4, 1e-4)
 
 
+@precisa_arquivo("referencias/release_np4_20ns/perfil.dat")
 def test_estado_lido_do_perfil_do_fortran(tmp_path):
     # the profile of the Fortran code (regression reference, 100 uniform cells, local
     # field) is read by name: the densities of the cells come back equal
@@ -549,3 +596,36 @@ def test_nomes_antigos_das_opcoes_continuam_aceitos(tmp_path):
         assert (novo / nome).read_text() == (antigo / nome).read_text()
     a = json.loads((antigo / "parametros.json").read_text())["argumentos"]
     assert (a["pressao"], a["gama"], a["forma"]) == (9e4, 0.07, "seno")
+
+
+def test_versao_igual_a_do_pyproject():
+    # one version: prototipo/versao.py, repeated in pyproject.toml (at the root of the
+    # package, or in empacotamento/raiz in the research repository)
+    sys.path.insert(0, str(PROTOTIPO))
+    from versao import VERSAO
+    arq = next(c for c in (RAIZ / "pyproject.toml", RAIZ / "empacotamento" / "raiz" / "pyproject.toml") if c.exists())
+    assert re.search(r'(?m)^version = "([^"]+)"', arq.read_text()).group(1) == VERSAO
+    cff = arq.parent / "CITATION.cff"
+    assert re.search(r"(?m)^version: (\S+)", cff.read_text()).group(1) == VERSAO
+
+
+def test_nome_antigo_em_ingles_da_opcao_continua_aceito():
+    # --no-wall-brake became --no-wall-boltzmann; the old English name and the Portuguese one stay
+    sys.path.insert(0, str(PROTOTIPO))
+    from simula import cria_parser, NOMES
+    for nome in ("--no-wall-boltzmann", "--no-wall-brake", "--sem-freio"):
+        assert cria_parser().parse_args(["x", nome]).sem_freio
+    assert NOMES["sem_freio"] == "no-wall-boltzmann"
+
+
+def test_tabela_de_um_no_de_tg_no_caso_da_mensagem_sem_traceback(tmp_path):
+    # a case whose energy table has one T_g node stops with a message
+    caso = tmp_path / "caso"
+    shutil.copytree(RAIZ, caso, ignore=shutil.ignore_patterns(".*", "execucoes", "casos", "artigo", "docs", "*.pdf",
+                                                              "build", "referencias", "eedf", "bolsig_livre"))
+    linhas = [l for l in (caso / "tabela_energia_tg.dat").read_text().splitlines() if l.strip() and not l.startswith("#")]
+    primeiro = linhas[0].split()[0]
+    (caso / "tabela_energia_tg.dat").write_text("\n".join(l for l in linhas if l.split()[0] == primeiro) + "\n")
+    r = subprocess.run([sys.executable, str(PROTOTIPO / "simula.py"), str(tmp_path / "x"), *BASE, "--t-end", "2e-9",
+                        "--case", str(caso)], capture_output=True, text=True, env={"OPENBLAS_NUM_THREADS": "1", "PATH": ""})
+    assert r.returncode != 0 and "two T_g nodes" in r.stderr + r.stdout and "Traceback" not in r.stderr

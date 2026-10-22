@@ -2,7 +2,7 @@
 # Loffhagen D and Becker M M, Plasma Sources Sci. Technol. 32 055011 (2023), doi 10.1088/1361-6595/acd2fc,
 # appendix A: Ar* + Ar* -> Ar+ + Ar + e, 1.20e-15 m3/s (Dyatko et al. 2008), and Ar* + 2Ar, 8.33e-45 m6/s
 # (Eletskii and Smirnov 1986). There the product of the three-body process is the excimer Ar2*, which
-# does not exist here; since it only radiates (3.13e5 1/s) without ionisation by electrons, it returns
+# does not exist here; since it only radiates (3.13e5 1/s) without ionization by electrons, it returns
 # to Ar as in the base mechanism.
 # Argon mechanism of the dbd1d argon case (five species)
 #
@@ -33,7 +33,7 @@ e + Ar => e + e + Ar^+         !   Bolsig+ Ar  -> Ar^+
 e + Ar => Ar* + e              !   Bolsig+ Ar  -> Ar*
 Ar* + e => Ar + e              !   Bolsig+ Ar* -> Ar
 e + Ar* => Ar^+ + e + e        !   Bolsig+ Ar* -> Ar^+
-# 5-10: recombination, ion conversion, chemo-ionization and quenching
+# 5-10: recombination, ion conversion, chemi-ionization and quenching
 Ar2^+ + e => Ar* + Ar          !   8.5d-7 * (Te/300.0d0)**(-0.67d0)
 Ar2^+ + Ar => Ar^+ + Ar + Ar   !   6.06d-6 / Tgas * exp(-15130.0d0/Tgas)
 Ar* + Ar* => Ar^+ + Ar + e     !   1.2d-9

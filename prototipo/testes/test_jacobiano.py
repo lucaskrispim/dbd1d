@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Tests of the structured Jacobian and of the DAE formulation (potential in the state).
+"""Tests of the structured Jacobian and of the DAE formulation (potential in the state vector).
 
 The Jacobian of the right-hand side has the form J = J_local + S*G: J_local is the
 derivative at fixed field (block tridiagonal), S the derivative with respect to the

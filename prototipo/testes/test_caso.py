@@ -9,7 +9,7 @@ import sys
 
 import pytest
 
-from conftest import RAIZ, precisa_terceiros
+from conftest import RAIZ, precisa_terceiros, precisa_arquivo, quimica_do
 
 sys.path.insert(0, str(RAIZ / "ferramentas"))
 import caso  # noqa: E402
@@ -56,6 +56,7 @@ def n2():
     return Quimica(RAIZ / "casos" / "n2" / "zdplaskin_m.F90")
 
 
+@precisa_arquivo("casos/n2/zdplaskin_m.F90")
 def test_le_especies_cargas_e_reacoes_do_n2(n2):
     assert n2.especies == ["E", "N", "N2", "N2(A)", "N2(B)", "N2(A')", "N2(C)", "N^+", "N2^+", "N3^+", "N4^+"]
     assert n2.reacoes[0] == "bolsig:N2->N2(A3,V0-4)"
@@ -64,6 +65,7 @@ def test_le_especies_cargas_e_reacoes_do_n2(n2):
     assert sum(c is not None for c in n2.coluna_bolsig) == 7
 
 
+@precisa_arquivo("casos/n2/zdplaskin_m.F90")
 def test_variavel_local_en_e_max(n2):
     # TEFF = TGAS + 0.12 EN**2 before the rates; EN is the local E/N (Td)
     tg, te, en = np.array([300.0, 600.0]), np.array([1e4, 2e4]), np.array([10.0, 100.0])
@@ -77,11 +79,13 @@ def test_variavel_local_en_e_max(n2):
     np.testing.assert_allclose(k[36], 5.4e-8 * (1 - np.exp(-3354.0 / tg)) * np.exp(-113200.0 / tg), rtol=1e-14)
 
 
+@precisa_arquivo("casos/n2/zdplaskin_m.F90")
 def test_en_e_exigido_quando_a_quimica_usa(n2):
     with pytest.raises(ErroQuimica, match="EN"):
         n2.coeficientes(np.zeros((1, 7)), np.array([300.0]), np.array([1e4]))
 
 
+@precisa_arquivo("casos/n2/zdplaskin_m.F90")
 def test_nome_desconhecido_e_erro_ao_carregar(tmp_path):
     texto = (RAIZ / "casos" / "n2" / "zdplaskin_m.F90").read_text()
     texto = texto.replace("rrt(15) = 1.0D-29", "rrt(15) = 1.0D-29*XYZ")
@@ -90,6 +94,7 @@ def test_nome_desconhecido_e_erro_ao_carregar(tmp_path):
         Quimica(tmp_path / "z.F90")
 
 
+@precisa_arquivo("zdplaskin_m.F90")
 def test_argonio_continua_igual():
     # argon does not use EN: the rates are the same with or without it
     q = Quimica(RAIZ / "zdplaskin_m.F90")
@@ -151,9 +156,10 @@ def test_massa_pela_formula(especie, massa):
     assert caso.massa_u(especie) == pytest.approx(massa, abs=2e-3)
 
 
+@precisa_arquivo("zdplaskin_m.F90")
 def test_transporte_do_argonio_pela_biblioteca(tmp_path):
     # chemistry and gas.json of argon: the library plus the computed mass
-    # reproduce the transporte.json of the root
+    # reproduce the transporte.json at the repository root
     for nome in ("zdplaskin_m.F90", "gas.json"):
         shutil.copy(RAIZ / nome, tmp_path / nome)
     faltam = caso.gera_transporte(tmp_path)
@@ -167,6 +173,7 @@ def test_transporte_do_argonio_pela_biblioteca(tmp_path):
                     else novo[esp][campo] == velho[esp][campo], (esp, campo)
 
 
+@precisa_arquivo("zdplaskin_m.F90")
 def test_transporte_lista_o_que_falta_e_preserva_o_que_existe(tmp_path):
     # empty library: only the mass comes out filled; what the user had already
     # written in the transporte.json of the case is not overwritten
@@ -182,13 +189,14 @@ def test_transporte_lista_o_que_falta_e_preserva_o_que_existe(tmp_path):
 @pytest.fixture(scope="module")
 def pecas_argonio():
     from tabela import TabelaTg
-    return Quimica(RAIZ / "zdplaskin_m.F90"), TabelaTg(RAIZ / "tabela_energia_tg.dat")
+    return quimica_do(RAIZ), TabelaTg(RAIZ / "tabela_energia_tg.dat")
 
 
 # ------------------------------- Fortran constructs in ZDPlasKin_reac_rates
 def _com_taxas(tmp_path, *linhas, depois="rrt(15) = 1.0D-29"):
-    """zdplaskin_m.F90 of N2 with new lines before the rates and rate 15 replaced."""
-    texto = (RAIZ / "casos" / "n2" / "zdplaskin_m.F90").read_text()
+    """Synthetic module of the authors (testes/dados/taxas_zdp.F90, distributed with
+    the package) with new lines before the rates and rate 15 replaced."""
+    texto = (RAIZ / "prototipo" / "testes" / "dados" / "taxas_zdp.F90").read_text()
     texto = texto.replace("  TEFF = TGAS + 0.12D0 * EN**2", "  TEFF = TGAS + 0.12D0 * EN**2\n" + "\n".join(linhas))
     texto = texto.replace("  rrt(15) = 1.0D-29", "  " + depois)
     (tmp_path / "z.F90").write_text(texto)
@@ -238,6 +246,8 @@ def test_divisao_inteira_segue_o_fortran(tmp_path, expr, k):
     ("1.0D-12*TGAS**(1.0D0/3.0)", 1.0e-12 * 300.0 ** (1.0 / 3.0)),            # a double: double precision operation
     ("1.0D-12*(0.5*2.1 + TGAS)", 1.0e-12 * (float(np.float32(np.float32(0.5) * np.float32(2.1))) + 300.0)),
     ("1.0D-12*(0.1*3.0)", 1.0e-12 * float(np.float32(0.1) * np.float32(3.0))),    # rounds in float32
+    # a literal without the D exponent is single precision even alone: 2.1 is 2.0999999046...
+    ("1.0D-7*TGAS**2.1", 1.0e-7 * 300.0 ** float(np.float32(2.1))),
 ])
 def test_conta_entre_reais_simples_fica_simples(tmp_path, expr, valor):
     assert _k15(_com_taxas(tmp_path, depois=f"rrt(15) = {expr}")) == pytest.approx(valor, rel=1e-15, abs=0)
@@ -405,6 +415,7 @@ def test_reacao_do_bolsig_com_dois_eletrons_e_recusada(tmp_path_factory):
                gas=RAIZ / "casos" / "n2" / "gas.json", transporte=RAIZ / "casos" / "n2" / "transporte.json")
 
 
+@precisa_arquivo("bolsigdb.dat")
 def test_attachment_sem_limiar(tmp_path):
     # in the LXCat format ATTACHMENT has no threshold line
     banco = (RAIZ / "bolsigdb.dat").read_text() + ("\nATTACHMENT\nAR -> AR^-\nCOMMENT: sintético\n"
@@ -425,12 +436,14 @@ def _pasta_n2(destino, processos):
     return destino
 
 
+@precisa_arquivo("casos/n2/kinet.inp")
 def test_lista_de_calor_rapido_com_os_limiares(tmp_path):
     pasta = _pasta_n2(tmp_path, ["N2 -> N2(rot)"])
     caso.gera_calor_rapido(pasta)
     assert (pasta / "calor_rapido.txt").read_text().split() == ["N2->N2(ROT)", "0.02"]
 
 
+@precisa_arquivo("casos/n2/kinet.inp")
 def test_processo_rapido_desconhecido_e_erro(tmp_path):
     pasta = _pasta_n2(tmp_path, ["N2 -> N2(xyz)"])
     with pytest.raises(caso.ErroCaso, match=r"N2->N2\(XYZ\)"):
@@ -463,6 +476,7 @@ def _caso_argonio(destino, fundo):
     (destino / "gas.json").write_text(json.dumps(g))
 
 
+@precisa_arquivo("zdplaskin_m.F90")
 def test_transporte_com_fundo_em_mistura(tmp_path):
     # the background species are not transported: none requires diffusion; the
     # mobility of an ion comes from the library only with the value in the mixture (key
@@ -476,6 +490,7 @@ def test_transporte_com_fundo_em_mistura(tmp_path):
     assert t["AR2^+"]["mobilidade"]["K0"] == 1.9
 
 
+@precisa_arquivo("zdplaskin_m.F90")
 def test_transporte_exige_mobilidade_do_ion_negativo(tmp_path):
     from quimica_zdp import Quimica
     _caso_argonio(tmp_path, {"AR": 1.0})
@@ -560,6 +575,7 @@ def test_limiar_colado_a_barra(tmp_path):
     assert caso.processos_do_bolsigdb(tmp_path / "b.dat") == {"N2->N2(ROT)": 0.02, "N2->N2(V1)": 0.29}
 
 
+@precisa_arquivo("bolsigdb.dat")
 def test_energia_eletronica_com_limiar_colado_a_barra(tmp_path, pecas_argonio):
     q = pecas_argonio[0]
     texto = (RAIZ / "bolsigdb.dat").read_text()
@@ -721,6 +737,7 @@ def _pasta_n2_sem_transporte(destino):
     return destino
 
 
+@precisa_arquivo("casos/n2/zdplaskin_m.F90")
 def test_estima_preenche_so_o_que_falta_e_marca_a_fonte(tmp_path):
     pasta = _pasta_n2_sem_transporte(tmp_path)
     faltam = caso.gera_transporte(pasta, biblioteca={}, estimar=True)
@@ -734,6 +751,7 @@ def test_estima_preenche_so_o_que_falta_e_marca_a_fonte(tmp_path):
     assert not any("mobilidade" in c for c in faltam.values())
 
 
+@precisa_arquivo("casos/n2/zdplaskin_m.F90")
 def test_estima_a_difusao_pela_teoria_cinetica(tmp_path):
     pytest.importorskip("cantera")
     pasta = _pasta_n2_sem_transporte(tmp_path)
@@ -747,6 +765,7 @@ def test_estima_a_difusao_pela_teoria_cinetica(tmp_path):
 
 
 # ------------------------------------------------ enthalpies for the heat block
+@precisa_arquivo("casos/n2/zdplaskin_m.F90")
 def test_entalpias_pelos_limiares_do_bolsig():
     # of N2 (0 eV) from the BOLSIG+ processes of the case: excited states and N2+ with the
     # lowest threshold of each product (v = 0), equal to the curated ones in the gas.json of N2
@@ -757,11 +776,12 @@ def test_entalpias_pelos_limiares_do_bolsig():
     for esp in ("N2(A)", "N2(B)", "N2(C)"):
         assert h[esp] == pytest.approx(curadas[esp], abs=1e-3), esp
         assert "threshold" in origem[esp]
-    # bolsigdb.dat gives the rounded ionisation (15.6 eV); the curated one is that of NIST
+    # bolsigdb.dat gives the rounded ionization (15.6 eV); the curated one is that of NIST
     assert h["N2^+"] == 15.6 and h["N2^+"] == pytest.approx(curadas["N2^+"], abs=0.02)
     assert "N4^+" not in h and "N" not in h          # no process reaches them
 
 
+@precisa_arquivo("casos/n2/zdplaskin_m.F90")
 def test_entalpias_incompletas_nao_ligam_o_calor(tmp_path):
     # without a heat block, writing an incomplete one would make the model refuse the case: it goes
     # to a separate file, and gas.json does not change
@@ -779,6 +799,7 @@ def test_entalpias_incompletas_nao_ligam_o_calor(tmp_path):
         assert proposta["entalpias"]["N2(A)"] == pytest.approx(6.17, abs=1e-3)
 
 
+@precisa_arquivo("casos/n2/zdplaskin_m.F90")
 def test_entalpias_completam_o_gas_json(tmp_path):
     pytest.importorskip("cantera")
     for nome in ("zdplaskin_m.F90", "bolsigdb.dat"):
@@ -819,6 +840,7 @@ def test_terceiros_ausentes_dao_erro_claro(tmp_path, monkeypatch):
         caso.terceiros()
 
 
+@precisa_arquivo("casos/n2/zdplaskin_m.F90")
 def test_exporta_grava_quimica_json(tmp_path):
     for nome in ("zdplaskin_m.F90", "bolsigdb.dat"):
         shutil.copy(RAIZ / "casos" / "n2" / nome, tmp_path / nome)
@@ -828,3 +850,30 @@ def test_exporta_grava_quimica_json(tmp_path):
     j = Quimica.de_json(tmp_path / "quimica.json")
     assert j.reacoes == Quimica(tmp_path / "zdplaskin_m.F90").reacoes
     assert caso.exporta in caso.ACOES["tudo"] and caso.ACOES["tudo"][-1] is caso.exporta
+
+
+def test_ajuda_sai_com_sucesso_e_acao_desconhecida_com_erro():
+    caso_py = str(RAIZ / "ferramentas" / "caso.py")
+    r = subprocess.run([sys.executable, caso_py, "--help"], capture_output=True, text=True)
+    assert r.returncode == 0 and "all" in r.stdout
+    r = subprocess.run([sys.executable, caso_py, "xyz", "casos/n2"], capture_output=True, text=True)
+    assert r.returncode != 0
+
+
+def test_exporta_com_quimica_invalida_da_mensagem_sem_traceback(tmp_path):
+    # an error of the chemistry reader in export is reported like the errors of the case
+    texto = (RAIZ / "prototipo" / "testes" / "dados" / "taxas_zdp.F90").read_text()
+    (tmp_path / "zdplaskin_m.F90").write_text(texto.replace("rrt(15) = 1.0D-29", "rrt(15) = 1.0D-29 * * 2"))
+    (tmp_path / "bolsigdb.dat").write_text("")
+    r = subprocess.run([sys.executable, str(RAIZ / "ferramentas" / "caso.py"), "export", str(tmp_path)],
+                       capture_output=True, text=True)
+    assert r.returncode != 0 and "error:" in r.stderr and "reaction 15" in r.stderr and "Traceback" not in r.stderr
+
+
+def test_exporta_com_modulo_sem_os_blocos_da_mensagem_sem_traceback(tmp_path):
+    # a module that is not one generated by the preprocessor is reported, not a traceback
+    (tmp_path / "zdplaskin_m.F90").write_text("module x\nend module x\n")
+    (tmp_path / "bolsigdb.dat").write_text("")
+    r = subprocess.run([sys.executable, str(RAIZ / "ferramentas" / "caso.py"), "export", str(tmp_path)],
+                       capture_output=True, text=True)
+    assert r.returncode != 0 and "error:" in r.stderr and "Traceback" not in r.stderr

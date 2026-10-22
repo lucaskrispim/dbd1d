@@ -1,4 +1,4 @@
-# Register of the measurements used to validate the 1D simulator
+# Record of the measurements used to validate the 1D simulator
 
 Complete rereading of the articles in `docs/artigos/` on 20/10/2026. For each article: the
 conditions of the experiment (input of the simulator), each measured or computed quantity that can
@@ -47,8 +47,8 @@ the periodic regime.
 | Breakdown voltage, I_max, n_e,max | 100 mbar, 1.8 kV | tables 2 and 3 | `tabela2_gama.csv`, `tabela3_eps.csv` | n_e,max agrees with the maximum of fig. 4(b) for the five γ (within 1%); the breakdown voltage agrees with the maximum of U_gap in fig. 4(a) only for γ from 0.01 to 0.04 (at 0.005, 680 against 649 V), so the table does not define breakdown as the maximum of U_gap: compare U_gap at the current peak; the I_max of the table (129 to 164 mA) is ten times the model peak of fig. 3 (~16 mA, consistent with the ~2 mA/cm² of the text), probably an error of the article, not used |
 
 Also in the text: the main peak lasts about 1 µs; at 300 and 500 mbar their model becomes chaotic,
-and at 650 mbar it repeats every five periods with γ = 0.02 and 0.04; chemi-ionisation of
-metastables (Ar[1s₅] and Ar[1s₃]) dominates ionisation between discharges.
+and at 650 mbar it repeats every five periods with γ = 0.02 and 0.04; chemi-ionization of
+metastables (Ar[1s₅] and Ar[1s₃]) dominates ionization between discharges.
 
 ### Loffhagen et al. 2020, PCPP, doi 10.1007/s11090-020-10121-y (priority 1)
 
@@ -63,8 +63,8 @@ gap d = 1 mm, area of 8 cm² (8 cm × 1 cm), 1 atm, 300 K, argon 99.9999%, flow 
 | U_i computed by them | 0 to 200 ppm | fig. 4 | `fig4_ignicao_modelo_*.csv` | in pure Ar, 3.65 kV: their model lies 0.6 kV above the measurement |
 
 The article defines ignition as the amplitude at which the discharge ignites and covers the whole
-electrode area. In pure Ar, 60% of the electrons come from direct ionisation and 40% from
-chemi-ionisation between excited atoms (text of fig. 5).
+electrode area. In pure Ar, 60% of the electrons come from direct ionization and 40% from
+chemi-ionization between excited atoms (text of fig. 5).
 
 ### Crispim et al. 2024, Phys. Scr. 99 065521
 
@@ -92,19 +92,19 @@ at room temperature at the inlet. Pulses of ~10 ns and up to 30 kV (FID), 100 kH
 150 pulses, 10 Hz between bursts (100 ms of afterglow before each burst). Gases: pure N₂ and N₂ with
 1 to 33% H₂ (fig. 16: 0, 1, 5, 9, 17 and 33%; the energy per pulse was measured from 1 to 20%). TALIF
 with the beam along the channel and collection through the side wall (position in the gap not
-given); single-pass TDLAS along 6 cm. The ionisation wave stays ~1 mm from the cathode wall (short
+given); single-pass TDLAS along 6 cm. The ionization wave stays ~1 mm from the cathode wall (short
 pulse); the plasma is diffuse up to pulse 100 and starts to filament afterwards. Their model is
 quasi-0D with the measured power as input.
 
 | Quantity | Condition | Source | File in `dados/yang2022/` | Remark |
 |---|---|---|---|---|
 | V(t), I(t) of pulse 50 | N₂ | fig. 2(a) | `fig2_tensao_pulso50.csv`, `fig2_corrente_pulso50.csv` | input of the simulator (pulse shape, with the reflections up to 200 ns); peak of 25.2 kV in the CSV (median per column, which cuts the peak) and 26.2 kV from the edge of the line |
-| P(t) and cumulative energy of pulse 50 | N₂ | fig. 2(b) | `fig2_potencia_pulso50.csv`, `fig2_energia_pulso50.csv` | 3.3 mJ at the end; the integral of the digitised power gives 3.7 mJ, 11% more; the energy curve is used |
+| P(t) and cumulative energy of pulse 50 | N₂ | fig. 2(b) | `fig2_potencia_pulso50.csv`, `fig2_energia_pulso50.csv` | 3.3 mJ at the end; the integral of the digitized power gives 3.7 mJ, 11% more; the energy curve is used |
 | Energy per pulse in the burst | N₂ | fig. 3 | `fig3_energia_total.csv`, `fig3_energia_incidente.csv` | from 3.48 to 3.08 mJ (total) and from 2.2 to 2.0 mJ (incident) |
-| N₂(A, v=0 and 1) in time | N₂, 150 pulses | fig. 7 | `fig7_n2a_v0_N2.csv`, `fig7_n2a_v1_N2.csv` | upper and lower envelope; peaks of 3.6e13 and 8.8e13 cm⁻³ near 50 µs |
+| N₂(A, v=0 and 1) versus time | N₂, 150 pulses | fig. 7 | `fig7_n2a_v0_N2.csv`, `fig7_n2a_v1_N2.csv` | upper and lower envelope; peaks of 3.6e13 and 8.8e13 cm⁻³ near 50 µs |
 | T_rot-trans in the burst | N₂ | fig. 8(b) | `fig8_temperatura_N2.csv` | from 327 to 407 K in 1.5 ms; uncertainty of 10 K |
 | Accumulated N and N per pulse | N₂ | fig. 9 | `fig9_N_acumulado_N2.csv`, `fig9_N_por_pulso_N2.csv` | 4.0e15 cm⁻³ at pulse 150 |
-| N₂(A, v=0 and 1) in time | N₂ + 1% H₂ | fig. 11 | `fig11_*.csv` | smaller peaks due to quenching by H |
+| N₂(A, v=0 and 1) versus time | N₂ + 1% H₂ | fig. 11 | `fig11_*.csv` | smaller peaks due to quenching by H |
 | Accumulated N, N per pulse and accumulated H | N₂ + 1% H₂ | fig. 14 | `fig14_*.csv` | N of 1.0e15 and H of 5.9e15 cm⁻³ at the end of the burst |
 | N and H versus H₂ fraction | 50 pulses, 0 to 33% | fig. 16 | `fig16_N_contra_H2.csv`, `fig16_H_contra_H2.csv` | N falls from 2.3e15 (0%) to 2.2e14 (33%); H rises from 1.9e15 (1%) to 3.8e15 |
 | Afterglow decay | N₂ and N₂ + 1% H₂ | figs. 10 and 15 | not extracted | ms scales; depends on wall losses and flow |
@@ -123,7 +123,7 @@ breakdown in the first pulse.
 |---|---|---|---|
 | Energy per pulse versus p, CPT | fig. 8, right | `fig8_energia_CPT_40kHz.csv`, `fig8_energia_CPT_20kHz.csv` | grows up to ~2.1 mJ at ~200 Torr and falls to zero at 340 Torr |
 | Energy per pulse versus p, FID | fig. 10, right | `fig10_energia_FID_incidente.csv`, `fig10_energia_FID_incidente_e_refletidos.csv` | incident up to 2.9 mJ; with reflections up to 4.2 mJ |
-| Applied field in time, 60 Torr | figs. 7 and 9 | `fig7_campo_aplicado_CPT.csv`, `fig9_campo_aplicado_FID.csv` | input of the simulator: voltage = field × (d + 2 l/ε); CPT from −21 to +17 kV/cm, FID up to 25 kV/cm |
+| Applied field versus time, 60 Torr | figs. 7 and 9 | `fig7_campo_aplicado_CPT.csv`, `fig9_campo_aplicado_FID.csv` | input of the simulator: voltage = field × (d + 2Δ/ε_r); CPT from −21 to +17 kV/cm, FID up to 25 kV/cm |
 | Breakdown voltage | text | 13 kV measured at 60 Torr (CPT) | |
 
 ## Articles left out of the quantitative comparison

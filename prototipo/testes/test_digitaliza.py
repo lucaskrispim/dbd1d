@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Digitisation of figures of articles (ferramentas/digitaliza.py): a plot with
+"""Digitization of figures of articles (ferramentas/digitaliza.py): a plot with
 known data is made by matplotlib in PDF (vector) and PNG (raster), and the
 digitiser must return the same data from the frame of the axes and the colour of
 each series."""

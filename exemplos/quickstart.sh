@@ -1,4 +1,5 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Quick start: three periods of the argon DBD of Stankov et al. 2020 (3 mm gap,
 # 1 mm quartz barriers, 100 mbar, 1.8 kV at 24 kHz) with 50 cells, then the
 # discharge current against the measured one and the power against the

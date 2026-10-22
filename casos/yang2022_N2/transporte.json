@@ -253,7 +253,7 @@
       "tipo": "constante",
       "K0": 10.6467
     },
-    "fonte": "Blanc's law in pure N2 with the Langevin limit in both gases (estimate)",
+    "fonte": "Langevin limit in N2 (estimate)",
     "massa_u": 1.008
   },
   "N^+": {
@@ -305,7 +305,7 @@
       ],
       "acima": "raiz"
     },
-    "fonte": "Blanc's law in pure N2 with the measurement in N2 (Ellis et al. 1976) and Langevin in H2",
+    "fonte": "the measurement in N2 (Ellis et al. 1976)",
     "massa_u": 14.007,
     "atomos_do_fundo": 0.5
   },
@@ -362,7 +362,7 @@
       ],
       "acima": "raiz"
     },
-    "fonte": "Blanc's law in pure N2 with the measurement in N2 (Ellis et al. 1976) and Langevin in H2",
+    "fonte": "the measurement in N2 (Ellis et al. 1976)",
     "massa_u": 28.014,
     "atomos_do_fundo": 1
   },
@@ -413,7 +413,7 @@
       ],
       "acima": "raiz"
     },
-    "fonte": "Blanc's law in pure N2 with the measurement in N2 (Ellis et al. 1976) and Langevin in H2",
+    "fonte": "the measurement in N2 (Ellis et al. 1976)",
     "massa_u": 42.021,
     "atomos_do_fundo": 1.5
   },
@@ -448,7 +448,7 @@
       ],
       "acima": "raiz"
     },
-    "fonte": "Blanc's law in pure N2 with the measurement in N2 (Ellis et al. 1976) and Langevin in H2",
+    "fonte": "the measurement in N2 (Ellis et al. 1976)",
     "massa_u": 56.028,
     "atomos_do_fundo": 2
   },
@@ -457,7 +457,7 @@
       "tipo": "constante",
       "K0": 10.6467
     },
-    "fonte": "Blanc's law in pure N2 with the Langevin limit in both gases (estimate)",
+    "fonte": "Langevin limit in N2 (estimate)",
     "massa_u": 1.008
   },
   "H2^+": {
@@ -465,7 +465,7 @@
       "tipo": "constante",
       "K0": 7.658
     },
-    "fonte": "Blanc's law in pure N2 with the Langevin limit in both gases (estimate)",
+    "fonte": "Langevin limit in N2 (estimate)",
     "massa_u": 2.016
   },
   "H3^+": {
@@ -473,7 +473,7 @@
       "tipo": "constante",
       "K0": 6.3568
     },
-    "fonte": "Blanc's law in pure N2 with the Langevin limit in both gases (estimate)",
+    "fonte": "Langevin limit in N2 (estimate)",
     "massa_u": 3.024
   },
   "NH^+": {
@@ -481,7 +481,7 @@
       "tipo": "constante",
       "K0": 3.3589
     },
-    "fonte": "Blanc's law in pure N2 with the Langevin limit in both gases (estimate)",
+    "fonte": "Langevin limit in N2 (estimate)",
     "massa_u": 15.015
   },
   "N2H^+": {
@@ -489,7 +489,7 @@
       "tipo": "constante",
       "K0": 2.7816
     },
-    "fonte": "Blanc's law in pure N2 with the Langevin limit in both gases (estimate)",
+    "fonte": "Langevin limit in N2 (estimate)",
     "massa_u": 29.022
   },
   "NH2^+": {
@@ -497,7 +497,7 @@
       "tipo": "constante",
       "K0": 3.2894
     },
-    "fonte": "Blanc's law in pure N2 with the Langevin limit in both gases (estimate)",
+    "fonte": "Langevin limit in N2 (estimate)",
     "massa_u": 16.023
   },
   "NH3^+": {
@@ -505,7 +505,7 @@
       "tipo": "constante",
       "K0": 3.2269
     },
-    "fonte": "Blanc's law in pure N2 with the Langevin limit in both gases (estimate)",
+    "fonte": "Langevin limit in N2 (estimate)",
     "massa_u": 17.031
   },
   "NH4^+": {
@@ -513,7 +513,7 @@
       "tipo": "constante",
       "K0": 3.1703
     },
-    "fonte": "Blanc's law in pure N2 with the Langevin limit in both gases (estimate)",
+    "fonte": "Langevin limit in N2 (estimate)",
     "massa_u": 18.039
   }
 }

@@ -1,0 +1,42 @@
+# Variant of the argon mechanism with only the three-body quenching coefficient (Ar* + 2Ar, 8.33e-33 cm6/s) of Jovanovic et al., Plasma Sources Sci. Technol.
+# 32 055011 (2023), to separate the two changes of casos/argonio_jovanovic.
+# Argon mechanism of the dbd1d argon case (five species)
+#
+# Electron impact processes: rate coefficients from BOLSIG+ with the argon
+# cross sections of the SIGLO database (LXCat), for Ar and Ar*.
+# Heavy-particle reactions 5 to 10: coefficients of the argon example that is
+# distributed with ZDPlasKin (S. Pancheshnyi, B. Eismann, G.J.M. Hagelaar and
+# L.C. Pitchford, 2008). Reactions 11 and 12 (two-body quenching of Ar* and
+# two-body dissociative recombination to the ground state) were added by the
+# authors. Wall losses are boundary conditions of the fluid model, not
+# reactions. Units: cm3/s (two-body), cm6/s (three-body); Te and Tgas in K.
+
+ELEMENTS
+e Ar
+END
+
+SPECIES
+e Ar Ar* Ar^+ Ar2^+
+END
+
+BOLSIG
+Ar Ar*
+END
+
+REACTIONS
+# 1-4: electron impact (BOLSIG+)
+e + Ar => e + e + Ar^+         !   Bolsig+ Ar  -> Ar^+
+e + Ar => Ar* + e              !   Bolsig+ Ar  -> Ar*
+Ar* + e => Ar + e              !   Bolsig+ Ar* -> Ar
+e + Ar* => Ar^+ + e + e        !   Bolsig+ Ar* -> Ar^+
+# 5-10: recombination, ion conversion, chemi-ionization and quenching
+Ar2^+ + e => Ar* + Ar          !   8.5d-7 * (Te/300.0d0)**(-0.67d0)
+Ar2^+ + Ar => Ar^+ + Ar + Ar   !   6.06d-6 / Tgas * exp(-15130.0d0/Tgas)
+Ar* + Ar* => Ar2^+ + e         !   6.0d-10
+Ar^+ + e + e => Ar  + e        !   8.75d-27 * (Te/11600.0d0)**(-4.5d0)
+Ar* + Ar + Ar  => Ar + Ar + Ar !   8.33d-33
+Ar^+ + Ar + Ar  => Ar2^+ + Ar  !   2.25d-31 * (Tgas/300.0d0)**(-0.4d0)
+# 11-12: added by the authors
+Ar + Ar* => Ar + Ar            !   3.0d-21
+e + Ar2^+ => Ar + Ar           !   3.0d-14
+END

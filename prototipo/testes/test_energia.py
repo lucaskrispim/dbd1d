@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from conftest import RAIZ, quimica_do
+from conftest import RAIZ, quimica_do, precisa_arquivo
 from modelo import KB, ME, Q, Modelo
 from quimica_zdp import Quimica
 from tabela import E_K0, E_MUN, E_PEL, E_PINEL, E_POT, Tabela, TabelaEnergia
@@ -36,7 +36,7 @@ def test_potencia_tabelada_igual_ao_ganho_de_campo_local(pecas):
 @pytest.mark.parametrize("e_n", [30.0, 100.0, 300.0, 1000.0, 3000.0])
 def test_avalanche_uniforme_mantem_a_energia_de_campo_local(pecas, e_n):
     # uniform plasma and field with eps = eps(E/N): the mean energy does not change,
-    # counting the dilution by the electrons that ionisation creates,
+    # counting the dilution by the electrons that ionization creates,
     #   d(eps)/dt = (d(n_eps)/dt - eps d(n_e)/dt) / n_e = 0.
     # The BOLSIG+ power P/N is the one the field delivers and includes the growth
     # k_ion*eps; only P_el + P_inel enter as loss. With eps 10% above the
@@ -64,6 +64,7 @@ def test_avalanche_uniforme_mantem_a_energia_de_campo_local(pecas, e_n):
     assert taxas[1] < 0.0 < taxas[2]
 
 
+@precisa_arquivo("bolsigdb.dat")
 def test_potencias_da_tabela_de_energia(pecas):
     # P_inel is the sum threshold*k of the processes of the background gas in bolsigdb.dat (without
     # superelastic nor Ar*), and P - P_el - P_inel = k_ion*eps: the table comes from the
@@ -88,7 +89,7 @@ def test_fluxo_de_energia_na_parede(pecas):
     # electrons with eps = 15 eV (Te = 10 eV) and field +1e6 V/m: at the left
     # wall (drift towards it) 5/2 kTe per electron of the thermal flux leave (energy
     # flux (5/6) v_term n_eps, Hagelaar et al. 2000) plus
-    # mu_eps*E*n_eps; on the right only the braked thermal flux. No ions, no secondaries.
+    # mu_eps*E*n_eps; on the right only the thermal flux reduced by the Boltzmann factor. No ions, no secondaries.
     md = modelo(pecas, n_celulas=40, agrupamento=1.5)
     n0, eps, e = 1.0e10, 15.0, 1.0e6
     n = np.zeros((md.n_esp, md.m))
@@ -196,11 +197,12 @@ def test_fora_da_tabela_e_contado(pecas):
     assert tab.fora == 2 and tab_e.fora == 1
 
 
+@precisa_arquivo("bolsigdb.dat")
 def test_energia_das_colisoes_com_o_ar_metaestavel(pecas):
     # the BOLSIG+ of the Fortran code receives the mixture Ar and Ar* (BOLSIG block of kinet.inp);
     # the table is for pure Ar, so the tabulated power lacks the collisions with
     # Ar*: the superelastic Ar* + e -> Ar + e returns 11.5 eV to the electron and the
-    # stepwise ionisation e + Ar* -> Ar+ costs 4.3 eV (thresholds of bolsigdb.dat)
+    # stepwise ionization e + Ar* -> Ar+ costs 4.3 eV (thresholds of bolsigdb.dat)
     q = pecas[0]
     dE = q.energia_eletronica(RAIZ / "bolsigdb.dat", "AR")
     esperado = {"bolsig:AR*->AR": 11.5, "bolsig:AR*->AR^+": -4.3}
