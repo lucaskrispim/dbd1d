@@ -1,0 +1,13 @@
+# Measured conditions of the flowing N2 positive column.
+# Sources: L20 = Levaton, Klein and Amorim 2020, Phys. Plasmas 27, 063503, table VIII;
+#          B21 = Levaton, Klein and Amorim 2021, Braz. J. Phys. 51, 75, table 1.
+# Both: Pyrex tube of radius 0.3 cm, 12 cm between the electrodes, double probes 5 cm apart
+# in the middle of the column, N2 99.999%. Flow rate 1 Slm (L20) and 0.9 Slm (B21).
+# t_res: residence time of the gas at the end of the positive column (ms).
+# Uncertainties (the _err columns) as given in the articles.
+id,fonte,corrente_mA,pressao_Pa,vazao_slm,ne_cm3,ne_err,EN_Td,EN_err,Tg_K,Tg_err,Tv_K,Tv_err,t_res_ms,t_res_err
+L20_10mA,L20,10,230,1.0,1.31e10,0.03e10,118,14,290,50,1900,350,0.43,0.17
+L20_20mA,L20,20,230,1.0,3.06e10,0.08e10,108,13,310,50,2700,500,0.41,0.15
+L20_50mA,L20,50,230,1.0,10.44e10,0.39e10,90,10,350,50,5100,900,0.35,0.13
+B21_230Pa,B21,60,230,0.9,1.33e11,0.06e11,94,10,390,50,6300,1100,0.36,0.13
+B21_530Pa,B21,60,530,0.9,2.92e11,0.10e11,48,6,430,50,6900,1200,0.76,0.27

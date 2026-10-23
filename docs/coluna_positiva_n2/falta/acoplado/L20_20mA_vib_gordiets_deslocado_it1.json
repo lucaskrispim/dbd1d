@@ -1,0 +1,12 @@
+{
+ "id": "L20_20mA",
+ "variante": "vib_gordiets",
+ "modo": "deslocado",
+ "iteracao": 1,
+ "en_entrada": 102.51158048795776,
+ "en": 102.43730038516627,
+ "tv": 2375.6177855472547,
+ "dis": 0.0005738780686942005,
+ "en_medido": 108.0,
+ "fracao_v_maior_10": 3.7471318945685977e-11
+}

@@ -39,10 +39,7 @@ allow redistribution. Their folders hold only the files written by the dbd1d aut
 | `amonia_sun2022`, `yang2022_N2`, `yang2022_1pcH2`, `xu2025` | N2-H2 mechanism of the supplementary data of Sun et al., Plasma Sources Sci. Technol. 31 (2022) 094009 | the supplementary BOLSIG+ file of the same article | `N2 0.5 / H2 0.5`, `N2 1`, `N2 0.99 / H2 0.01`, `N2 0.25 / H2 0.75` |
 | `ar_n2` | the argon mechanism of this repository and the N2 mechanism of the case `n2`, joined with three cross reactions by `casos/ar_n2/monta.py` (a test mixture of the tool) | the argon and N2 sets of the two cases | `Ar 0.9 / N2 0.1` |
 | `ar_n2_o2` | N2-O2 mechanism of the ZDPlasKin website (version 1.03, with the processes that have no cross sections in the database commented out), joined to the argon mechanism of this repository with six cross reactions by `casos/ar_n2_o2/monta.py` | the N2 and O2 sets used with that mechanism plus argon | `N2 0.78 / O2 0.21 / Ar 0.01` |
-| `n2_exemplo` | the `kinet.inp` of the case `n2` | the `bolsigdb.dat` of the case `n2` | `N2 1` |
-| `n2_amonia` | `python3 ferramentas/subconjunto.py casos/xu2025/kinet.inp casos/n2_amonia/kinet.inp H` (the N2 part of the mechanism of Sun et al. 2022) | the `bolsigdb.dat` of the case `xu2025` | `N2 1` |
-| `n2_tese` | `ferramentas/subconjunto.py` twice on `casos/ar_n2_o2/kinet.inp`, without `O` and then without `Ar` | the `bolsigdb.dat` of the case `ar_n2_o2` | `N2 1` |
-| `n2_amonia_v45`, `n2_tese_v45` | `python3 ferramentas/escada_vibracional.py casos/n2_amonia/kinet.inp casos/n2_amonia_v45/kinet.inp 45` (and the same from `n2_tese`) | the `bolsigdb.dat` of the case it comes from | `N2 1` |
+| `n2_exemplo`, `n2_amonia`, `n2_tese`, `n2_amonia_v45`, `n2_tese_v45` | the N2 chemistries of the positive column, from the cases `n2`, `xu2025` (without H) and `ar_n2_o2` (without O and Ar), the last two with the vibrational ladder up to v = 45: `python3 ferramentas/casos_coluna.py` writes their `kinet.inp` once those three cases are rebuilt (docs/coluna_positiva_n2/README.md) | written by the same command: that of the case each one comes from | `N2 1` |
 
 Variants built from the cases above by editing `kinet.inp` and running
 `caso.py zdplaskin` and `caso.py export` (the tables do not change, since only heavy-particle

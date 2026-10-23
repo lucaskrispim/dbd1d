@@ -37,13 +37,14 @@ called `prototipo/`.
 | Folder | Content |
 |---|---|
 | `dbd1d/` | the simulator: `simula.py` (command line), `modelo.py` (model), `jacobiano.py` and `bdf_dae.py` (integration), `quimica_zdp.py` (chemistry), `tabela.py` (electron tables); `coluna.py`, the 0D positive column; `acelera.py`, the experimental cycle acceleration; tests in `dbd1d/testes/` |
-| `ferramentas/` | tools: `caso.py` builds a case from ZDPlasKin files, with the Fortran programs that generate the electron tables; `subconjunto.py` (a mechanism without one element), `escada_vibracional.py` (vibrational ladder of N2(X)) and `acoplamento_vibracional.py` (electron-vibration coupling); the digitizer of published figures and an electron swarm Monte Carlo |
+| `ferramentas/` | tools: `caso.py` builds a case from ZDPlasKin files, with the Fortran programs that generate the electron tables; `subconjunto.py` (a mechanism without one element), `escada_vibracional.py` (vibrational ladder of N2(X)), `acoplamento_vibracional.py` (electron-vibration coupling) and `casos_coluna.py` (the N2 chemistries of the positive column); the digitizer of published figures and an electron swarm Monte Carlo |
 | `casos/` | cases (gas mixtures); the argon case is at the repository root; see `casos/README.md` |
 | `biblioteca/` | library of transport data per species and background gas |
 | `validacao/` | validation and verification: `curta.py` (short validation), `townsend.py`, the input pulses of the pulsed cases; see `validacao/README.md` |
-| `scripts/` | comparison and analysis scripts (`compara_*.py`, `resumo.py`, `fluxos.py`, `retoma_fina.py`, ...) |
+| `scripts/` | comparison and analysis scripts (`compara_*.py`, `resumo.py`, `fluxos.py`, `retoma_fina.py`, ...) and those of the positive column (`coluna_n2_*.py`, `figuras_coluna_n2.py`) |
 | `remoto/` | scripts that start the validation runs (`validacao_*.sh`) |
 | `docs/literatura/` | record of the measurements and the data digitized from the articles, with the extraction scripts |
+| `docs/coluna_positiva_n2/` | the article on the N2 positive column: measured conditions, results and how to reproduce them (`scripts/coluna_n2_*.py`, `scripts/coluna_n2_todos.sh`) |
 | `artigo/` | the figure script of the article and `artigo/README.md`, the command of every run |
 | `exemplos/` | `quickstart.sh` |
 | `referencias/` | reference outputs of the regression test |
