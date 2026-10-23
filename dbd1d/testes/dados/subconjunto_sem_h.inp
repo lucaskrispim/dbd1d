@@ -1,0 +1,22 @@
+ELEMENTS
+N  E
+END
+SPECIES
+N2  N2(A3)  N2(v1)
+N
+E  N2^+
+END
+BOLSIG
+N2  N
+DENSITY N2 += N2(v1)
+END
+REACTIONS
+$ double precision :: kx
+$ kx = 1.0d-10
+E + N2 => E + N2(A3)                       ! BOLSIG N2 -> @R
+    @R = N2(A3,v0-4)  N2(A3,v5-9)
+N + N + @M => N2(A3) + @M                  ! 1.70d-33*@R
+     @M = N2
+     @R = 1.0d0
+N2(A3) + N2 => N2 + N2                     ! kx
+END

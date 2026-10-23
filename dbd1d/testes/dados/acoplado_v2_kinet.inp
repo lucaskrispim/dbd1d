@@ -1,0 +1,22 @@
+ELEMENTS
+N  E
+END
+SPECIES
+N2  N2(v1)  N2(v2)  N2(A3)  N2^+  E
+END
+BOLSIG
+N2  N2(v1)  N2(v2)
+END
+REACTIONS
+E + N2 => E + N2(v1)                       ! BOLSIG N2 -> N2(v1)
+E + N2 => E + N2(A3)                       ! BOLSIG N2 -> @R
+    @R = N2(A3,v0-4)
+E + N2 => E + E + N2^+                     ! BOLSIG N2 -> N2^+
+N2(A3) + N2 => N2 + N2                     ! 3.0d-16
+E + N2(v1) => E + N2(A3) ! BOLSIG N2(v1) -> @R
+    @R = N2(A3,v0-4)
+E + N2(v2) => E + N2(A3) ! BOLSIG N2(v2) -> @R
+    @R = N2(A3,v0-4)
+E + N2(v1) => E + E + N2^+ ! BOLSIG N2(v1) -> N2^+
+E + N2(v2) => E + E + N2^+ ! BOLSIG N2(v2) -> N2^+
+END

@@ -15,7 +15,17 @@ complete model (species, reactions, electron coefficients, transport) without ed
   terms, exact rows for the Poisson equation);
 - applied voltage: sine, step, trapezoidal pulse train or a tabulated measured pulse repeated
   periodically;
-- optional electron reflection at the walls (`--electron-reflection`, Hagelaar et al. 2000).
+- optional electron reflection at the walls (`--electron-reflection`, Hagelaar et al. 2000);
+- experimental and off by default: cycle acceleration for slow chemistry (`--accelerate`), which
+  projects the neutral species over many cycles of a periodic discharge.
+
+Since version 1.3.0 the package also has a zero-dimensional model of the positive column of a
+flowing DC discharge (`dbd1d/coluna.py`): the chemistry of a case along the residence time of the
+gas, with ambipolar diffusion of the ions, wall losses of the neutrals and the electron density set
+by the current, and the reduced field that sustains the column. Three tools prepare its chemistries:
+the subset of a mechanism without an element, the vibrational ladder of N2(X) up to v = 45 with the
+rate coefficients of Capitelli et al. (2000), and the coupling of the electron kinetics to the
+vibrational distribution (each N2(v) a target of BOLSIG+).
 
 Options, messages and comments are in English. Identifiers, file names and the keys of the data
 files keep their original Portuguese names, and the earlier Portuguese option names (`--pressao`,
@@ -26,8 +36,8 @@ called `prototipo/`.
 
 | Folder | Content |
 |---|---|
-| `dbd1d/` | the simulator: `simula.py` (command line), `modelo.py` (model), `jacobiano.py` and `bdf_dae.py` (integration), `quimica_zdp.py` (chemistry), `tabela.py` (electron tables); tests in `dbd1d/testes/` |
-| `ferramentas/` | tools: `caso.py` builds a case from ZDPlasKin files, with the Fortran programs that generate the electron tables; the digitizer of published figures and an electron swarm Monte Carlo |
+| `dbd1d/` | the simulator: `simula.py` (command line), `modelo.py` (model), `jacobiano.py` and `bdf_dae.py` (integration), `quimica_zdp.py` (chemistry), `tabela.py` (electron tables); `coluna.py`, the 0D positive column; `acelera.py`, the experimental cycle acceleration; tests in `dbd1d/testes/` |
+| `ferramentas/` | tools: `caso.py` builds a case from ZDPlasKin files, with the Fortran programs that generate the electron tables; `subconjunto.py` (a mechanism without one element), `escada_vibracional.py` (vibrational ladder of N2(X)) and `acoplamento_vibracional.py` (electron-vibration coupling); the digitizer of published figures and an electron swarm Monte Carlo |
 | `casos/` | cases (gas mixtures); the argon case is at the repository root; see `casos/README.md` |
 | `biblioteca/` | library of transport data per species and background gas |
 | `validacao/` | validation and verification: `curta.py` (short validation), `townsend.py`, the input pulses of the pulsed cases; see `validacao/README.md` |

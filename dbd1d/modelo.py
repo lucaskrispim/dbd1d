@@ -72,6 +72,24 @@ U = 1.66053906660e-27
 N_LOSCHMIDT = 2.6867811e19     # cm-3
 
 
+def mobilidade_de(mob, e_n, escala):
+    """Mobility of an ion of transporte.json at E/N (Td): the reduced mobility K0
+    (cm2/(V s), at the Loschmidt density) times escala (N0/N and the units):
+    constant; Frost, K0 (1 + (E/N)/EN_aquecimento)^(-1/2); or measured versus E/N,
+    linear, held below and, above, held or with the high-field tail
+    K ~ (E/N)^(-1/2) from the last measured point."""
+    e_n = np.asarray(e_n, dtype=float)
+    if mob["tipo"] == "constante":
+        return np.full_like(e_n, mob["K0"] * escala)
+    if mob["tipo"] == "tabela":
+        k0 = np.interp(e_n, mob["E_N"], mob["K0"])
+        if mob.get("acima", "preso") == "raiz":
+            ultimo = mob["E_N"][-1]
+            k0 = np.where(e_n > ultimo, mob["K0"][-1] * np.sqrt(ultimo / np.maximum(e_n, ultimo)), k0)
+        return k0 * escala
+    return mob["K0"] * escala / np.sqrt(1.0 + e_n / mob["EN_aquecimento"])
+
+
 def bernoulli(x):
     """B(x) = x/(e^x - 1), with B(0) = 1."""
     x = np.asarray(x, dtype=float)
@@ -137,7 +155,8 @@ class Modelo:
                  k0_ar=None, en_aquecimento_ar=None, k0_ar2=None, ganho_tres_corpos=0.0, eps_gas=1.0,
                  transporte=None, gas=None, tabela_calor=None,
                  forma="seno", subida=0.0, largura=0.0, descida=0.0,
-                 espessura_dir=None, eps_dieletrico_dir=None, tabela_tensao=None, reflexao_eletrons=0.0):
+                 espessura_dir=None, eps_dieletrico_dir=None, tabela_tensao=None, reflexao_eletrons=0.0,
+                 residencia=None):
         self.q, self.tab = quimica, tabela
         if quimica.bolsig_tres_corpos:
             raise ErroQuimica("BOLSIG+ reactions with two reacting electrons: "
@@ -171,6 +190,13 @@ class Modelo:
             raise ValueError(f"electron reflection {reflexao_eletrons}: must be in [0, 1)")
         self.reflexao_eletrons = reflexao_eletrons
         self.absorcao_eletrons = (1.0 - reflexao_eletrons) / (1.0 + reflexao_eletrons)
+        # residence time (s) of the gas in a flowing reactor: what the gas carries leaves at n/tau
+        # and clean background gas enters at t_gas; None: closed cell
+        if residencia is not None and not residencia > 0.0:
+            raise ValueError("the residence time must be positive")
+        if residencia is not None and gas_solto:
+            raise ValueError("the residence time is not implemented with the free background gas")
+        self.residencia = residencia
         self.alfa, self.sigma_cx = polarizabilidade, sigma_cx
         self.t_gas = t_gas
         # gas density at 1 atm and the given temperature, cm-3
@@ -570,20 +596,9 @@ class Modelo:
     def mobilidade_ion(self, k, campo, n_pesadas=None):
         """Mobility (m2/(V s)) of the ion k in the cells, from the measurements,
         with mu = K*N0/N; N is that of the gas or, if given, that of the heavy particles."""
-        mob = self._mob[k]
-        escala = N_LOSCHMIDT / (self.n_gas if n_pesadas is None else n_pesadas) * 1e-4
-        if mob["tipo"] == "constante":
-            return np.full_like(np.asarray(campo, dtype=float), mob["K0"] * escala)
-        e_n = np.abs(campo) / (self.n_gas if n_pesadas is None else n_pesadas) * 1e15
-        if mob["tipo"] == "tabela":
-            # K0 measured versus E/N, linear; below, held; above, held or with the
-            # high-field tail K ~ (E/N)^(-1/2) from the last measured point
-            k0 = np.interp(e_n, mob["E_N"], mob["K0"])
-            if mob.get("acima", "preso") == "raiz":
-                ultimo = mob["E_N"][-1]
-                k0 = np.where(e_n > ultimo, mob["K0"][-1] * np.sqrt(ultimo / np.maximum(e_n, ultimo)), k0)
-            return k0 * escala
-        return mob["K0"] * escala / np.sqrt(1.0 + e_n / mob["EN_aquecimento"])
+        n = self.n_gas if n_pesadas is None else n_pesadas
+        e_n = np.abs(np.asarray(campo, dtype=float)) / n * 1e15
+        return mobilidade_de(self._mob[k], e_n, N_LOSCHMIDT / n * 1e-4)
 
     def n_pesadas(self, n):
         """Heavy particles per cell (cm-3): the background gas and the species that
@@ -824,11 +839,16 @@ class Modelo:
         else:
             fontes = self.q.fontes(self.densidades_completas(n), k)
         dn += fontes[self.especies]
+        tau = self.residencia
+        if tau is not None:
+            dn -= n / tau
         partes = [dn.ravel()]
         if self.energia:
-            partes.append(self.d_energia(n, n_eps, campo, G, mob, temp, extra, gama_ions))
+            d_eps = self.d_energia(n, n_eps, campo, G, mob, temp, extra, gama_ions)
+            partes.append(d_eps - n_eps / tau if tau is not None else d_eps)
         if self.aquecimento:
-            partes.append(self.d_temperatura(n, t_gas, campo_cel, mob, extra))
+            d_t = self.d_temperatura(n, t_gas, campo_cel, mob, extra)
+            partes.append(d_t + (self.t_gas - t_gas) / tau if tau is not None else d_t)
         # surface charges: the arriving particles and the emitted electrons
         d_sigma = Q * 1e6 * (self.carga @ out + gama_ions)
         return np.concatenate(partes + [d_sigma])

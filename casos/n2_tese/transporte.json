@@ -1,0 +1,353 @@
+{
+  "_formato": [
+    "Transport data of the heavy species, read by the simulator (dbd1d/modelo.py) or given by --transport.",
+    "Each transported species except E needs massa_u, the mass in u. The background gas is transported only with --free-gas.",
+    "Positive ions of charge 1 need mobilidade, reduced to the Loschmidt density in cm2/(V s), of tipo constante (K0), frost (K0 and EN_aquecimento in Td, with K = K0 (1 + (E/N)/EN_aquecimento)^(-1/2)) or tabela (E_N in Td, increasing, and K0, interpolated linearly; below the first point, clamped; above the last, clamped or, with acima = raiz, K = K_last (E/N_last / (E/N))^(1/2)).",
+    "Neutrals need difusao, D = (D0/p) (T/T0)^expoente in m2/s with p in atm, and perda_na_parede, the probability gamma of loss per collision with the wall (flux gamma/(2 - gamma) n v/2; the free background gas does not need it).",
+    "With --free-gas, the species need atomos_do_fundo, the atoms of the background gas that the wall returns per absorbed particle.",
+    "The fonte fields are only a record of the source."
+  ],
+  "N2": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 2.02e-05,
+      "T0": 300.0,
+      "expoente": 1.75
+    },
+    "atomos_do_fundo": 0,
+    "fonte": "self-diffusion taken equal to the measured one of N2(A); used only with --free-gas"
+  },
+  "N2(V1)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 2.0846888024470913e-05,
+      "T0": 300.0,
+      "expoente": 1.713
+    },
+    "perda_na_parede": 0.00045
+  },
+  "N2(V2)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 2.0846888024470913e-05,
+      "T0": 300.0,
+      "expoente": 1.713
+    },
+    "perda_na_parede": 0.00045
+  },
+  "N2(V3)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 2.0846888024470913e-05,
+      "T0": 300.0,
+      "expoente": 1.713
+    },
+    "perda_na_parede": 0.00045
+  },
+  "N2(V4)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 2.0846888024470913e-05,
+      "T0": 300.0,
+      "expoente": 1.713
+    },
+    "perda_na_parede": 0.00045
+  },
+  "N2(V5)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 2.0846888024470913e-05,
+      "T0": 300.0,
+      "expoente": 1.713
+    },
+    "perda_na_parede": 0.00045
+  },
+  "N2(V6)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 2.0846888024470913e-05,
+      "T0": 300.0,
+      "expoente": 1.713
+    },
+    "perda_na_parede": 0.00045
+  },
+  "N2(V7)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 2.0846888024470913e-05,
+      "T0": 300.0,
+      "expoente": 1.713
+    },
+    "perda_na_parede": 0.00045
+  },
+  "N2(V8)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 2.0846888024470913e-05,
+      "T0": 300.0,
+      "expoente": 1.713
+    },
+    "perda_na_parede": 0.00045
+  },
+  "N2(A3)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 2.0846888024470913e-05,
+      "T0": 300.0,
+      "expoente": 1.713
+    },
+    "perda_na_parede": 0.001
+  },
+  "N2(B3)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 2.0846888024470913e-05,
+      "T0": 300.0,
+      "expoente": 1.713
+    },
+    "perda_na_parede": 0.001
+  },
+  "N2(A`1)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 2.0846888024470913e-05,
+      "T0": 300.0,
+      "expoente": 1.713
+    },
+    "perda_na_parede": 0.001
+  },
+  "N2(C3)": {
+    "massa_u": 28.014,
+    "difusao": {
+      "D0": 2.0846888024470913e-05,
+      "T0": 300.0,
+      "expoente": 1.713
+    },
+    "perda_na_parede": 0.001
+  },
+  "N": {
+    "massa_u": 14.007,
+    "difusao": {
+      "D0": 3.3e-05,
+      "T0": 300.0,
+      "expoente": 1.75
+    },
+    "perda_na_parede": 2.16e-06,
+    "atomos_do_fundo": 0.5,
+    "fonte": "estimated diffusion: measured self-diffusion of N2 (0.202 cm2/s, 1 atm, 300 K) scaled by the reduced mass and by the hard-sphere diameter of N (2.75 Å at 280 K, Diffusion coefficients of O and N atoms in inert gases) against 3.75 Å for N2; loss: recombination at the quartz wall, gamma = 2.16e-6 (Mazánková, Trunec and Krčma, 2015, afterglow at 1000 Pa)"
+  },
+  "N(2D)": {
+    "massa_u": 14.007,
+    "difusao": {
+      "D0": 2.919894418361691e-05,
+      "T0": 300.0,
+      "expoente": 1.7
+    },
+    "perda_na_parede": 1.0
+  },
+  "N(2P)": {
+    "massa_u": 14.007,
+    "difusao": {
+      "D0": 2.919894418361691e-05,
+      "T0": 300.0,
+      "expoente": 1.7
+    },
+    "perda_na_parede": 1.0
+  },
+  "N^+": {
+    "massa_u": 14.007,
+    "mobilidade": {
+      "tipo": "tabela",
+      "E_N": [
+        7,
+        8,
+        10,
+        12,
+        15,
+        20,
+        25,
+        30,
+        40,
+        50,
+        60,
+        80,
+        100,
+        120,
+        150,
+        200,
+        250,
+        300,
+        400,
+        500
+      ],
+      "K0": [
+        3.01,
+        3.01,
+        3.01,
+        3.0,
+        2.99,
+        2.98,
+        2.97,
+        2.96,
+        2.94,
+        2.92,
+        2.91,
+        2.89,
+        2.88,
+        2.87,
+        2.87,
+        2.86,
+        2.86,
+        2.86,
+        2.83,
+        2.79
+      ],
+      "acima": "raiz"
+    },
+    "atomos_do_fundo": 0.5,
+    "fonte": "Ellis, Pai, McDaniel, Mason and Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 204-205, experimental data at 300 K; error up to 3%; above the last measured E/N, tail K ~ (E/N)^(-1/2), an estimate (decision of the authors, 18/10/2026)"
+  },
+  "N2^+": {
+    "massa_u": 28.014,
+    "mobilidade": {
+      "tipo": "tabela",
+      "E_N": [
+        6,
+        8,
+        10,
+        12,
+        15,
+        20,
+        25,
+        30,
+        40,
+        50,
+        60,
+        80,
+        100,
+        120,
+        150,
+        200,
+        250,
+        300,
+        400,
+        500,
+        600,
+        800
+      ],
+      "K0": [
+        1.9,
+        1.89,
+        1.88,
+        1.88,
+        1.87,
+        1.85,
+        1.84,
+        1.83,
+        1.8,
+        1.76,
+        1.72,
+        1.66,
+        1.6,
+        1.54,
+        1.47,
+        1.37,
+        1.28,
+        1.2,
+        1.1,
+        1.02,
+        0.95,
+        0.85
+      ],
+      "acima": "raiz"
+    },
+    "atomos_do_fundo": 1,
+    "fonte": "Ellis, Pai, McDaniel, Mason and Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 203, experimental data at 300 K; error up to 3%; above the last measured E/N, tail K ~ (E/N)^(-1/2), an estimate (decision of the authors, 18/10/2026)"
+  },
+  "N3^+": {
+    "massa_u": 42.021,
+    "mobilidade": {
+      "tipo": "tabela",
+      "E_N": [
+        2,
+        4,
+        10,
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
+        80,
+        90,
+        100,
+        120,
+        140,
+        160,
+        180,
+        200,
+        220,
+        240
+      ],
+      "K0": [
+        2.26,
+        2.26,
+        2.26,
+        2.26,
+        2.27,
+        2.28,
+        2.31,
+        2.35,
+        2.4,
+        2.48,
+        2.57,
+        2.66,
+        2.77,
+        2.82,
+        2.86,
+        2.86,
+        2.83,
+        2.8,
+        2.75
+      ],
+      "acima": "raiz"
+    },
+    "atomos_do_fundo": 1.5,
+    "fonte": "Ellis, Pai, McDaniel, Mason and Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 204-205, experimental data at 300 K; error up to 7%; above the last measured E/N, tail K ~ (E/N)^(-1/2), an estimate (decision of the authors, 18/10/2026)"
+  },
+  "N4^+": {
+    "massa_u": 56.028,
+    "mobilidade": {
+      "tipo": "tabela",
+      "E_N": [
+        2,
+        4,
+        7,
+        10,
+        12,
+        15,
+        20,
+        25,
+        30,
+        35,
+        40
+      ],
+      "K0": [
+        2.31,
+        2.31,
+        2.31,
+        2.32,
+        2.33,
+        2.34,
+        2.35,
+        2.36,
+        2.37,
+        2.39,
+        2.41
+      ],
+      "acima": "raiz"
+    },
+    "atomos_do_fundo": 2,
+    "fonte": "Ellis, Pai, McDaniel, Mason and Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 204-205, experimental data at 300 K; error up to 3%; measured only up to 40 Td (N4+ dissociates above); above the last measured E/N, tail K ~ (E/N)^(-1/2), an estimate (decision of the authors, 18/10/2026)"
+  }
+}

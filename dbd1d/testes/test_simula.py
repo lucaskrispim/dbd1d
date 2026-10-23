@@ -629,3 +629,52 @@ def test_tabela_de_um_no_de_tg_no_caso_da_mensagem_sem_traceback(tmp_path):
     r = subprocess.run([sys.executable, str(PROTOTIPO / "simula.py"), str(tmp_path / "x"), *BASE, "--t-end", "2e-9",
                         "--case", str(caso)], capture_output=True, text=True, env={"OPENBLAS_NUM_THREADS": "1", "PATH": ""})
     assert r.returncode != 0 and "two T_g nodes" in r.stderr + r.stdout and "Traceback" not in r.stderr
+
+
+def test_tempo_de_residencia_chega_ao_modelo(tmp_path):
+    # --residence-time: flowing reactor; recorded with the arguments and in the model
+    d = tmp_path / "r"
+    roda(d, "--t-end", "2e-9", "--residence-time", "0.05")
+    p = json.loads((d / "parametros.json").read_text())
+    assert p["argumentos"]["residencia"] == 0.05 and p["modelo"]["residencia"] == 0.05
+    r = subprocess.run([sys.executable, str(PROTOTIPO / "simula.py"), str(tmp_path / "x"), *BASE, "--t-end", "2e-9",
+                        "--residence-time", "0"], capture_output=True, text=True,
+                       env={"OPENBLAS_NUM_THREADS": "1", "PATH": ""})
+    assert r.returncode != 0 and "residence-time" in r.stderr
+
+
+def test_aceleracao_salta_ciclos_e_projeta_so_os_neutros(tmp_path):
+    # --accelerate K M: K direct cycles, then a jump of M cycles of the neutrals
+    d = tmp_path / "a"
+    roda(d, "--period", "4e-9", "--t-end", "4e-8", "--accelerate", "3", "5")
+    t = superficie(d)[:, 0]
+    np.testing.assert_allclose(t, np.r_[np.arange(0, 13, 2), np.arange(32, 41, 2)] * 1e-9, rtol=1e-9, atol=1e-15)
+    saltos = np.loadtxt(d / "projecoes.dat", skiprows=1, ndmin=2)
+    assert saltos.shape[0] == 1
+    np.testing.assert_allclose(saltos[0, :3], [1.2e-8, 3.2e-8, 5])
+    antes, depois = (colunas(d, ["E", "AR^+", "AR*"], k) for k in (6, 7))
+    np.testing.assert_array_equal(depois[:, :2], antes[:, :2])   # electrons and ions as they were
+    assert np.any(depois[:, 2] != antes[:, 2])                    # the excited atoms projected
+    assert json.loads((d / "parametros.json").read_text())["argumentos"]["acelera"] == [3, 5]
+
+
+@pytest.mark.parametrize("extra, mensagem", [
+    (["--accelerate", "2", "5"], "--accelerate: at least 3 direct cycles"),
+    (["--accelerate", "3", "0"], "--accelerate: at least 3 direct cycles"),
+    (["--accelerate", "3", "5", "--waveform", "step", "--rise", "1e-9"], "--accelerate: needs a periodic waveform"),
+    (["--accelerate", "3", "5", "--jac", "fd"], "--accelerate: needs --jac dae or structured"),
+])
+def test_aceleracao_invalida_e_recusada(tmp_path, extra, mensagem):
+    r = subprocess.run([sys.executable, str(PROTOTIPO / "simula.py"), str(tmp_path / "x"), *BASE, "--t-end", "2e-9",
+                        *extra], capture_output=True, text=True, env={"OPENBLAS_NUM_THREADS": "1", "PATH": ""})
+    assert r.returncode != 0 and mensagem in r.stderr
+
+
+def test_retomada_no_mesmo_diretorio_corta_as_projecoes_posteriores(tmp_path):
+    d = tmp_path / "a"
+    roda(d, "--period", "4e-9", "--t-end", "4e-8", "--accelerate", "3", "5")
+    roda(d, "--period", "4e-9", "--t-end", "4e-8", "--accelerate", "3", "5", "--restart", str(d), "8e-9")
+    saltos = np.loadtxt(d / "projecoes.dat", skiprows=1, ndmin=2)
+    # the jump of the first run (12 -> 32 ns) is after 8 ns and is gone; the restart makes its own
+    assert saltos.shape[0] == 1
+    np.testing.assert_allclose(saltos[0, :2], [2.0e-8, 4.0e-8])

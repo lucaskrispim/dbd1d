@@ -1,0 +1,42 @@
+{
+  "_formato": [
+    "Properties of the background gas of the case, read by the simulator (dbd1d/modelo.py).",
+    "fundo: species of kinet.inp that form the background gas and their fractions.",
+    "cv_por_kb: specific heat at constant volume per heavy particle, in units of k_B (1.5 for a monatomic gas, 2.5 for a diatomic one without vibration).",
+    "condutividade: thermal conductivity in W/(m K); tipo linear_com_raiz, (a T + b) escala, times (T/t_raiz)^(1/2) above t_raiz, or tipo tabela, with T (K) and kappa, interpolated linearly and clamped at the ends.",
+    "ion_inicial: positive ion seeded with the electrons in the neutral initial plasma.",
+    "calor (optional): enthalpies in eV per particle, for the heat of each reaction (-sum of nu h), and processos_rapidos, BOLSIG+ processes whose energy becomes gas heat within picoseconds.",
+    "The fonte fields are only a record of the source."
+  ],
+  "fundo": {
+    "N2": 1.0
+  },
+  "cv_por_kb": 2.5,
+  "condutividade": {
+    "tipo": "tabela",
+    "T": [
+      260,
+      300,
+      400,
+      500,
+      600,
+      700,
+      800,
+      900,
+      1000
+    ],
+    "kappa": [
+      0.02301,
+      0.02597,
+      0.03281,
+      0.03904,
+      0.04484,
+      0.05031,
+      0.05551,
+      0.06052,
+      0.06536
+    ]
+  },
+  "ion_inicial": "N2^+",
+  "fonte": "conductivity at 1 bar: The Engineering ToolBox (2018), Nitrogen - Thermal Conductivity vs. Temperature and Pressure; above 1000 K held at the last value; cv of a diatomic gas without vibration (2.5 k_B); copied from casos/n2 for the subset of casos/ar_n2_o2"
+}

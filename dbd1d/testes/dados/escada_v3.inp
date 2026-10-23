@@ -1,0 +1,46 @@
+ELEMENTS
+N  E
+END
+SPECIES
+N2  N2(v1)  N2(v2)  N  N2^+  E
+N2(v3)
+END
+BOLSIG
+N2
+END
+REACTIONS
+E + N2 => E + N2(v1)                       ! BOLSIG N2 -> N2(v1)
+N + N + N2 => N2 + N2                      ! 8.3d-34
+E + N2^+ => N + N                          ! 1.8d-7
+
+# vibrational ladder of N2(X) up to v = 3: ferramentas/escada_vibracional.py
+$ double precision :: escv_k10, escv_dvt, escv_k01, escv_dvv, escv_kn
+$ escv_k10 = 7.8d-12*Tgas*exp(-218.0d0/Tgas**(1.0d0/3.0d0)+690.0d0/Tgas)/(1.0d0-exp(-3.352237898814d+03/Tgas))
+$ escv_dvt = 4.245026729290d+00/Tgas**(1.0d0/3.0d0)
+$ escv_k01 = 0.9d-14*(Tgas/300.0d0)**1.5d0
+$ escv_dvv = 1.317072391210d+01/sqrt(Tgas)
+$ escv_kn = 4.0d-10*(Tgas/300.0d0)**0.5d0
+N2(v1) + N2 => N2 + N2                       ! escv_k10*1.000000000000d+00*exp(0.000000000000d+00*escv_dvt)
+N2 + N2 => N2(v1) + N2                       ! escv_k10*1.000000000000d+00*exp(0.000000000000d+00*escv_dvt)*exp(-3.352237898814d+03/Tgas)
+N2(v2) + N2 => N2(v1) + N2                   ! escv_k10*2.012295690585d+00*exp(1.000000000000d+00*escv_dvt)
+N2(v1) + N2 => N2(v2) + N2                   ! escv_k10*2.012295690585d+00*exp(1.000000000000d+00*escv_dvt)*exp(-3.311019818841d+03/Tgas)
+N2(v3) + N2 => N2(v2) + N2                   ! escv_k10*3.037115250575d+00*exp(2.000000000000d+00*escv_dvt)
+N2(v2) + N2 => N2(v3) + N2                   ! escv_k10*3.037115250575d+00*exp(2.000000000000d+00*escv_dvt)*exp(-3.269801738869d+03/Tgas)
+N2(v1) + N2(v1) => N2 + N2(v2)               ! escv_k01*1.851312035339d+00*exp(-1.000000000000d+00*escv_dvv)
+N2 + N2(v2) => N2(v1) + N2(v1)               ! escv_k01*1.851312035339d+00*exp(-1.000000000000d+00*escv_dvv)*exp(-4.121807997230d+01/Tgas)
+N2(v1) + N2(v2) => N2 + N2(v3)               ! escv_k01*2.672661420506d+00*exp(-2.000000000000d+00*escv_dvv)
+N2 + N2(v3) => N2(v1) + N2(v2)               ! escv_k01*2.672661420506d+00*exp(-2.000000000000d+00*escv_dvv)*exp(-8.243615994459d+01/Tgas)
+N2(v2) + N2(v2) => N2(v1) + N2(v3)           ! escv_k01*5.378185058877d+00*exp(-1.000000000000d+00*escv_dvv)
+N2(v1) + N2(v3) => N2(v2) + N2(v2)           ! escv_k01*5.378185058877d+00*exp(-1.000000000000d+00*escv_dvv)*exp(-4.121807997229d+01/Tgas)
+N2(v1) + N => N2 + N                         ! escv_kn/1.000000000000d+00*exp(-7280.0d0/Tgas+2.178954634229d+02/Tgas)
+N2(v2) + N => N2(v1) + N                     ! escv_kn/2.000000000000d+00*exp(-7280.0d0/Tgas+4.331117516476d+02/Tgas)
+N2(v2) + N => N2 + N                         ! escv_kn/2.000000000000d+00*exp(-7280.0d0/Tgas+4.331117516476d+02/Tgas)
+N2(v3) + N => N2(v2) + N                     ! escv_kn/3.000000000000d+00*exp(-7280.0d0/Tgas+6.456488646741d+02/Tgas)
+N2(v3) + N => N2(v1) + N                     ! escv_kn/3.000000000000d+00*exp(-7280.0d0/Tgas+6.456488646741d+02/Tgas)
+N2(v3) + N => N2 + N                         ! escv_kn/3.000000000000d+00*exp(-7280.0d0/Tgas+6.456488646741d+02/Tgas)
+N2(v3) + N2 => N + N + N2                    ! escv_k10*4.074692539871d+00*exp(3.000000000000d+00*escv_dvt)*exp(-3.228583658897d+03/Tgas)
+N2(v1) + N2(v3) => N2 + N + N                ! escv_k01*3.422741733492d+00*exp(-3.000000000000d+00*escv_dvv)
+N2(v2) + N2(v3) => N2(v1) + N + N            ! escv_k01*6.887568440293d+00*exp(-2.000000000000d+00*escv_dvv)
+N2(v3) + N2(v3) => N2(v2) + N + N            ! escv_k01*1.039526111757d+01*exp(-1.000000000000d+00*escv_dvv)
+
+END

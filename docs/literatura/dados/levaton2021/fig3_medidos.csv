@@ -1,0 +1,6 @@
+# Levaton 2021 fig3: relative densities measured at the end of the column (60 mA, 530 Pa),
+# normalized by the authors so that the sum of N2(C, v = 0 to 4) equals the calculated N2(C)
+# estado,t_s,n_cm3,n_inf,n_sup
+N2_B,0.000993691,4.87123e+10,3.42304e+10,6.31063e+10
+N2_C,0.000993691,1.69724e+08,1.18623e+08,2.18691e+08
+N2p_B,0.00100305,857257,481469,1.12005e+06

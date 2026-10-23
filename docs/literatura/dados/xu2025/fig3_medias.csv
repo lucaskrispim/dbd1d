@@ -1,0 +1,10 @@
+# Xu 2025 fig. 3(c,d), time averages over one cycle printed on the bars
+# species,barrier,gas,mean_cm3
+N,DBD,mixture,71000000000000.0
+N,DBD,N2,2300000000000000.0
+N,FBD,mixture,2800000000000000.0
+N,FBD,N2,3000000000000000.0
+H,DBD,mixture,3.8e+16
+H,DBD,H2,2200000000000000.0
+H,FBD,mixture,7.4e+16
+H,FBD,H2,3.5e+16

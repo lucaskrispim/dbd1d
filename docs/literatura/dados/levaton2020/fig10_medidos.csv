@@ -1,0 +1,6 @@
+# Levaton 2020 fig. 10: relative densities measured at the end of the column (10 mA, 230 Pa),
+# normalized by the authors so that the sum of N2(C, v = 0 to 4) equals the calculated N2(C)
+# estado,t_s,n_cm3,n_inf,n_sup
+N2_B,0.000428367,6.81979e+11,4.54853e+11,9.12592e+11
+N2_C,0.000428367,6.36303e+10,4.32612e+10,8.14693e+10
+N2p_B,0.00043112,9.58032e+07,6.11718e+07,1.16458e+08

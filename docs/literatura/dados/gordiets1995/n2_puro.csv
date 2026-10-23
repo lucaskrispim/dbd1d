@@ -1,0 +1,6 @@
+# Gordiets et al. 1995, pure N2 (0% O2), 2 Torr, tube radius 0.8 cm, 100 sccm
+# Tg (fig. 4), ne (fig. 5; none at 0% for 80 mA), E/N (fig. 8, 1e-16 V cm2 = 10 Td), Tv (text)
+# corrente_mA,Tg_K,ne_cm3,EN_Td,Tv_K
+15,504,4.11e+09,66.7,3000
+30,590,8.62e+09,63.0,4000
+80,797,,69.9,5500

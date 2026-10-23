@@ -30,6 +30,7 @@ import numpy as np
 from scipy.integrate import BDF, solve_ivp
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from acelera import indices_lentos, projeta  # noqa: E402
 from bdf_dae import BDFMassa                 # noqa: E402
 from jacobiano import ModeloRapido, SistemaDAE  # noqa: E402
 from modelo import KB, ErroGas, ErroTransporte  # noqa: E402
@@ -228,7 +229,7 @@ def estado_gravado(md, origem, t):
     raise SystemExit(f"time {t} not found in {origem}/superficie.dat")
 
 
-GUARDADOS = ("perfil.dat", "superficie.dat") + EEDF_ARQUIVOS
+GUARDADOS = ("perfil.dat", "superficie.dat", "projecoes.dat") + EEDF_ARQUIVOS
 
 
 def guarda_antes_da_retomada(dir_, t):
@@ -257,10 +258,14 @@ def termina(dir_, inicio):
 
 def corta_depois_de(dir_, t):
     """Restart in the same directory: keeps the records up to t, inclusive, in
-    superficie.dat and in the block files (profiles and EEDF)."""
-    linhas = (dir_ / "superficie.dat").read_text().splitlines(keepends=True)
-    escreve_atomico(dir_ / "superficie.dat", linhas[0] + "".join(
-        l for l in linhas[1:] if float(l.split()[0]) <= t * (1 + 1e-9)))
+    superficie.dat, in the block files (profiles and EEDF) and, by the end of
+    each jump, in projecoes.dat."""
+    for nome, coluna in (("superficie.dat", 0), ("projecoes.dat", 1)):
+        if not (dir_ / nome).exists():
+            continue
+        linhas = (dir_ / nome).read_text().splitlines(keepends=True)
+        escreve_atomico(dir_ / nome, linhas[0] + "".join(
+            l for l in linhas[1:] if float(l.split()[coluna]) <= t * (1 + 1e-9)))
     for nome in ("perfil.dat",) + EEDF_ARQUIVOS:
         if not (dir_ / nome).exists():
             continue
@@ -314,26 +319,28 @@ def relata(md, t, avaliacoes, jacobianos, fatoracoes, inicio):
           f"out of table (above/below/T_g) {fora}  {time.time() - inicio:.1f} s", flush=True)
 
 
-def integra_sem_reinicio(a, md, y, t_ini, atol, saidas, inicio):
-    """A single BDF run from start to end, with the outputs interpolated by the
-    dense output (no internal step stored). With --jac dae the potential is in
-    the state and the integrator is BDFMassa, with the Poisson equation in the
-    rows of zero mass and outside the error control; with --jac structured,
-    scipy's BDF with the Jacobian J_local + S*G."""
+def integra_sem_reinicio(a, md, y, t_ini, atol, saidas, inicio, t_fim=None):
+    """A single BDF run from t_ini to t_fim (default --t-end), with the outputs
+    interpolated by the dense output (no internal step stored); returns the final
+    state. With --jac dae the potential is in the state and the integrator is
+    BDFMassa, with the Poisson equation in the rows of zero mass and outside the
+    error control; with --jac structured, scipy's BDF with the Jacobian
+    J_local + S*G."""
+    t_fim = a.t_end if t_fim is None else t_fim
     if a.jac == "dae":
         dae = SistemaDAE(md)
         z = dae.estado(t_ini, y)
         massa = np.concatenate([np.ones(dae.N), np.zeros(dae.n_phi)])
         atol_z = np.concatenate([atol, np.full(dae.n_phi, 1.0e30)])
-        solver = BDFMassa(dae.rhs, t_ini, z, a.t_end, massa, rtol=a.rtol, atol=atol_z, max_step=passo_maximo(a),
+        solver = BDFMassa(dae.rhs, t_ini, z, t_fim, massa, rtol=a.rtol, atol=atol_z, max_step=passo_maximo(a),
                           jac=lambda t, z: dae.jacobiano(t, z, a.atol))
         so_y = lambda z: z[:dae.N]  # noqa: E731
     else:
-        solver = BDF(md.rhs, t_ini, y, a.t_end, rtol=a.rtol, atol=atol, max_step=passo_maximo(a),
+        solver = BDF(md.rhs, t_ini, y, t_fim, rtol=a.rtol, atol=atol, max_step=passo_maximo(a),
                      jac=lambda t, y: md.jacobiano(t, y, a.atol))
         so_y = lambda z: z  # noqa: E731
     k = 1
-    while solver.status == "running" and k < len(saidas):
+    while solver.status == "running":
         if a.forma == "tabela":
             solver.max_step = passo_maximo_em(a, solver.t)
         mensagem = solver.step()
@@ -341,13 +348,41 @@ def integra_sem_reinicio(a, md, y, t_ini, atol, saidas, inicio):
         if solver.status == "failed":
             print(f"failed at t = {solver.t:.4e}: {mensagem}")
             sys.exit(1)
-        if solver.t >= saidas[k] * (1 - 1e-12):
+        if k < len(saidas) and solver.t >= saidas[k] * (1 - 1e-12):
             denso = solver.dense_output()
             while k < len(saidas) and solver.t >= saidas[k] * (1 - 1e-12):
                 z_saida = denso(saidas[k]) if solver.t > saidas[k] else solver.y
                 grava(a.dir, md, [saidas[k]], so_y(z_saida)[:, None], False)
                 relata(md, saidas[k], solver.nfev, solver.njev, solver.nlu, inicio)
                 k += 1
+    return so_y(solver.y)
+
+
+def integra_acelerado(a, md, y, t_ini, atol, saidas, inicio):
+    """--accelerate K M: K direct cycles, then the slow variables (acelera.py)
+    projected M cycles ahead from the ends of the last three, and so on. The
+    outputs inside a jump are skipped; the projected state is written at the end
+    of the jump, and projecoes.dat records each jump."""
+    diretos, saltos = a.acelera
+    lentos = indices_lentos(md)
+    registro = a.dir / "projecoes.dat"
+    if not registro.exists():
+        registro.write_text("t_before_s t_after_s cycles limited\n")
+    t, fins = t_ini, []
+    while t < a.t_end * (1 - 1e-12):
+        t1 = min(t + a.periodo, a.t_end)
+        trecho = np.r_[t, saidas[(saidas > t * (1 + 1e-12)) & (saidas <= t1 * (1 + 1e-12))]]
+        y = integra_sem_reinicio(a, md, y, t, atol, trecho, inicio, t_fim=t1)
+        t = t1
+        fins.append(y)
+        if len(fins) == diretos and t + saltos * a.periodo <= a.t_end * (1 + 1e-12):
+            y, limitados = projeta(fins[-3], fins[-2], fins[-1], lentos, saltos)
+            antes, t = t, t + saltos * a.periodo
+            with open(registro, "a") as f:
+                f.write(f"{antes:.10e} {t:.10e} {saltos} {limitados}\n")
+            grava(a.dir, md, [t], y[:, None], False)
+            print(f"projected {saltos} cycles: t = {antes:.4e} -> {t:.4e} s, {limitados} changes limited", flush=True)
+            fins = []
 
 
 ARQUIVOS_DO_CASO = ("tabela_energia_tg.dat", "tabela_eedf.dat", "transporte.json", "gas.json")
@@ -425,6 +460,8 @@ def valida(p, a):
         (a.eps_gas >= 1.0, "--eps-gas must be at least 1"),
         (a.gama >= 0.0, "--gamma cannot be negative"),
         (0.0 <= a.reflexao_eletrons < 1.0, "--electron-reflection must be in [0, 1)"),
+        (a.residencia is None or a.residencia > 0.0, "--residence-time must be positive"),
+        (a.residencia is None or not a.gas_solto, "--residence-time is not implemented with --free-gas"),
         (a.rtol > 0.0 and a.atol > 0.0, "--rtol and --atol must be positive"),
         (a.k0_ar_ion is None or a.k0_ar_ion > 0.0, "--k0-ar-ion must be positive"),
         (a.en_aquecimento_ar_ion is None or a.en_aquecimento_ar_ion > 0.0,
@@ -440,6 +477,10 @@ def valida(p, a):
         (a.ganho_tres_corpos >= 0.0, "--three-body-gain cannot be negative"),
         (not a.retoma or pathlib.Path(a.retoma[0]).is_dir(), "--restart: origin directory not found"),
         (not a.adaptativa or a.dt_malha > 0.0, "--dt-mesh must be positive with --adaptive"),
+        (not a.acelera or (a.acelera[0] >= 3 and a.acelera[1] >= 1),
+         "--accelerate: at least 3 direct cycles and 1 projected"),
+        (not a.acelera or a.forma != "degrau", "--accelerate: needs a periodic waveform (sine, pulse or table)"),
+        (not a.acelera or a.jac != "fd", "--accelerate: needs --jac dae or structured"),
     ]
     for ok, mensagem in regras:
         if not ok:
@@ -468,6 +509,9 @@ def valida(p, a):
     saidas = (a.t_end - t_ini) / a.dt_saida
     if abs(saidas - round(saidas)) > 1e-9 * max(1.0, saidas):
         p.error("--t-end minus the starting time must be a multiple of --dt-output")
+    por_periodo = a.periodo / a.dt_saida
+    if a.acelera and abs(por_periodo - round(por_periodo)) > 1e-9 * max(1.0, por_periodo):
+        p.error("--accelerate: --period must be a multiple of --dt-output, so that a jump keeps the outputs aligned")
 
 
 def sha256(caminho):
@@ -517,7 +561,7 @@ def grava_parametros(a, md):
                 "versao": VERSAO, "commit": commit, "alteracoes_locais": alteracoes, "sha256": hashes,
                 "modelo": {"n_gas": md.n_gas, "t_gas": md.t_gas, "transporte": md.transporte,
                            "gama_sec": md.gama, "eps_sec": md.eps_sec, "eps_gas": md.eps_gas,
-                           "reflexao_eletrons": md.reflexao_eletrons,
+                           "reflexao_eletrons": md.reflexao_eletrons, "residencia": md.residencia,
                            "faces": md.faces.tolist()},
                 "python": platform.python_version(), "numpy": np.__version__, "scipy": scipy.__version__,
                 **{v: os.environ.get(v) for v in ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS")}}
@@ -601,6 +645,13 @@ def cria_parser():
     op("--gamma", "--gama", type=float, default=0.05, help="secondary electron emission yield per ion")
     op("--electron-reflection", "--reflexao-eletrons", type=float, default=0.0,
        help="reflection coefficient of the electrons at the walls (Hagelaar et al. 2000), in [0, 1)")
+    op("--residence-time", "--residencia", type=float, default=None,
+       help="residence time of the gas in a flowing reactor, s: what the gas carries leaves at the rate n/tau "
+            "and clean background gas enters at --t-gas (default: closed cell)")
+    op("--accelerate", "--acelera", nargs=2, type=int, metavar=("K", "M"),
+       help="experimental, off by default: cycle acceleration for slow chemistry: after K direct cycles (at least 3), the neutral species and "
+            "the gas temperature are projected M cycles ahead from their changes between the ends of the last "
+            "three cycles (acelera.py); electrons, ions and surface charges adjust in the next direct cycles")
     op("--ne0", None, type=float, default=1.0, help="initial electron density, cm-3")
     op("--neutral", "--neutro", action="store_true",
        help="start quasi-neutral: the initial ion of gas.json at the electron density")
@@ -691,7 +742,7 @@ def monta_modelo(a, caso, faces):
             espessura_dir=a.espessura_dir, eps_dieletrico_dir=a.eps_dieletrico_dir,
             n_gas=a.pressao / (KB * a.t_gas) * 1e-6,
             eps_dieletrico=a.eps_dieletrico, gama_sec=a.gama, freio=not a.sem_freio, faces=faces,
-            reflexao_eletrons=a.reflexao_eletrons,
+            reflexao_eletrons=a.reflexao_eletrons, residencia=a.residencia,
             aquecimento=a.aquecimento, gas_solto=a.gas_solto, t_parede=a.t_parede, t_gas=a.t_gas,
             k0_ar=a.k0_ar_ion, en_aquecimento_ar=a.en_aquecimento_ar_ion, k0_ar2=a.k0_ar2_ion,
             ganho_tres_corpos=a.ganho_tres_corpos, eps_gas=a.eps_gas,
@@ -820,7 +871,9 @@ def main():
     if not mesmo_dir:
         grava(a.dir, md, saidas[:1], y[:, None], True)
     inicio = time.time()
-    if a.jac == "fd":
+    if a.acelera:
+        integra_acelerado(a, md, y, t_ini, atol, saidas, inicio)
+    elif a.jac == "fd":
         integra_com_reinicio(a, md, y, t_ini, saidas, atol, inicio)
     else:
         integra_sem_reinicio(a, md, y, t_ini, atol, saidas, inicio)
