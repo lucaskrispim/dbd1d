@@ -184,7 +184,7 @@ def takashima(base):
     fecha(fig, SAIDA / "takashima.pdf")
 
 
-PULSOS_DO_ARTIGO = {"YN2_n50": 40, "YH2_n50": 25}
+PULSOS_DO_ARTIGO = {"YN2_n50": 50, "YH2_n50": 50}
 
 
 def yang(base):

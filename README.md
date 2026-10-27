@@ -101,8 +101,8 @@ package `poppler-utils`); without it, its four vector tests are skipped.
 
 Tested with numpy 2.2 and 2.5, scipy 1.15 and 1.18. The integrator builds on the internal BDF
 implementation of scipy (`scipy.integrate._ivp`), so scipy is bounded below 1.19 until a newer
-version is tested. With the command above, 451 tests pass, 59 are skipped and 14 slow ones (marked
-`lento`) are deselected; without `-m "not lento"`, 72 are skipped. Each skipped test states, before
+version is tested. With the command above, 585 tests pass, 91 are skipped and 14 slow ones (marked
+`lento`) are deselected; without `-m "not lento"`, 104 are skipped. Each skipped test states, before
 running, the file it needs: ZDPlasKin and BOLSIG+ (to generate cases), the gas mixtures whose
 mechanisms and cross sections we cannot redistribute (`casos/README.md`), or the old Fortran code of
 the research repository with its references. With `ZDPLASKIN_DIR` set and those cases rebuilt, the

@@ -38,6 +38,9 @@ remoto/validacao_stankov.sh PY R100_r07:100:100:1800:10:1e-4:0.02:4.2:0.7 R300_r
     R500_r07:100:500:2700:10:1e-4:0.02:4.2:0.7 R650_r07:100:650:3400:10:1e-4:0.02:4.2:0.7
 remoto/validacao_stankov.sh PY JC100:100:100:1800:10:1e-4:0.02:4.2:0:argonio_jovanovic_ci \
     JT100:100:100:1800:10:1e-4:0.02:4.2:0:argonio_jovanovic_tc
+# symmetry check (Section 7.2): reversed voltage, and 20 periods
+remoto/validacao_stankov.sh PY S100_inv:100:100:-1800:10 S100_p20:100:100:1800:20
+python3 scripts/picos_stankov.py execucoes/validacao_stankov/S100_{n100,inv,p20}
 python3 scripts/compara_stankov.py execucoes/validacao_stankov/S*_n100
 python3 scripts/detalha_stankov.py execucoes/validacao_stankov/S100_n100
 python3 scripts/fluxos.py --species E execucoes/validacao_stankov/J100
@@ -76,9 +79,9 @@ python3 scripts/compara_takashima.py execucoes/validacao_takashima
 
 ## Bursts of nanosecond pulses in N2 and N2-H2 (Yang et al. 2022)
 
-Format: `NAME:CELLS:CASE:PULSES[:RTOL[:NE0[:THICKNESS[:EPS_R]]]]`. The article uses the first 40
-pulses of the 150-pulse runs, which take three to four and a half days, and `artigo/figuras.py`
-shows only those pulses (40 in N2 and 25 with 1% H2). The variants of the mechanism were compared
+Format: `NAME:CELLS:CASE:PULSES[:RTOL[:NE0[:THICKNESS[:EPS_R]]]]`. The article uses the first 50
+pulses of the 150-pulse runs, which take three to six days, and `artigo/figuras.py` shows only
+those pulses (50 in each mixture; the runs were stopped there and resumed with `--retoma`). The variants of the mechanism were compared
 with the base runs after pulse 6.
 
 ```
