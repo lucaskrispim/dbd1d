@@ -25,7 +25,13 @@ gas, with ambipolar diffusion of the ions, wall losses of the neutrals and the e
 by the current, and the reduced field that sustains the column. Three tools prepare its chemistries:
 the subset of a mechanism without an element, the vibrational ladder of N2(X) up to v = 45 with the
 rate coefficients of Capitelli et al. (2000), and the coupling of the electron kinetics to the
-vibrational distribution (each N2(v) a target of BOLSIG+).
+vibrational distribution (each N2(v) a target of BOLSIG+). Version 1.4.0 adds to the coupling the
+electron impact vibrational excitation from the excited levels, in the scaling of Gordiets et al.
+(1995), with its superelastic inverse, and the self-consistent sustaining field as the root of the
+electron balance (`scripts/coluna_n2_raiz.py`). In the column, a molecule N2(v) now loses one
+quantum at the wall, N2(v) to N2(v - 1), as in the models of Levaton et al. and Gordiets et al.,
+instead of returning to the ground state (`Coluna0D(quantum_na_parede=False)` keeps the earlier
+behaviour); this changes the results of the column of version 1.3.1.
 
 Options, messages and comments are in English. Identifiers, file names and the keys of the data
 files keep their original Portuguese names, and the earlier Portuguese option names (`--pressao`,
@@ -101,8 +107,8 @@ package `poppler-utils`); without it, its four vector tests are skipped.
 
 Tested with numpy 2.2 and 2.5, scipy 1.15 and 1.18. The integrator builds on the internal BDF
 implementation of scipy (`scipy.integrate._ivp`), so scipy is bounded below 1.19 until a newer
-version is tested. With the command above, 585 tests pass, 91 are skipped and 14 slow ones (marked
-`lento`) are deselected; without `-m "not lento"`, 104 are skipped. Each skipped test states, before
+version is tested. With the command above, 682 tests pass, 129 are skipped and 23 slow ones (marked
+`lento`) are deselected; without `-m "not lento"`, 686 pass and 148 are skipped. Each skipped test states, before
 running, the file it needs: ZDPlasKin and BOLSIG+ (to generate cases), the gas mixtures whose
 mechanisms and cross sections we cannot redistribute (`casos/README.md`), or the old Fortran code of
 the research repository with its references. With `ZDPLASKIN_DIR` set and those cases rebuilt, the

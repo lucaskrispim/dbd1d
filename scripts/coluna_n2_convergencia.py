@@ -33,7 +33,7 @@ class ColunaTol(Coluna0D):
 
 
 def grandezas(caso, cond, tol):
-    c = ColunaTol(RAIZ / "casos" / caso, cond["p"], cond["tg"], cond["r"], gamas=GAMAS, tol=tol)
+    c = ColunaTol(RAIZ / "casos" / caso, cond["p"], cond["tg"], cond["r"], gamas=GAMAS, estrito=False, tol=tol)
     ne = ne_nosso(c, cond["ne"], cond["en"]) if cond["mobilidade_levaton"] else cond["ne"]
     _, y = c.integra(cond["en"], ne, cond["t"], n_saidas=3)
     nomes = [s.upper() for s in c.especies]

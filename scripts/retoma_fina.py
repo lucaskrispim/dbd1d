@@ -19,8 +19,10 @@ import sys
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "dbd1d"))
 
-# the ones the restart changes; the others are repeated as they are
-TROCADAS = ("dir", "retoma", "t_end", "dt_saida")
+# the ones the restart changes; the others are repeated as they are. The fine window is
+# integrated directly: a run with --accelerate is restarted without it (its jumps have no
+# outputs inside them, and the window must not jump)
+TROCADAS = ("dir", "retoma", "t_end", "dt_saida", "acelera")
 
 
 def inicio_do_pulso(n, periodo):
@@ -36,7 +38,8 @@ def linha_de_comando(argumentos, destino, t0, t_end, dt_saida):
         if k in TROCADAS or v is None or v is False:
             continue
         opcao = "--" + NOMES.get(k, k.replace("_", "-"))
-        linha += [opcao] if v is True else [opcao, repr(v) if isinstance(v, float) else str(v)]
+        valores = v if isinstance(v, (list, tuple)) else [v]       # nargs=2 options, as --accelerate K M
+        linha += [opcao] if v is True else [opcao, *(repr(x) if isinstance(x, float) else str(x) for x in valores)]
     return linha + ["--restart", argumentos["dir"], repr(t0), "--t-end", repr(t_end), "--dt-output", repr(dt_saida)]
 
 

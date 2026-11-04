@@ -20,6 +20,17 @@ The curves of fig. 10 are thin filled outlines of the lines: the curve is the me
 y of the outline in bins of 0.5 pt in x.
 The error bars are the black fills crossing the column of each marker.
 
+Figure 11 (page 14): N2(X, v) populations calculated by the authors at 10 mA
+(dashed) and 50 mA (solid), at t = 1e-6 s (red), 1e-5 s (green) and at the end of
+the column, 4.3e-4 s (10 mA) and 3.5e-4 s (50 mA) (blue); t = 0 (black) is the
+initial Boltzmann distribution and is not extracted. Calibration from the frame and
+the major tick marks: x, v = 0 and 12 at 90.28 and 280.54; y (log), 1e11 and 1e17
+cm-3 at 621.41 and 473.67 (the frame). The solid lines are single filled outlines,
+partly outside the frame (clipped), the dashed ones many short fills; the
+population of each level is the mean y of the points of the line within 0.8 pt of
+the abscissa of v, inside the frame (v = 1 to 12; at v = 0 the lines leave the
+frame at its left edge).
+
 The text gives the means over the flow rates (section III): 90 +- 9 Td and
 (1.54 +- 0.10)e11 cm-3 at 230 Pa, 38 +- 2 Td and (5.16 +- 0.17)e11 cm-3 at 1070 Pa;
 the script checks the extracted points against them.
@@ -142,6 +153,26 @@ def figura10(tr):
     print("fig10_medidos.csv:", [(m[0], f"{m[2]:.3g}") for m in medidos], f"(N2(C) calculated at the end: {fim:.3g})")
 
 
+def figura11(tr):
+    janela = (90.6, 474.0, 296.0, 621.0)
+    ey = dg.Eixo(621.41, 1e11, 473.67, 1e17, log=True)
+    tempos = {VERMELHO: ("1e-6", "1e-6"), VERDE: ("1e-5", "1e-5"), AZUL: ("4.3e-4", "3.5e-4")}
+    for cor, (t10, t50) in tempos.items():
+        for corrente, t, continua in ((10, t10, False), (50, t50, True)):
+            partes = [q["p"] for q in tr if q["preenchimento"] and dg._mesma_cor(q["preenchimento"], cor, 0.05)
+                      and (len(q["p"]) >= 10) == continua and dg._dentro(q["p"], janela).any()]
+            p = np.concatenate(partes)
+            p = p[dg._dentro(p, janela)]
+            vs, ns = [], []
+            for v in range(1, 13):
+                ys = p[np.abs(p[:, 0] - (90.28 + v * (280.54 - 90.28) / 12.0)) < 0.8, 1]
+                if len(ys):
+                    vs.append(v)
+                    ns.append(ey.valor(ys.mean()))
+            grava(f"fig11_vdf_{corrente}mA_t{t}.csv", "v,n_cm3", (np.array(vs), np.array(ns)),
+                  f"Levaton 2020 fig. 11, N2(X, v) calculated by the authors, {corrente} mA, t = {t} s")
+
+
 def main():
     tr = dg.tracos_pdf(PDF, 12)
     figura(tr, (90, 95, 300, 256), dg.Eixo(94.86, 0.0, 278.11, 1.0), dg.Eixo(243.07, 40.0, 111.75, 100.0),
@@ -149,6 +180,7 @@ def main():
     figura(tr, (90, 490, 300, 645), dg.Eixo(123.18, 0.2, 286.10, 1.0), dg.Eixo(615.73, 2.0e11, 502.96, 6.0e11),
            ((230, VERMELHO), (1070, VERDE)), "4_ne", "ne_cm3", {230: (1.54e11, 0.10e11), 1070: (5.16e11, 0.17e11)})
     figura10(dg.tracos_pdf(PDF, 14))
+    figura11(dg.tracos_pdf(PDF, 14))
 
 
 if __name__ == "__main__":

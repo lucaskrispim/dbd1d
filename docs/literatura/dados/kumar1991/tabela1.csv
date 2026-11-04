@@ -1,0 +1,18 @@
+# Kumar and Ghosh 1991, Chem. Phys. Lett. 179, 463, doi 10.1016/0009-2614(91)87087-R, table 1,
+# transcribed by hand from the PDF (docs/artigos/kumar1991.pdf) and checked against the page image.
+# DC glow in N2, Pyrex tube of 1.2 cm inner diameter, 10 cm between the electrodes, linear flow
+# rate 2.9 m/s; n_e and kT_e on the axis (double probes; n_e bell shaped across the tube, kT_e
+# uniform); [N] measured by mass spectrometry 20 cm downstream of the discharge (calibrated by NO
+# titration); with the sampling cone midway between the electrodes [N] is 1.2 times higher (text).
+# T_g is not measured; the authors assume 400 K in their model. Errors: kT_e 5%, n_e 10%.
+# Model columns (e.i./vib./tot.) are the percent dissociation of their collisional-radiative model.
+# pressao_torr,corrente_mA,ne_eixo_1e10_cm3,kTe_eV,modelo_ei_pct,modelo_vib_pct,modelo_tot_pct,medido_pct
+1,30,2.54,2.56,2.23,0.004,2.23,0.12
+1,50,3.67,2.40,2.05,0.20,2.25,0.23
+1,80,6.32,2.26,2.11,0.39,2.50,0.35
+2,30,2.16,2.50,2.30,0.25,2.55,0.21
+2,50,3.45,2.34,2.39,0.34,2.73,0.26
+2,80,4.98,2.23,2.36,0.56,2.92,0.33
+3,30,1.32,2.43,2.18,0.30,2.48,0.20
+3,50,3.09,2.25,2.35,0.47,2.82,0.29
+3,80,3.99,2.18,2.35,0.60,2.95,0.33

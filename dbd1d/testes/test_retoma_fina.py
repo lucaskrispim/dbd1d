@@ -2,6 +2,8 @@
 """Fine restart (scripts/retoma_fina.py): the command line rebuilt from the
 parametros.json of a run repeats all its options and changes only the destination,
 the restart, the end and the output interval."""
+import json
+import pathlib
 import sys
 
 from conftest import RAIZ
@@ -40,3 +42,35 @@ def test_inicio_do_pulso():
     # pulse n starts at (n - 1) periods
     assert retoma_fina.inicio_do_pulso(5, 1e-5) == 4e-5
     assert retoma_fina.inicio_do_pulso(1, 2.5e-5) == 0.0
+
+
+def _gravados(linha):
+    """Arguments as simula.py records them in parametros.json (paths as text, through JSON)."""
+    a = vars(cria_parser().parse_args(linha))
+    return json.loads(json.dumps({k: str(v) if isinstance(v, pathlib.Path) else v for k, v in a.items()}))
+
+
+def test_ida_e_volta_com_todas_as_opcoes():
+    # every option of simula.py set away from its default, including the two-value ones
+    linha = ["/m/origem", "--cells", "40", "--clustering", "2.5", "--v-peak", "7e3", "--period", "3.3e-5",
+             "--waveform", "pulse", "--t-gas", "373", "--rise", "2e-8", "--width", "3.6e-7", "--fall", "2e-8",
+             "--thickness", "1e-3", "--thickness-right", "2e-3", "--eps-dielectric-right", "4.3",
+             "--pressure", "2e4", "--gap", "5e-3", "--eps-dielectric", "4.3", "--eps-gas", "1.1",
+             "--gamma", "0.02", "--electron-reflection", "0.1", "--residence-time", "0.07",
+             "--accelerate", "4", "50", "--ne0", "1e9", "--neutral", "--no-wall-boltzmann", "--t-end", "1e-3",
+             "--dt-output", "3.3e-6", "--rtol", "1e-5", "--atol", "1e-9", "--energy", "--eps-sec", "4.0",
+             "--free-gas", "--case", "/m/casos/sun", "--transport", "/m/t.json", "--k0-ar-ion", "1.5",
+             "--en-heating-ar-ion", "50", "--k0-ar2-ion", "1.8", "--t-wall", "373", "--three-body-gain", "0.5",
+             "--heating", "--adaptive", "--dt-mesh", "1e-11", "--adaptive-weight", "2.0", "--jac", "fd",
+             "--faces", "/m/faces.txt"]
+    original = _gravados(linha)
+    padrao = vars(cria_parser().parse_args(["/m/x"]))
+    trocadas = {"dir", "retoma", "t_end", "dt_saida", "acelera"}
+    # the line sets every option, so that an option added later without a test fails here
+    assert {k for k in padrao if k not in trocadas | {"tensao_tabela"} and original[k] == padrao[k]} == set()
+    a = _gravados(retoma_fina.linha_de_comando(original, "/m/destino", 4e-5, 4.024e-5, 5e-10))
+    for k, v in original.items():
+        if k not in trocadas:
+            assert a[k] == v, k
+    assert a["acelera"] is None                                   # the fine window does not jump
+    assert a["retoma"] == ["/m/origem", repr(4e-5)] and a["dir"] == "/m/destino"

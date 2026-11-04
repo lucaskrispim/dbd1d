@@ -430,6 +430,7 @@ def test_avisos_verificados_a_cada_passo(tmp_path, monkeypatch):
     assert len(entre) > 3
 
 
+@pytest.mark.lento
 def test_tolerancia_padrao_controla_os_eletrons_esgotados(tmp_path):
     # local field, 5 kV, 1600 cells, up to 25 ns: between 20 and 25 ns ~700 cells
     # have n_e between 1e-8 and 1e-4 cm-3, seed of the next avalanche. With atol of
@@ -446,6 +447,25 @@ def test_tolerancia_padrao_controla_os_eletrons_esgotados(tmp_path):
         b = colunas(tmp_path / "apertado", ["E"], k=t).ravel()
         h = np.diff(np.linspace(0.0, 8e-4, 1601))
         assert np.sum(a * h) == pytest.approx(np.sum(b * h), rel=1e-2), t
+
+
+@pytest.mark.lento
+def test_tolerancia_padrao_com_a_equacao_de_energia(tmp_path):
+    # the same with --energy (400 cells, up to 25 ns): the gap integrals of electrons, of the
+    # electron energy and of AR* with the default tolerances stay within 1% of a tight integration
+    # (rtol 1e-7, atol 1e-13); measured (4/11/2026): at most 0.2%, near 20 ns, and the tight
+    # integration within 2e-6 of rtol 1e-8, atol 1e-14
+    caso = ["--v-pico", "5e3", "--espessura", "1.75e-3", "--n-celulas", "400", "--t-end", "2.5e-8",
+            "--dt-saida", "1e-9", "--aquecimento", "--energia"]
+    for nome, extra in (("padrao", []), ("apertado", ["--rtol", "1e-7", "--atol", "1e-13"])):
+        subprocess.run([sys.executable, str(PROTOTIPO / "simula.py"), str(tmp_path / nome), *caso, *extra],
+                       check=True, capture_output=True, env={"OPENBLAS_NUM_THREADS": "1", "PATH": ""})
+    h = np.diff(np.linspace(0.0, 8e-4, 401))
+    for t in range(5, 26, 2):
+        for c in ("E", "n_eps", "AR*"):
+            a = colunas(tmp_path / "padrao", [c], k=t).ravel()
+            b = colunas(tmp_path / "apertado", [c], k=t).ravel()
+            assert np.sum(a * h) == pytest.approx(np.sum(b * h), rel=1e-2), (t, c)
 
 
 def test_arquivo_de_transporte_por_opcao(tmp_path):
@@ -678,3 +698,39 @@ def test_retomada_no_mesmo_diretorio_corta_as_projecoes_posteriores(tmp_path):
     # the jump of the first run (12 -> 32 ns) is after 8 ns and is gone; the restart makes its own
     assert saltos.shape[0] == 1
     np.testing.assert_allclose(saltos[0, :2], [2.0e-8, 4.0e-8])
+
+
+def _no_instante(d, t, nomes_col):
+    for tb, nomes, linhas in blocos(d / "perfil.dat"):
+        if abs(tb - t) <= 1e-9 * t:
+            a = np.array(linhas[1:-1])
+            return np.column_stack([a[:, nomes.index(n)] for n in nomes_col])
+    raise AssertionError(f"no profile at t = {t:g} s in {d}")
+
+
+@pytest.mark.lento
+def test_aceleracao_contra_integracao_direta(tmp_path):
+    # From a settled state (10 direct cycles of 4 ns, with --heating), 3 direct cycles, a jump of 5
+    # and 2 direct cycles against 10 direct cycles: at the same phase the projected slow variables
+    # are those of the direct integration. Measured (4/11/2026): at the end of the jump AR* is within
+    # 0.9% of its maximum (2.4% with a projection one cycle short, which this test must catch), while
+    # it changes by 32% from the restart; T_g within 8e-5 of its maximum at the three instants (1.1e-3
+    # one cycle short), while it changes by 1%. After the jump AR* drifts by 2 to 3% with the
+    # electrons and ions, which are not projected (20% and 6% away two cycles later): AR* is compared
+    # only at the jump, electrons and ions not at all.
+    extra = ["--period", "4e-9", "--dt-output", "4e-9", "--heating"]
+    direto, acelerado = tmp_path / "direto", tmp_path / "acelerado"
+    roda(direto, *extra, "--t-end", "8e-8")
+    roda(acelerado, *extra, "--t-end", "8e-8", "--accelerate", "3", "5", "--restart", str(direto), "4e-8")
+    saltos = np.loadtxt(acelerado / "projecoes.dat", skiprows=1, ndmin=2)
+    np.testing.assert_allclose(saltos[:, :3], [[5.2e-8, 7.2e-8, 5]])
+    assert saltos[0, 3] == 0                                    # no change limited: a true projection
+    for t in (7.2e-8, 7.6e-8, 8e-8):
+        x = _no_instante(direto, t, ["AR*", "Temperature"])
+        y = _no_instante(acelerado, t, ["AR*", "Temperature"])
+        x0 = _no_instante(direto, 4e-8, ["AR*", "Temperature"])
+        erro = np.max(np.abs(y - x), axis=0) / np.max(np.abs(x), axis=0)
+        mudanca = np.max(np.abs(x - x0), axis=0) / np.max(np.abs(x), axis=0)
+        if t == 7.2e-8:
+            assert erro[0] < 0.015 and erro[0] < 0.05 * mudanca[0], (t, erro, mudanca)
+        assert erro[1] < 5e-4 and erro[1] < 0.05 * mudanca[1], (t, erro, mudanca)

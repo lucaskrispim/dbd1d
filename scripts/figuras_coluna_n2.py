@@ -2,12 +2,12 @@
 """Figures of the N2 positive column article (artigo_coluna_n2/), from the results
 recorded in docs/coluna_positiva_n2: etapa4 (Tv, dissociation), etapa5 (sustaining
 E/N, three chemistries), etapa6 (N2(B)/N2(C)), falta/ (wall sensitivity,
-superelastic, stepwise ionization, vibrational ladder, coupling).
+superelastic, stepwise ionization, vibrational ladder), pendencias/ (coupling at the
+self-consistent root, vibrational distributions, Kumar and Ghosh 1991).
 
 Usage: python3 scripts/figuras_coluna_n2.py artigo_coluna_n2/figuras
 """
 import csv
-import glob
 import json
 import pathlib
 import sys
@@ -38,21 +38,19 @@ def le_csv(caminho):
 PAREDES = (("base", "Levaton wall"), ("vib_gordiets", "Gordiets wall"))
 
 
-def cadeia(cid, variante="base", modo="completo"):
-    """Iterations of a coupled run (scripts/coluna_n2_acoplado.py), in order."""
+def acoplado(cid, variante="base", modo="completo_ev"):
+    """Self-consistent root of a coupled run (scripts/coluna_n2_raiz.py): the point at
+    the converged E/N, with Tv, dissociation and populations; None if the chain has
+    not finished or found no root. The default mode is the full coupling with e-V
+    from the excited levels."""
     nome = cid + ("" if variante == "base" else f"_{variante}") + ("" if modo == "completo" else f"_{modo}")
-    its = sorted(glob.glob(str(D / "falta" / "acoplado" / f"{nome}_it*.json")),
-                 key=lambda f: int(f.rsplit("_it", 1)[1][:-5]))
-    return [json.loads(pathlib.Path(f).read_text()) for f in its]
-
-
-def acoplado(cid, variante="base", modo="completo"):
-    """Last iteration of a coupled run; None if the fixed-point iteration did not
-    converge (last change above 1 Td or negative Tv)."""
-    c = cadeia(cid, variante, modo)
-    if len(c) < 2 or c[-1]["tv"] < 0 or abs(c[-1]["en"] - c[-2]["en"]) > 1.0:
+    f = D / "pendencias" / "raiz" / f"{nome}_raiz.json"
+    if not f.exists():
         return None
-    return c[-1]
+    d = json.loads(f.read_text())
+    if not d.get("convergiu"):
+        return None
+    return next(p for p in d["pontos"] if p["en"] == d["en"])
 
 
 def figura_en(saida):
@@ -72,9 +70,6 @@ def figura_en(saida):
         ys = [acoplado(i, var) for i in IDS]
         ok = [k for k, j in enumerate(ys) if j]
         ax.plot(x[ok] + dx, [ys[k]["en"] for k in ok], m, color=cor, ms=6, label=f"A, coupled, {rot}")
-        k = IDS.index("B21_530Pa")
-        if not ys[k]:
-            ax.plot(x[k] + dx, cadeia("B21_530Pa", var)[0]["en"], m, color=cor, ms=6, mfc="none")
     ax.set_xticks(x)
     ax.set_xticklabels(ROTULOS, fontsize=8)
     ax.set_ylabel("E/N (Td)")
@@ -103,7 +98,7 @@ def figura_tv(saida):
         ys = [acoplado(i, var) for i in IDS]
         ok = [k for k, j in enumerate(ys) if j]
         ax.plot(x[ok] + dx, [ys[k]["tv"] for k in ok], m, color=cor, ms=6, label=f"A, coupled, {rot}")
-    ax.plot([0, 1, 2], [1600, 2300, 3800], "x", color="gray", ms=7, label="Levaton et al. model")
+    ax.plot([0, 1, 2, 3, 4], [1600, 2300, 3800, 5400, 6100], "x", color="gray", ms=7, label="Levaton et al. model")
     ax.set_yscale("log")
     ax.set_xticks(x)
     ax.set_xticklabels(ROTULOS, fontsize=8)
@@ -140,20 +135,23 @@ def figura_mecanismos(saida):
     w = 0.2
     for k, (rot, y) in enumerate(deltas.items()):
         ax[0].bar(x + (k - 1.5) * w, np.array(y) - base, w, label=rot)
-    cores = {"alvo": "tab:cyan", "deslocado": "tab:blue", "completo": "tab:purple"}
-    nomes = {"alvo": "N$_2(v)$ as targets", "deslocado": "+ shifted thresholds", "completo": "+ superelastic"}
+    cores = {"alvo_ev": "tab:cyan", "deslocado_ev": "tab:blue", "completo_ev": "tab:purple"}
+    nomes = {"alvo_ev": "N$_2(v)$ as targets", "deslocado_ev": "+ shifted thresholds", "completo_ev": "+ superelastic"}
     for j, (var, rot) in enumerate(PAREDES):
         xs = x + (j - 0.5) * 0.36
         for k, i in enumerate(altos):
             anterior = v45[("n2_amonia_v45", i, var)]
             ax[1].bar(xs[k], anterior - base[k], 0.34, color="0.8", edgecolor="k", lw=0.3)
+            faltou = False
             for m, cor in cores.items():
-                c = cadeia(i, var, m)
                 final = acoplado(i, var, m)
-                valor = final["en"] if final else c[0]["en"]
-                ax[1].bar(xs[k], valor - anterior, 0.34, bottom=anterior - base[k], color=cor, edgecolor="k", lw=0.3,
-                          hatch=None if final else "///")
-                anterior = valor
+                if final is None:
+                    # step not finished: the next bar holds both steps, hatched
+                    faltou = True
+                    continue
+                ax[1].bar(xs[k], final["en"] - anterior, 0.34, bottom=anterior - base[k], color=cor, edgecolor="k",
+                          lw=0.3, hatch="//" if faltou else None)
+                anterior, faltou = final["en"], False
             ax[1].text(xs[k], 1.5, "L" if var == "base" else "G", ha="center", fontsize=7)
     for a in ax:
         a.plot(x, med - base, "k_", ms=16, mew=2, label="needed")
@@ -210,6 +208,101 @@ def figura_radiativos(saida):
         a.grid(alpha=0.3, which="both")
     fig.tight_layout()
     fig.savefig(saida / "radiativos_dissociacao.pdf")
+    plt.close(fig)
+
+
+LIT = RAIZ / "docs" / "literatura" / "dados"
+
+
+def le_lit(caminho):
+    with open(caminho) as f:
+        return np.array([[float(x) for x in l.split(",")] for l in f if l.strip() and not l.startswith("#")])
+
+
+def figura_vdf(saida):
+    """Vibrational distributions: (a, b) Levaton et al. fig. 11 (densities, three
+    times) against chemistry A with the ladder up to v = 45 at their E/N and n_e;
+    (c, d) Gordiets et al. fig. 13 (fractions, 0.1% O2, steady state) against the
+    ladder with the two walls; coupled distributions at the self-consistent root
+    where available."""
+    vdf = le_csv(D / "pendencias" / "vdf.csv")
+    fig, ax = plt.subplots(2, 2, figsize=(7.2, 5.6))
+    cores_t = ("tab:blue", "tab:orange", "tab:red")
+    for a, (cid, ma, tfim, tit) in zip(ax[0], (("L20_10mA", 10, "4.3e-4", "(a) L 10 mA"),
+                                                ("L20_50mA", 50, "3.5e-4", "(b) L 50 mA"))):
+        for t, cor in zip(("1e-6", "1e-5", tfim), cores_t):
+            dig = le_lit(LIT / "levaton2020" / f"fig11_vdf_{ma}mA_t{t}.csv")
+            a.plot(dig[:, 0], dig[:, 1], "o", color=cor, ms=3.5, mfc="none")
+            mod = [l for l in vdf if l["id"] == cid and l["caso"] == "n2_amonia_v45" and float(l["t"]) == float(t)]
+            a.semilogy([int(l["v"]) for l in mod], [float(l["n"]) for l in mod], "-", color=cor, lw=1,
+                       label=f"t = {float(t):.0e} s".replace("e-0", "e-"))
+        final = acoplado(cid)
+        if final:
+            n0 = next(float(l["n"]) / float(l["fracao"]) for l in vdf if l["id"] == cid and float(l["t"]) == float(tfim))
+            a.semilogy(range(len(final["populacoes"])), n0 * np.array(final["populacoes"]), "--", color="k", lw=1,
+                       label="coupled, root")
+        a.set_ylim(1e10, 1e18)
+        a.set_xlim(0, 15)
+        a.set_ylabel("N$_2$($v$) (cm$^{-3}$)")
+        a.set_title(tit, fontsize=9)
+    ax[0, 0].legend(fontsize=7, title="lines: A, v $\\leq$ 45; circles: Levaton et al.", title_fontsize=7)
+    for a, (cid, ma, tit) in zip(ax[1], (("G95_30mA", 30, "(c) G 30 mA"), ("G95_80mA", 80, "(d) G 80 mA"))):
+        dig = le_lit(LIT / "gordiets1995" / f"fig13_vdf_{ma}mA_0.1pctO2.csv")
+        a.semilogy(dig[:, 0], dig[:, 1], "ks", ms=3.5, mfc="none", label="Gordiets et al., 0.1% O$_2$")
+        for (par, var, rot), cor in zip((("levaton", "base", "Levaton wall"), ("gordiets", "vib_gordiets", "Gordiets wall")),
+                                        ("tab:purple", "tab:brown")):
+            mod = [l for l in vdf if l["id"] == cid and l["parede"] == par and l["t"] != "t"]
+            a.semilogy([int(l["v"]) for l in mod], [float(l["fracao"]) for l in mod], "-", color=cor, lw=1,
+                       label=f"A, v $\\leq$ 45, {rot}")
+            final = acoplado(cid, var)
+            if final:
+                a.semilogy(range(len(final["populacoes"])), final["populacoes"], "--", color=cor, lw=1,
+                           label=f"coupled, {rot}")
+        a.set_ylim(1e-6, 1)
+        a.set_xlim(0, 45)
+        a.set_ylabel("N$_2$($v$)/N$_2$")
+        a.set_title(tit, fontsize=9)
+    ax[1, 0].legend(fontsize=6.5)
+    for a in ax.flat:
+        a.set_xlabel("$v$")
+        a.grid(alpha=0.3, which="both")
+    fig.tight_layout()
+    fig.savefig(saida / "vdf.pdf")
+    plt.close(fig)
+
+
+def figura_kumar(saida):
+    """Dissociation degree in the DC glow of Kumar and Ghosh 1991 (R = 0.6 cm, 1 to
+    3 Torr, 30 to 80 mA), measured and calculated at the end of the residence time,
+    bars for T_g from 350 to 450 K."""
+    k = le_csv(D / "pendencias" / "kumar.csv")
+    conds = list(dict.fromkeys((l["torr"], l["corrente_mA"]) for l in k))
+    x = np.arange(len(conds))
+    fig, ax = plt.subplots(figsize=(7.2, 3.4))
+    med = np.array([100 * float(next(l for l in k if (l["torr"], l["corrente_mA"]) == c)["medido"]) for c in conds])
+    ax.errorbar(x, med, yerr=[0 * med, 1.5 * med], fmt="ks", ms=6, capsize=3, label="measured (bar: 2.5$\\times$, residence)",
+                zorder=5)
+    casos = (("n2_amonia", "base", "A", "tab:red", "o"), ("n2_tese", "base", "B", "tab:blue", "o"),
+             ("n2_exemplo", "base", "C", "tab:green", "o"),
+             ("n2_amonia_v45", "base", "A, v $\\leq$ 45, Levaton wall", "tab:orange", "D"),
+             ("n2_amonia_v45", "vib_gordiets", "A, v $\\leq$ 45, Gordiets wall", "tab:brown", "d"))
+    for j, (q, var, rot, cor, m) in enumerate(casos):
+        ls = [next(l for l in k if (l["torr"], l["corrente_mA"]) == c and l["quimica"] == q and l["variante"] == var)
+              for c in conds]
+        y = np.array([100 * float(l["dis_fim"]) for l in ls])
+        lo = y - [100 * float(l["dis_fim_min"]) for l in ls]
+        hi = np.array([100 * float(l["dis_fim_max"]) for l in ls]) - y
+        ax.errorbar(x + 0.1 * (j - 1.5), y, yerr=[lo, hi], fmt=m, color=cor, ms=4.5, mfc="none", capsize=2, lw=0.8,
+                    label=rot)
+    ax.set_yscale("log")
+    ax.set_xticks(x)
+    ax.set_xticklabels([f"{float(t):.0f} Torr\n{float(i):.0f} mA" for t, i in conds], fontsize=8)
+    ax.set_ylabel("[N]/[N$_2$] (%)")
+    ax.set_ylim(1e-4, 10)
+    ax.grid(alpha=0.3, which="both")
+    ax.legend(fontsize=7, ncol=3, loc="lower center")
+    fig.tight_layout()
+    fig.savefig(saida / "kumar.pdf")
     plt.close(fig)
 
 
@@ -324,6 +417,8 @@ def main():
     figura_tv(saida)
     figura_mecanismos(saida)
     figura_radiativos(saida)
+    figura_vdf(saida)
+    figura_kumar(saida)
     print(sorted(p.name for p in saida.glob("*.pdf")))
 
 

@@ -8,7 +8,8 @@ electron kinetics coupled to the vibrational distribution of N2(X) up to v = 45
      casos/n2_amonia_v45) and n_e from the current;
   2. the coupled case casos/n2_amonia_acoplado/ID_itk: bolsigdb with the copies
      for N2(v1..v45) and the superelastic inverse, kinet.inp with the reactions
-     from each level, composicao.txt with the populations of step 1, T_g nodes at
+     from each level and the superelastic inverse N2(v) -> N2 (since 30/10/2026:
+     before, the inverse was only in the EEDF), composicao.txt with the populations of step 1, T_g nodes at
      T_g -+ 10 K;
   3. the tables of BOLSIG+ and quimica.json (ferramentas/caso.py; ZDPLASKIN_DIR
      where the third-party programs are);
@@ -21,7 +22,9 @@ is a step of the decomposition of the coupling: alvo (N2(v) as electron targets
 with the cross sections of N2 as they are, no superelastic), deslocado (the
 shifted cross sections, no superelastic) or completo (the default, both); meio
 (half the shift) and limiar01 (minimum shifted threshold 0.1 eV instead of 0.3)
-are tests of sensitivity of completo.
+are tests of sensitivity of completo. Each MODO with the suffix _ev adds the
+electron impact vibrational excitation from the excited levels (ev of
+ferramentas/acoplamento_vibracional.py).
 
 Usage: python3 scripts/coluna_n2_acoplado.py ID K SAIDA_DIR [VARIANTE [MODO]]
 Writes SAIDA_DIR/ID[_VARIANTE][_MODO]_itK.json.
@@ -62,18 +65,20 @@ def resultado(caso, cond, en, gamas=GAMAS):
     return tv, y[-1, nomes.index("N")] / n0, {v: float(x / vib.sum()) for v, x in enumerate(vib)}
 
 
-# (fraction of E_v in the shift, superelastic, minimum shifted threshold in eV)
+# (fraction of E_v in the shift, superelastic, minimum shifted threshold in eV, e-V from v > 0)
 MODOS = {"completo": (1.0, True, av.LIMIAR_MINIMO), "deslocado": (1.0, False, av.LIMIAR_MINIMO),
          "alvo": (0.0, False, av.LIMIAR_MINIMO), "meio": (0.5, True, av.LIMIAR_MINIMO),
          "limiar01": (1.0, True, 0.1)}
+MODOS = {**{m: c + (False,) for m, c in MODOS.items()}, **{f"{m}_ev": c + (True,) for m, c in MODOS.items()}}
 
 
 def monta(pasta, cond, populacoes, modo="completo"):
-    deslocar, superelastica, minimo = MODOS[modo]
+    deslocar, superelastica, minimo, ev = MODOS[modo]
     pasta.mkdir(parents=True, exist_ok=True)
     banco_base = (BASE / "bolsigdb.dat").read_text()
-    (pasta / "bolsigdb.dat").write_text(av.banco_acoplado(banco_base, VMAX, deslocar, superelastica, minimo))
-    (pasta / "kinet.inp").write_text(av.kinet_acoplado((V45 / "kinet.inp").read_text(), VMAX, banco_base, deslocar, minimo))
+    (pasta / "bolsigdb.dat").write_text(av.banco_acoplado(banco_base, VMAX, deslocar, superelastica, minimo, ev))
+    (pasta / "kinet.inp").write_text(av.kinet_acoplado((V45 / "kinet.inp").read_text(), VMAX, banco_base, deslocar, minimo,
+                                                       superelastica, ev))
     (pasta / "composicao.txt").write_text(av.composicao({v: f for v, f in populacoes.items() if f > 1e-14}))
     (pasta / "t_nos.txt").write_text(f"{cond['tg'] - 10:g}\n{cond['tg'] + 10:g}\n")
     (pasta / "en_max.txt").write_text("1000\n")

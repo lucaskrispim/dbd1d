@@ -11,8 +11,10 @@ With --strict (the regression test uses it), it also fails on a series missing
 on one side, a column on one side only (except CFL and n_eps, specific to each
 code) and a time on one side only. The relative difference is |a-b| /
 max(|a|, |b|, floor), with the floor 1e-30 times the largest absolute value of
-the column, so as not to amplify noise around zero. Exits with code 1 if any
-column exceeds --tol.
+the column, so as not to amplify noise around zero; with --relative-to-max it is
+|a-b| divided by the largest absolute value of the column (for a quantity that changes
+sign, such as the field, whose pointwise difference near zero only measures rounding).
+Exits with code 1 if any column exceeds --tol.
 """
 import argparse
 import math
@@ -85,7 +87,7 @@ def le_perfil(caminho, tempo_max):
     return nomes, dados
 
 
-def compara(nomes_a, nomes_b, a, b, rotulo, tol, estrito=False):
+def compara(nomes_a, nomes_b, a, b, rotulo, tol, estrito=False, ao_maximo=False):
     comuns = sorted(set(a) & set(b))
     if not comuns:
         print(f"{rotulo}: no record in common")
@@ -108,7 +110,7 @@ def compara(nomes_a, nomes_b, a, b, rotulo, tol, estrito=False):
                 d = 0.0 if (math.isnan(x) and math.isnan(y)) else math.inf
             else:
                 piso = max(1e-30 * maior_abs[n], 1e-300)
-                d = abs(x - y) / max(abs(x), abs(y), piso)
+                d = abs(x - y) / (max(maior_abs[n], 1e-300) if ao_maximo else max(abs(x), abs(y), piso))
             pior[n] = max(pior[n], d)
     ok = all(d <= tol for d in pior.values())
     if estrito:
@@ -132,6 +134,8 @@ def main():
     p.add_argument("--max-time", "--tempo-max", dest="tempo_max", type=float, default=math.inf)
     p.add_argument("--strict", "--estrito", dest="estrito", action="store_true",
                    help="fail on a missing series, or a column or time on one side only")
+    p.add_argument("--relative-to-max", "--relativa-ao-maximo", dest="ao_maximo", action="store_true",
+                   help="difference relative to the largest absolute value of the column")
     args = p.parse_args()
 
     ok = True
@@ -144,10 +148,10 @@ def main():
             continue
         na, da = le_serie(args.a / nome, args.tempo_max)
         nb, db = le_serie(args.b / nome, args.tempo_max)
-        ok &= compara(na, nb, da, db, nome, args.tol, args.estrito)
+        ok &= compara(na, nb, da, db, nome, args.tol, args.estrito, args.ao_maximo)
     na, da = le_perfil(args.a / "perfil.dat", args.tempo_max)
     nb, db = le_perfil(args.b / "perfil.dat", args.tempo_max)
-    ok &= compara(na, nb, da, db, "perfil.dat", args.tol, args.estrito)
+    ok &= compara(na, nb, da, db, "perfil.dat", args.tol, args.estrito, args.ao_maximo)
     sys.exit(0 if ok else 1)
 
 

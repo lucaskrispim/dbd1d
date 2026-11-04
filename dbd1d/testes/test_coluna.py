@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from conftest import RAIZ, precisa_arquivo
-from coluna import Coluna0D, atomos, perda_ambipolar, perda_neutro
+from coluna import Coluna0D, atomos, beta_robin, fator_perfil, perda_ambipolar, perda_neutro
 
 J0 = 2.404825557695773   # first zero of the Bessel function J0
 KB = 1.380649e-23
@@ -53,7 +53,9 @@ def test_rhs_é_fonte_química_menos_perda_radial():
     nu = c.frequencias_de_perda(e_n, te)
     dy = c.rhs(0.0, y, e_n, ne=None)
     outras = np.arange(len(y)) != c.i_e          # the electrons: test_eletrons_perdidos_junto_com_os_íons
-    np.testing.assert_allclose(dy[outras], (fontes - nu * y)[outras], rtol=1e-12, atol=1e-30)
+    # the quantum passed down the ladder at the wall: test_parede_tira_um_quantum_de_n2_v
+    np.testing.assert_allclose(dy[outras], (fontes - nu * y + c.parede_vibracional(y, nu))[outras], rtol=1e-12,
+                               atol=1e-30)
     # with the electron density imposed, it does not change
     assert c.rhs(0.0, y, e_n, ne=y[c.i_e])[c.i_e] == 0.0
 
@@ -279,8 +281,9 @@ def test_en_sustentado_cai_com_a_corrente():
 @precisa_caso
 def test_regressão_coluna_de_levaton_10_ma():
     # condition L20_10mA, chemistry A: docs/coluna_positiva_n2/etapa5/en.csv (109.775 Td) and the
-    # vibrational population and dissociation at the measured E/N (118 Td) with n_e = 1.31e10 cm-3
-    c = Coluna0D(CASO, pressao_pa=230.0, t_gas=290.0, raio_cm=0.3, gamas=GAMAS)
+    # vibrational population and dissociation at the measured E/N (118 Td) with n_e = 1.31e10 cm-3,
+    # with the wall that took N2(v) to the ground state (before 30/10/2026)
+    c = Coluna0D(CASO, pressao_pa=230.0, t_gas=290.0, raio_cm=0.3, gamas=GAMAS, quantum_na_parede=False)
     assert c.en_sustentado(0.01, 4.3e-4) == pytest.approx(109.77532698340232, rel=1e-6)
     _, y = c.integra(118.0, 1.31e10, 4.3e-4, n_saidas=3)
     nomes = [s.upper() for s in c.especies]
@@ -288,6 +291,19 @@ def test_regressão_coluna_de_levaton_10_ma():
     assert y[-1, nomes.index("N2(V1)")] / n0 == pytest.approx(0.09148908352544494, rel=1e-5)
     assert y[-1, nomes.index("N")] / n0 == pytest.approx(0.0002810043611996352, rel=1e-5)
     assert y[-1, nomes.index("N2(A3)")] == pytest.approx(20542153965444.375, rel=1e-5)
+
+
+@precisa_caso
+def test_regressão_coluna_de_levaton_10_ma_um_quantum_na_parede():
+    # the same with one quantum lost per wall collision: at 0.43 ms the wall barely acts
+    c = Coluna0D(CASO, pressao_pa=230.0, t_gas=290.0, raio_cm=0.3, gamas=GAMAS)
+    assert c.en_sustentado(0.01, 4.3e-4) == pytest.approx(109.78204051017738, rel=1e-6)
+    _, y = c.integra(118.0, 1.31e10, 4.3e-4, n_saidas=3)
+    nomes = [s.upper() for s in c.especies]
+    n0 = c.densidades(y[-1])[[s.upper() for s in c.q.especies].index("N2")]
+    assert y[-1, nomes.index("N2(V1)")] / n0 == pytest.approx(0.09172777932668516, rel=1e-5)
+    assert y[-1, nomes.index("N")] / n0 == pytest.approx(0.0002810575266649797, rel=1e-5)
+    assert y[-1, nomes.index("N2(A3)")] == pytest.approx(20538479380554.355, rel=1e-5)
 
 
 @precisa_arquivo("scripts/coluna_n2_lote.py")
@@ -353,3 +369,131 @@ def test_instantes_de_saída_da_integração():
     np.testing.assert_allclose(t, np.geomspace(1e-12, 1e-6, 50), rtol=1e-12)
     t, y = c.integra(118.0, 1e10, 1e-6, n_saidas=4)
     np.testing.assert_allclose(t, [1e-12, 1e-10, 1e-8, 1e-6], rtol=1e-12)
+
+
+# ---------------------------------------------------------------- radial profile (Bessel against the 0D mean)
+
+def test_beta_sem_parede_é_perfil_plano():
+    assert beta_robin(150.0, 0.0, 0.3, 4.7e4) == 0.0
+
+
+def test_beta_satisfaz_a_condição_de_contorno():
+    # -D dn/dr = h n at r = R with n = J0(beta r): beta J1(beta R) / J0(beta R) = h / D,
+    # h = 2 gamma / (2 - gamma) vbar / 4 (Capitelli et al. 2000, eq. 11.7)
+    from scipy.special import j0, j1
+    d, gama, r, vbar = 150.0, 1e-3, 0.3, 4.7e4
+    b = beta_robin(d, gama, r, vbar)
+    h = 2.0 * gama / (2.0 - gama) * vbar / 4.0
+    assert b * j1(b * r) / j0(b * r) == pytest.approx(h / d, rel=1e-9)
+    assert 0.0 < b * r < J0
+
+
+def test_beta_no_limite_difusivo_é_o_modo_de_bessel():
+    assert beta_robin(10.0, 1.0, 0.3, 1e12) * 0.3 == pytest.approx(J0, rel=1e-6)
+
+
+def test_fator_de_dois_perfis_de_bessel():
+    # <J0^2> / <J0>^2 over the disc, with J0(a) = 0: J1(a)^2 / (2 J1(a)/a)^2 = a^2/4
+    b = J0 / 0.3
+    assert fator_perfil([b, b], 0.3) == pytest.approx(J0 ** 2 / 4.0, rel=1e-9)
+
+
+@pytest.mark.parametrize("betas", [[], [J0 / 0.3], [0.0, J0 / 0.3], [0.0, 0.0, 0.0]])
+def test_fator_um_com_no_máximo_um_perfil_não_plano(betas):
+    assert fator_perfil(betas, 0.3) == pytest.approx(1.0, rel=1e-12)
+
+
+def test_fator_de_três_perfis_contra_quadratura():
+    from scipy.integrate import quad
+    from scipy.special import j0
+    r, bs = 0.3, [J0 / 0.3, 5.0, 2.0]
+    media = lambda f: 2.0 / r ** 2 * quad(lambda x: f(x) * x, 0.0, r, epsabs=0, epsrel=1e-12)[0]  # noqa: E731
+    esperado = media(lambda x: np.prod([j0(b * x) for b in bs])) / np.prod([media(lambda x, b=b: j0(b * x)) for b in bs])
+    assert fator_perfil(bs, r) == pytest.approx(esperado, rel=1e-9)
+
+
+@precisa_caso
+def test_perfil_radial_multiplica_as_reações_entre_espécies_com_perfil():
+    base = Coluna0D(CASO, pressao_pa=230.0, t_gas=290.0, raio_cm=0.3, gamas=GAMAS)
+    c = Coluna0D(CASO, pressao_pa=230.0, t_gas=290.0, raio_cm=0.3, gamas=GAMAS, perfil_radial=True)
+    k0, _ = base.coeficientes(110.0)
+    k1, _ = c.coeficientes(110.0)
+    reacao = lambda f: next(i for i, t in enumerate(base.q.reacoes) if f(t.upper().replace(" ", "")))  # noqa: E731
+    assoc = reacao(lambda t: t.startswith("N2(A3)+N2(A'1)=>") or t.startswith("N2(A'1)+N2(A3)=>"))
+    ion = reacao(lambda t: t == "BOLSIG:N2->N2^+")
+    i_a, i_ap = ([s.upper() for s in c.especies].index(s) for s in ("N2(A3)", "N2(A'1)"))
+    esperado = fator_perfil([c.betas[i_a], c.betas[i_ap]], 0.3)
+    assert 1.3 < esperado < J0 ** 2 / 4.0 + 1e-9
+    assert k1[assoc] == pytest.approx(esperado * k0[assoc], rel=1e-12)
+    assert k1[ion] == k0[ion]                      # one profiled reactant and the flat background
+    assert c.betas[c.i_e] == pytest.approx(J0 / 0.3, rel=1e-12)
+
+
+@precisa_caso
+def test_perfil_radial_desligado_não_muda_nada():
+    base = Coluna0D(CASO, pressao_pa=230.0, t_gas=290.0, raio_cm=0.3, gamas=GAMAS)
+    c = Coluna0D(CASO, pressao_pa=230.0, t_gas=290.0, raio_cm=0.3, gamas=GAMAS, perfil_radial=False)
+    np.testing.assert_array_equal(base.coeficientes(110.0)[0], c.coeficientes(110.0)[0])
+
+
+# ---------------------------------------------------------------- vibrational wall deactivation, one quantum
+
+def _niveis(c):
+    import re
+    return {int(m.group(1)): k for k, s in enumerate(c.especies) if (m := re.fullmatch(r"N2\(V(\d+)\)", s.upper()))}
+
+
+@precisa_caso
+def test_parede_tira_um_quantum_de_n2_v():
+    # Gordiets et al. 1995 and Levaton et al. 2020 (V6): N2(v) + wall -> N2(v - 1) + wall
+    c = Coluna0D(CASO, pressao_pa=230.0, t_gas=290.0, raio_cm=0.3, gamas=GAMAS)
+    rng = np.random.default_rng(3)
+    y = 10.0 ** rng.uniform(6, 12, len(c.especies))
+    k, te = c.coeficientes(110.0)
+    fontes = c.q.fontes(c.densidades(y)[:, None], k[:, None])[:, 0][c.indices]
+    nu = c.frequencias_de_perda(110.0, te)
+    esperado = fontes - nu * y
+    niv = _niveis(c)
+    assert sorted(niv) == list(range(1, 9))
+    for v in range(2, 9):
+        esperado[niv[v - 1]] += nu[niv[v]] * y[niv[v]]
+    dy = c.rhs(0.0, y, 110.0, ne=None)
+    outras = np.arange(len(y)) != c.i_e
+    np.testing.assert_allclose(dy[outras], esperado[outras], rtol=1e-12, atol=1e-30)
+
+
+@precisa_caso
+def test_parede_remove_um_quantum_por_colisão():
+    # the wall terms take sum_v nu_v n_v quanta per unit time out of the ladder
+    c = Coluna0D(CASO, pressao_pa=230.0, t_gas=290.0, raio_cm=0.3, gamas=GAMAS)
+    niv = _niveis(c)
+    y = np.zeros(len(c.especies))
+    for v, i in niv.items():
+        y[i] = 1e12 / v
+    nu = c.frequencias_de_perda(110.0, c.coeficientes(110.0)[1])
+    parede = c.parede_vibracional(y, nu)
+    for i in niv.values():
+        parede[i] -= nu[i] * y[i]
+    quanta = sum(v * parede[i] for v, i in niv.items())
+    assert quanta == pytest.approx(-sum(nu[i] * y[i] for i in niv.values()), rel=1e-12)
+    # v = 1 goes to the background: the sum over the ladder loses only nu_1 n_1 molecules
+    assert sum(parede[i] for i in niv.values()) == pytest.approx(-nu[niv[1]] * y[niv[1]], rel=1e-12)
+
+
+@precisa_caso
+def test_parede_que_leva_ao_fundo_é_a_de_antes():
+    c = Coluna0D(CASO, pressao_pa=230.0, t_gas=290.0, raio_cm=0.3, gamas=GAMAS, quantum_na_parede=False)
+    rng = np.random.default_rng(4)
+    y = 10.0 ** rng.uniform(6, 12, len(c.especies))
+    k, te = c.coeficientes(110.0)
+    fontes = c.q.fontes(c.densidades(y)[:, None], k[:, None])[:, 0][c.indices]
+    nu = c.frequencias_de_perda(110.0, te)
+    outras = np.arange(len(y)) != c.i_e
+    np.testing.assert_allclose(c.rhs(0.0, y, 110.0, ne=None)[outras], (fontes - nu * y)[outras], rtol=1e-12, atol=1e-30)
+
+
+@precisa_arquivo("casos/n2_exemplo/quimica.json")
+def test_química_sem_níveis_vibracionais_não_muda():
+    c = Coluna0D(RAIZ / "casos" / "n2_exemplo", pressao_pa=230.0, t_gas=290.0, raio_cm=0.3)
+    assert c.escada == []
+
