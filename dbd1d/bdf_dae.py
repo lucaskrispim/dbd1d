@@ -1,4 +1,8 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-or-later AND BSD-3-Clause
+# Contains a modified copy of BDF._step_impl from scipy (scipy/integrate/_ivp/bdf.py),
+# Copyright (c) 2001-2002 Enthought, Inc. 2003-2024, SciPy Developers.
+# All rights reserved. Distributed under the BSD 3-Clause license, whose full text and
+# disclaimer are in LICENSE-scipy.txt at the root of this package.
 """BDF of scipy with a diagonal mass matrix (0 or 1): solves M y' = f(t, y), an
 index-one DAE in which the components with M = 0 are algebraic (here, the
 potential of the Poisson equation). It is the _step_impl of scipy 1.15 with two

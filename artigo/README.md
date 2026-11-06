@@ -38,7 +38,7 @@ remoto/validacao_stankov.sh PY R100_r07:100:100:1800:10:1e-4:0.02:4.2:0.7 R300_r
     R500_r07:100:500:2700:10:1e-4:0.02:4.2:0.7 R650_r07:100:650:3400:10:1e-4:0.02:4.2:0.7
 remoto/validacao_stankov.sh PY JC100:100:100:1800:10:1e-4:0.02:4.2:0:argonio_jovanovic_ci \
     JT100:100:100:1800:10:1e-4:0.02:4.2:0:argonio_jovanovic_tc
-# symmetry check (Section 7.2): reversed voltage, and 20 periods
+# symmetry check (Section 8.2): reversed voltage, and 20 periods
 remoto/validacao_stankov.sh PY S100_inv:100:100:-1800:10 S100_p20:100:100:1800:20
 python3 scripts/picos_stankov.py execucoes/validacao_stankov/S100_{n100,inv,p20}
 python3 scripts/compara_stankov.py execucoes/validacao_stankov/S*_n100

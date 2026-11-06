@@ -177,7 +177,8 @@ ion inventory (a few seconds per voltage).
 
 ## License
 
-GPL-3.0-or-later (`LICENSE`). ZDPlasKin, BOLSIG+ and the LXCat cross sections are not part of this
+GPL-3.0-or-later (`LICENSE`). `dbd1d/bdf_dae.py` contains a modified copy of the BDF step of
+scipy, which keeps its BSD 3-Clause license (`LICENSE-scipy.txt`). ZDPlasKin, BOLSIG+ and the LXCat cross sections are not part of this
 package and keep their own conditions of use. `ferramentas/gera_tabela_energia.f90` and
 `ferramentas/sonda_zdplaskin.f90` are compiled by `ferramentas/caso.py` on the user's machine
 against the user's copy of ZDPlasKin and BOLSIG+; no combined program is distributed. The argon
