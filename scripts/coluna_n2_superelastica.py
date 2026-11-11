@@ -16,6 +16,9 @@ reactions use keep their order. Then, for each condition, the sustaining E/N is
 found with the table whose Tv is the one the model predicts there (fixed point
 over the Tv nodes, interpolating E/N in Tv).
 
+The step en refuses to run when the transporte.json or bolsigdb.dat of a tv* folder differs
+from what the step casos would write from the current n2_amonia case.
+
 Usage: python3 scripts/coluna_n2_superelastica.py casos   (builds the tables, minutes per Tv)
        python3 scripts/coluna_n2_superelastica.py en SAIDA_DIR
 """
@@ -84,12 +87,31 @@ def composicao(tv):
     return f"N2 {w[0] / s:.6g}\n" + "".join(f"N2(v{v}) {w[v] / s:.6g}\n" for v in range(1, 9)) + "N2^+ traco\n"
 
 
+def conteudo_esperado(base=BASE):
+    """Text that monta writes to each tv* folder for the files taken from the base case."""
+    return {"bolsigdb.dat": bolsigdb_superelastico((base / "bolsigdb.dat").read_text()),
+            "transporte.json": (base / "transporte.json").read_text()}
+
+
+def defasados(base=BASE, destino=DESTINO):
+    """Files (tv*/name) of the derived cases whose content, or existence, differs from what monta
+    would write from the base case."""
+    esperado = conteudo_esperado(base)
+    saida = []
+    for pasta in sorted(destino.glob("tv*")):
+        for nome, texto in esperado.items():
+            arquivo = pasta / nome
+            if not arquivo.is_file() or arquivo.read_text() != texto:
+                saida.append(f"{pasta.name}/{nome}")
+    return saida
+
+
 def monta():
     texto_kinet = (BASE / "kinet.inp").read_text()
     antigo = "BOLSIG\nN2  N\nEND"
     assert antigo in texto_kinet
     kinet = texto_kinet.replace(antigo, "BOLSIG\nN2  N  " + "  ".join(VIB) + "\nEND")
-    banco = bolsigdb_superelastico((BASE / "bolsigdb.dat").read_text())
+    banco = conteudo_esperado()["bolsigdb.dat"]
     for tv in TVS:
         d = DESTINO / f"tv{tv}"
         d.mkdir(parents=True, exist_ok=True)
@@ -122,6 +144,10 @@ def en_com_tv(cond, tv, corrente):
 def en(saida):
     from coluna_n2 import condicoes
     from coluna_n2_en import CORRENTE_MA
+    velhos = defasados()
+    if velhos:
+        sys.exit("derived cases out of date with casos/n2_amonia: " + ", ".join(velhos)
+                 + ". Run the step casos first.")
     saida = pathlib.Path(saida)
     saida.mkdir(parents=True, exist_ok=True)
     linhas = []

@@ -54,7 +54,8 @@ def caso(tmp_path_factory):
 
 def nu_ambipolar(c):
     mu = K0_ION * N_LOSCHMIDT / c.n_gas                          # cm2/(V s)
-    return mu * (2.0 / 3.0) * EPS / (R / J0) ** 2
+    # Capitelli et al. 2000, eq. (6.10): D_a = mu_i (D_e/mu_e + k T_g/e); the table above has D_e/mu_e = (2/3) eps
+    return mu * ((2.0 / 3.0) * EPS + KB * TG / QE) / (R / J0) ** 2
 
 
 def nu_parede(c, especie):

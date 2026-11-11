@@ -16,7 +16,7 @@ RAIZ = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ / "dbd1d"))
 sys.path.insert(0, str(RAIZ / "scripts"))
 from coluna import Coluna0D  # noqa: E402
-from coluna_n2 import GAMAS, condicoes, ne_nosso, treanor  # noqa: E402
+from coluna_n2 import GAMAS, condicoes, n2_total, ne_nosso, treanor  # noqa: E402
 from coluna_n2_en import CORRENTE_MA  # noqa: E402
 
 TOLERANCIAS = {"padrao": (1e-6, 1.0), "apertada": (1e-8, 1e-3)}
@@ -39,7 +39,7 @@ def grandezas(caso, cond, tol):
     nomes = [s.upper() for s in c.especies]
     n0 = c.densidades(y[-1])[[s.upper() for s in c.q.especies].index("N2")]
     tv = treanor(np.r_[n0, [y[-1, nomes.index(f"N2(V{k})")] for k in range(1, 5)]], cond["tg"])
-    return dict(tv=tv, dis=y[-1, nomes.index("N")] / n0, b_c=y[-1, nomes.index("N2(B3)")] / y[-1, nomes.index("N2(C3)")],
+    return dict(tv=tv, dis=y[-1, nomes.index("N")] / n2_total(c, y[-1]), b_c=y[-1, nomes.index("N2(B3)")] / y[-1, nomes.index("N2(C3)")],
                 en=c.en_sustentado(CORRENTE_MA[cond["id"]] * 1e-3, cond["t"]))
 
 

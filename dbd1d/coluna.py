@@ -26,6 +26,11 @@ Otherwise what leaves the volume returns as background gas. With a background of
 species, the atoms are conserved: the background is the gas minus what the other
 species hold (an N atom is half an N2, an N4+ two); with a mixed background, it is
 held fixed.
+With troca_fluxo (1/s), every species of the state is also taken out at that rate,
+the exchange of a stirred volume with the flow (Kuhfeld et al. 2021, J. Phys. D 54,
+305205, eq. 17 and 18, for the pulsed jet of docs/jato_n2): the gas that enters is
+background in v = 0, which the conservation of atoms above puts back, so it needs a
+background of one species.
 """
 import json
 import pathlib
@@ -104,12 +109,20 @@ def fator_perfil(betas, raio):
 
 class Coluna0D:
     def __init__(self, caso, pressao_pa, t_gas, raio_cm, gamas=None, fatores=None, estrito=True, perfil_radial=False,
-                 quantum_na_parede=True):
+                 quantum_na_parede=True, troca_fluxo=0.0, ambipolar="caracteristica"):
         """gamas: wall loss probability per neutral species, replacing the one of
         transporte.json; a name that is not a species of the case is an error, unless
         estrito=False (one set of probabilities for several chemistries).
         perfil_radial: the correction of the rates for the radial profiles (module
-        docstring). quantum_na_parede: N2(v) loses one quantum at the wall (else all)."""
+        docstring). quantum_na_parede: N2(v) loses one quantum at the wall (else all).
+        troca_fluxo: exchange with the flow (1/s), zero for the column.
+        ambipolar: electron energy in the ambipolar loss of the ions. "caracteristica":
+        D_a = mu_i (D_e/mu_e + k T_g/e) (Capitelli et al. 2000, eq. 6.10, with T_+ = T_g and
+        D_e/mu_e from the table); "media": mu_i (2/3) <eps>, no ion term (the form before
+        the correction, to reproduce old results)."""
+        if ambipolar not in ("caracteristica", "media"):
+            raise ValueError(f"ambipolar = {ambipolar!r}: use 'caracteristica' or 'media'")
+        self.ambipolar = ambipolar
         caso = pathlib.Path(caso)
         self.q = Quimica.de_json(caso / "quimica.json")
         self.tab = TabelaTg(caso / "tabela_energia_tg.dat")
@@ -139,6 +152,10 @@ class Coluna0D:
         self.fatores = dict(fatores or {})
         # background molecules held by each species of the state (single background only)
         self.no_fundo = np.zeros(len(self.especies))
+        self.troca_fluxo = float(troca_fluxo)
+        if self.troca_fluxo > 0.0 and len(self.fundo) != 1:
+            raise ValueError("flow exchange needs a background of one species: a mixed background is held "
+                             "fixed and would not take back what the flow removes")
         if len(self.fundo) == 1:
             el, n_fundo = next(iter(atomos(self.q.especies[next(iter(self.fundo))]).items()))
             self.no_fundo = np.array([atomos(s).get(el, 0) / n_fundo for s in self.especies])
@@ -202,8 +219,13 @@ class Coluna0D:
 
     def frequencias_de_perda(self, e_n, te):
         """Radial loss frequency (1/s) of each species of the state; zero for the
-        electrons, whose loss follows the ions (rhs)."""
-        te_ev = te * KB / QE
+        electrons, whose loss follows the ions (rhs). te (K) is used only with
+        ambipolar="media"; otherwise the table at e_n gives D_e/mu_e."""
+        if self.ambipolar == "caracteristica":
+            v = self.tab(np.array([e_n]), np.array([self.t_gas]))[0]
+            te_ev = v[2] / v[1] + KB * self.t_gas / QE      # D_e/mu_e (V) + k T_g/e
+        else:
+            te_ev = te * KB / QE
         nu = np.zeros(len(self.especies))
         for k, s in enumerate(self.especies):
             if k == self.i_e:
@@ -230,11 +252,11 @@ class Coluna0D:
         held at that value."""
         if ne is not None:
             y = y.copy()
-            y[self.i_e] = ne
+            y[self.i_e] = ne(t) if callable(ne) else ne
         k, te = self.coeficientes(e_n)
         fontes = self.q.fontes(self.densidades(y)[:, None], k[:, None])[:, 0][self.indices]
         nu = self.frequencias_de_perda(e_n, te)
-        dy = fontes - nu * y + self.parede_vibracional(y, nu)
+        dy = fontes - (nu + self.troca_fluxo) * y + self.parede_vibracional(y, nu)
         if ne is not None:
             dy[self.i_e] = 0.0
         else:
@@ -285,19 +307,26 @@ class Coluna0D:
         y[ion] = ne
         return y
 
-    def integra(self, e_n, ne, t_fim, n_saidas=50, y0=None, rtol=1e-6, atol=1.0):
-        """Densities at n_saidas instants from t_fim*1e-6 to t_fim (log spaced);
-        returns (t, y[instant, species])."""
+    def integra(self, e_n, ne, t_fim, n_saidas=50, y0=None, rtol=1e-6, atol=1.0, saidas=None, max_step=np.inf):
+        """Densities at n_saidas instants from t_fim*1e-6 to t_fim (log spaced), or at
+        the instants saidas (s, in (0, t_fim]); returns (t, y[instant, species]). ne is
+        a number, a function of t (s) or None (free electrons); max_step bounds the
+        step of the integrator, so that a jump of ne(t) is not stepped over."""
         if e_n > self.tab.e_n[-1]:
             warnings.warn(f"E/N = {e_n:g} Td above the table ({self.tab.e_n[-1]:g} Td): the coefficients are "
                           "those of its last node", RuntimeWarning, stacklevel=2)
-        y0 = self.estado_inicial(ne) if y0 is None else y0
-        saidas = np.geomspace(t_fim * 1e-6, t_fim, n_saidas)
+        y0 = self.estado_inicial(ne(0.0) if callable(ne) else ne) if y0 is None else y0
+        if saidas is None:
+            saidas = np.geomspace(t_fim * 1e-6, t_fim, n_saidas)
+        else:
+            saidas = np.asarray(saidas, dtype=float)
+            if np.any(saidas <= 0.0) or np.any(saidas > t_fim):
+                raise ValueError(f"saidas must lie in (0, {t_fim:g}] s")
         sol = solve_ivp(self.rhs, (0.0, t_fim), y0, method="BDF", t_eval=saidas, args=(e_n, ne),
-                        rtol=rtol, atol=atol)
+                        rtol=rtol, atol=atol, max_step=max_step)
         if not sol.success:
             raise RuntimeError(sol.message)
         y = sol.y.T.copy()
         if ne is not None:
-            y[:, self.i_e] = ne
+            y[:, self.i_e] = ne(sol.t) if callable(ne) else ne
         return sol.t, y

@@ -19,7 +19,7 @@ RAIZ = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ / "dbd1d"))
 sys.path.insert(0, str(RAIZ / "scripts"))
 from coluna import Coluna0D  # noqa: E402
-from coluna_n2 import GAMAS, condicoes, ne_nosso, treanor  # noqa: E402
+from coluna_n2 import GAMAS, condicoes, n2_total, ne_nosso, treanor  # noqa: E402
 from coluna_n2_en import CORRENTE_MA  # noqa: E402
 
 VIB = [f"N2(V{k})" for k in range(1, 9)]
@@ -52,7 +52,7 @@ def grandezas(caso, cond, gamas):
     n0 = c.densidades(y[-1])[[s.upper() for s in c.q.especies].index("N2")]
     tv = treanor(np.r_[n0, [y[-1, nomes.index(f"N2(V{k})")] for k in range(1, 5)]], cond["tg"])
     en = c.en_sustentado(CORRENTE_MA[cond["id"]] * 1e-3, cond["t"])
-    return dict(tv=tv, dis=y[-1, nomes.index("N")] / n0, en=en)
+    return dict(tv=tv, dis=y[-1, nomes.index("N")] / n2_total(c, y[-1]), en=en)
 
 
 def main():

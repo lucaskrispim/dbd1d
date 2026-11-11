@@ -7,12 +7,18 @@ Plasma Kinetics in Atmospheric Gases, chapter 7:
   wexe = 14.324 cm-1;
 - V-T with N2, N2(v) + N2 -> N2(v - 1) + N2: k = k10 Z_v exp((v - 1) delta_VT)
   (eqs. 7.4 to 7.8, table 7.1; delta_VT of gamma_0 >= 20, which holds below
-  about 1500 K), and the inverse by detailed balance;
+  about 1500 K), with the anharmonic defect Delta E = omega_e x_e of eq. 3.67
+  (p. 36), and the inverse by detailed balance;
 - V-V, N2(v) + N2(w - 1) -> N2(v - 1) + N2(w) for v < w (the exothermic
-  direction): k = k01 Z_v Z_w exp(-delta_VV |v - w|) g(v, w) (eqs. 7.26a, 7.39,
-  7.40, 7.41, L = 0.2 A), and the inverse by detailed balance. Eq. (7.38) is
-  printed with exp(+delta_VV |v - w|); the exothermic rate of the SSH theory
-  falls with the energy mismatch, so the minus sign is used here;
+  direction): k = k01 G_S(v, w) g(v, w) (eqs. 7.26a, 7.40, 7.41, L = 0.2 A), with
+  G_S(v, w) = Z_v Z_w F(y)/F(y_10^01) of eq. 7.36 and F of eq. 7.34 (both
+  branches, y <= 20 and y > 20); y_10^01 = 0 and F(0) = 1. By eq. 7.37 with the
+  Morse levels, E_{v,v-1} - E_{w,w-1} = 2 omega_e x_e (w - v), so 2y/3 =
+  delta_VV |v - w| with delta_VV of eq. 7.39 (0.427 is 0.32 x 2 x 2/3 rounded);
+  below y = 20, F(y) = [1.5 - 0.5 exp(-delta_VV |v - w|)] exp(-delta_VV |v - w|),
+  the simplified exp(-delta_VV |v - w|) of eq. 7.38 times 1.5 - 0.5 exp(...).
+  Eq. 7.38 is printed with exp(+delta_VV |v - w|); the exothermic rate falls with
+  the energy mismatch, as F(y) does. The inverse comes by detailed balance;
 - V-T with N, multi-quantum, Delta v = 1 to 5 (eqs. 7.13 and 7.14, k0 =
   4e-10 (T/300)^0.5, E_a = 7280 K, beta = 0.065), without the inverse (as in
   Levaton et al. 2020);
@@ -31,7 +37,7 @@ from dataclasses import dataclass
 WE, WEXE = 2358.57, 14.324          # cm-1, N2(X)
 HC_K = 1.438776877                  # cm K
 XE = WEXE / WE
-DE = 2.0 * WEXE * HC_K              # K: anharmonic defect of the quantum
+DE = WEXE * HC_K                    # K: anharmonic constant Delta E = omega_e x_e, eq. 3.67 of Capitelli 2000
 MU, L = 14.0, 0.2                   # reduced mass (u) of N2-N2 and L (A)
 PREFIXO = "escv_"
 
@@ -58,6 +64,22 @@ def _delta_vv(t):
     return 0.427 * DE * L * math.sqrt(MU / t)
 
 
+def _y(n, t):
+    """y of eq. 7.37 for the mismatch |v - w| = n: 2y/3 = n delta_VV."""
+    return 1.5 * n * _delta_vv(t)
+
+
+# F(y) of eq. 7.34 above y = 20: F = F_ALTO y^(7/3) exp(-3 y^(2/3))
+F_ALTO = 8.0 * math.sqrt(math.pi / 3.0)
+
+
+def _f(y):
+    """F(y)/F(0) of eqs. 7.34 and 7.36 (F(0) = 1)."""
+    if y <= 20.0:
+        return 0.5 * (3.0 - math.exp(-2.0 * y / 3.0)) * math.exp(-2.0 * y / 3.0)
+    return F_ALTO * y ** (7.0 / 3.0) * math.exp(-3.0 * y ** (2.0 / 3.0))
+
+
 def _g(v, w):
     m = max(v, w)
     return 1.0 - 0.04 * m if m < 10 else 0.645 + 0.617 * ((m - 10) / 30.0) ** 3
@@ -72,7 +94,7 @@ def k_vv(v, w, t):
     """N2(v) + N2(w - 1) -> N2(v - 1) + N2(w), v < w (cm3/s)."""
     if not v < w:
         raise ValueError("k_vv gives the exothermic direction, v < w")
-    return 0.9e-14 * (t / 300.0) ** 1.5 * _z(v) * _z(w) * math.exp(-_delta_vv(t) * abs(v - w)) * _g(v, w)
+    return 0.9e-14 * (t / 300.0) ** 1.5 * _z(v) * _z(w) * _f(_y(abs(v - w), t)) * _g(v, w)
 
 
 def k_vt_n(v, dv, t):
@@ -109,16 +131,28 @@ class Reacao:
         return f"{' + '.join(self.reagentes)} => {' + '.join(self.produtos)}".ljust(44) + f" ! {self.taxa}"
 
 
-def variaveis():
-    """$ lines with the temperature dependent factors."""
+def variaveis(vmax=45):
+    """$ lines with the temperature dependent factors: the V-T and V-V constants and
+    F(y) of eq. 7.34 for each mismatch |v - w| = 1 to vmax (escv_f1 ...), with y of
+    _y; the branch y > 20 is a one-line IF."""
     p = PREFIXO
+    f = [f"{p}f{n}" for n in range(1, vmax + 1)]
+    linhas_f = []
+    for n in range(1, vmax + 1):
+        linhas_f += [
+            f"$ {p}y = {_d(1.5 * n)}*{p}dvv",
+            f"$ {p}f{n} = 0.5d0*(3.0d0-exp(-2.0d0*{p}y/3.0d0))*exp(-2.0d0*{p}y/3.0d0)",
+            f"$ if ({p}y > 20.0d0) {p}f{n} = {_d(F_ALTO)}*{p}y**(7.0d0/3.0d0)*exp(-3.0d0*{p}y**(2.0d0/3.0d0))",
+        ]
     return [
-        f"$ double precision :: {p}k10, {p}dvt, {p}k01, {p}dvv, {p}kn",
+        f"$ double precision :: {p}k10, {p}dvt, {p}k01, {p}dvv, {p}kn, {p}y",
+        *(f"$ double precision :: {', '.join(f[k:k + 8])}" for k in range(0, len(f), 8)),
         f"$ {p}k10 = 7.8d-12*Tgas*exp(-218.0d0/Tgas**(1.0d0/3.0d0)+690.0d0/Tgas)/(1.0d0-exp(-{_d(energia(1))}/Tgas))",
         f"$ {p}dvt = {_d(1.87 * DE * L ** (2 / 3) * MU ** (1 / 3) / energia(1) ** (1 / 3))}/Tgas**(1.0d0/3.0d0)",
         f"$ {p}k01 = 0.9d-14*(Tgas/300.0d0)**1.5d0",
         f"$ {p}dvv = {_d(0.427 * DE * L * math.sqrt(MU))}/sqrt(Tgas)",
         f"$ {p}kn = 4.0d-10*(Tgas/300.0d0)**0.5d0",
+        *linhas_f,
     ]
 
 
@@ -134,7 +168,7 @@ def reacoes(vmax):
                             f"{k}*exp(-{_d(energia(v) - energia(v - 1))}/Tgas)"))
     for v in range(1, vmax + 1):
         for w in range(v + 1, vmax + 1):
-            k = f"{p}k01*{_d(_z(v) * _z(w) * _g(v, w))}*exp(-{_d(abs(v - w))}*{p}dvv)"
+            k = f"{p}k01*{_d(_z(v) * _z(w) * _g(v, w))}*{p}f{abs(v - w)}"
             q = (energia(v) - energia(v - 1)) - (energia(w) - energia(w - 1))
             lista.append(Reacao("VV", [_nome(v), _nome(w - 1)], [_nome(v - 1), _nome(w)], k))
             lista.append(Reacao("VV", [_nome(v - 1), _nome(w)], [_nome(v), _nome(w - 1)], f"{k}*exp(-{_d(q)}/Tgas)"))
@@ -150,7 +184,7 @@ def reacoes(vmax):
                         f"{p}k10*{_d(_z(topo))}*exp({_d(topo - 1)}*{p}dvt)*exp(-{_d(q_topo)}/Tgas)"))
     for v in range(1, vmax + 1):
         lista.append(Reacao("DIS", [_nome(v), _nome(vmax)], [_nome(v - 1), "N", "N"],
-                            f"{p}k01*{_d(_z(v) * _z(topo) * _g(v, topo))}*exp(-{_d(abs(v - topo))}*{p}dvv)"))
+                            f"{p}k01*{_d(_z(v) * _z(topo) * _g(v, topo))}*{p}f{abs(v - topo)}"))
     return lista
 
 
@@ -203,7 +237,7 @@ def substitui_vibracao(texto, vmax=45):
         raise ValueError("kinet.inp without SPECIES or REACTIONS")
     novas_especies = [f"N2(v{k})" for k in range(1, vmax + 1) if f"N2(V{k})" not in texto.upper()]
     bloco = ["", f"# vibrational ladder of N2(X) up to v = {vmax}: ferramentas/escada_vibracional.py",
-             *variaveis(), *(r.linha() for r in reacoes(vmax)), ""]
+             *variaveis(vmax), *(r.linha() for r in reacoes(vmax)), ""]
     saida = saida[:i_reacoes] + bloco + saida[i_reacoes:]
     for k in range(0, len(novas_especies), 8):
         saida.insert(i_especies, "  ".join(novas_especies[k:k + 8]))

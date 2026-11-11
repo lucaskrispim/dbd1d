@@ -21,7 +21,7 @@ RAIZ = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ / "dbd1d"))
 sys.path.insert(0, str(RAIZ / "scripts"))
 from coluna import Coluna0D  # noqa: E402
-from coluna_n2 import GAMAS, condicoes, ne_nosso, treanor  # noqa: E402
+from coluna_n2 import GAMAS, condicoes, n2_total, ne_nosso, treanor  # noqa: E402
 from coluna_n2_en import CORRENTE_MA  # noqa: E402
 
 CASO = RAIZ / "casos" / "n2_amonia_v45"
@@ -40,7 +40,7 @@ def main():
         nomes = [s.upper() for s in c.especies]
         n0 = c.densidades(y[-1])[[s.upper() for s in c.q.especies].index("N2")]
         tv = treanor(np.r_[n0, [y[-1, nomes.index(f"N2(V{k})")] for k in range(1, 5)]], cond["tg"])
-        dis = y[-1, nomes.index("N")] / n0
+        dis = y[-1, nomes.index("N")] / n2_total(c, y[-1])
         i_a = CORRENTE_MA[cond["id"]] * 1e-3
         en = c.en_sustentado(i_a, cond["t"])
         en_meta = Coluna0D(CASO, cond["p"], cond["tg"], cond["r"], gamas=META, estrito=False).en_sustentado(i_a, cond["t"])

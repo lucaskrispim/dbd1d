@@ -24,7 +24,7 @@ RAIZ = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ / "dbd1d"))
 sys.path.insert(0, str(RAIZ / "scripts"))
 from coluna import Coluna0D  # noqa: E402
-from coluna_n2 import QUIMICAS  # noqa: E402
+from coluna_n2 import QUIMICAS, n2_total  # noqa: E402
 from coluna_n2_lote import gamas  # noqa: E402
 
 TORR = 133.322
@@ -47,8 +47,7 @@ def roda(caso, variante, cond, tg):
     ne = c.ne_da_corrente(cond["i"], en)
     t, y = c.integra(en, ne, T_RES, n_saidas=60)
     nomes = [s.upper() for s in c.especies]
-    i_n2 = [s.upper() for s in c.q.especies].index("N2")
-    dis = [y[k, nomes.index("N")] / c.densidades(y[k])[i_n2] for k in range(len(t))]
+    dis = [y[k, nomes.index("N")] / n2_total(c, y[k]) for k in range(len(t))]
     meio = float(np.interp(np.log(T_RES / 2), np.log(t), dis))
     return dict(en=en, ne=ne, dis_meio=meio, dis_fim=dis[-1])
 

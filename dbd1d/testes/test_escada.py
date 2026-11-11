@@ -8,7 +8,7 @@ import sys
 import numpy as np
 import pytest
 
-from conftest import RAIZ, precisa_terceiros
+from conftest import RAIZ, precisa_arquivo, precisa_terceiros
 
 sys.path.insert(0, str(RAIZ / "ferramentas"))
 import escada_vibracional as ev  # noqa: E402
@@ -35,7 +35,7 @@ def test_vt_escalonado_por_ssh():
     t, v = 400.0, 20
     xe = 14.324 / 2358.57
     z = v * (1 - xe) / (1 - v * xe)
-    de = 2 * 14.324 * HC_K
+    de = 14.324 * HC_K                      # Delta E = omega_e x_e, eq. (3.67), p. 36
     delta = 1.87 * de * 0.2 ** (2 / 3) * 14.0 ** (1 / 3) / (ev.energia(1) ** (1 / 3) * t ** (1 / 3))
     assert ev.k_vt(v, t) == pytest.approx(ev.k_vt(1, t) * z * math.exp((v - 1) * delta), rel=1e-12, abs=0)
 
@@ -50,15 +50,109 @@ def test_vv_exotérmico_cai_com_o_desajuste():
         ev.k_vv(5, 5, t)                     # no exchange between equal levels
 
 
+def _f_sobre_f0(y):
+    """F(y)/F(y_10^01) of eqs. (7.34) and (7.36), p. 114; y_10^01 = 0 and F(0) = 1."""
+    if y <= 20:
+        return 0.5 * (3 - math.exp(-2 * y / 3)) * math.exp(-2 * y / 3)
+    return 8 * math.sqrt(math.pi / 3) * y ** (7 / 3) * math.exp(-3 * y ** (2 / 3))
+
+
 def test_vv_de_capitelli():
-    # eq. (7.40): k01 Z_v Z_w exp(-delta_VV |v - w|) g(v, w), with (7.26a), (7.39) and (7.41)
+    # eq. (7.40): k01 G_S(v, w) g(v, w), with (7.26a), (7.36), (7.39) and (7.41); Delta E = omega_e x_e
+    # and 2y/3 = delta_VV |v - w| (eq. 7.37 with the 0.427 of eq. 7.39)
     t, v, w = 500.0, 3, 12
     xe = 14.324 / 2358.57
     z = lambda n: n * (1 - xe) / (1 - n * xe)  # noqa: E731
-    delta = 0.427 * 2 * 14.324 * HC_K * 0.2 * math.sqrt(14.0 / t)
+    delta = 0.427 * 14.324 * HC_K * 0.2 * math.sqrt(14.0 / t)
     g = 0.645 + 0.617 * ((w - 10) / 30) ** 3
-    esperado = 0.9e-14 * (t / 300) ** 1.5 * z(v) * z(w) * math.exp(-delta * abs(v - w)) * g
+    esperado = 0.9e-14 * (t / 300) ** 1.5 * z(v) * z(w) * _f_sobre_f0(1.5 * delta * abs(v - w)) * g
     assert ev.k_vv(v, w, t) == pytest.approx(esperado, rel=1e-12, abs=0)
+
+
+# ---------------------------------------------------------------- against the book and independent sources
+
+def _coeficiente(nome):
+    """Coefficient c of the $ line escv_NAME = c/Tgas**(...) or c/sqrt(Tgas) that the tool writes."""
+    import re
+    linha = next(l for l in ev.variaveis() if l.startswith(f"$ escv_{nome} ="))
+    return float(re.match(r"\$ escv_\w+ = ([0-9.]+)d([+-]\d+)/", linha).expand(r"\1e\2"))
+
+
+# constants of N2(X) and of the SSH model as printed in Capitelli et al. 2000, typed here
+# so that the test does not reuse the constants of the tool
+WE_LIVRO, WEXE_LIVRO = 2358.57, 14.324     # cm-1
+HCK_LIVRO = 1.438776877                    # cm K
+L_LIVRO, MU_LIVRO = 0.2, 14.0              # A (eq. 7.40), reduced mass of N2-N2 (u)
+
+
+def test_delta_vt_igual_ao_de_capitelli():
+    # eq. (7.8), p. 107, gamma_0 >= 20: delta_VT = 1.87 Delta E L^(2/3) mu^(1/3) / (E10^(1/3) T^(1/3)),
+    # with Delta E = omega_e x_e and E10 = omega_e - 2 omega_e x_e (eq. 3.67, p. 36)
+    de = WEXE_LIVRO * HCK_LIVRO
+    e10 = (WE_LIVRO - 2 * WEXE_LIVRO) * HCK_LIVRO
+    livro = 1.87 * de * L_LIVRO ** (2 / 3) * MU_LIVRO ** (1 / 3) / e10 ** (1 / 3)
+    assert _coeficiente("dvt") == pytest.approx(livro, rel=5e-3)
+
+
+def test_delta_vt_perto_de_sun():
+    # Sun et al. 2022 (casos/n2_amonia/kinet.inp:150): 0.86 (14/T)^(1/3) per quantum; Sun's 0.86 follows
+    # from eq. (7.8) with omega_e x_e rounded to 14.0 cm-1, hence 3% and not 0.5%
+    assert _coeficiente("dvt") == pytest.approx(0.86 * 14.0 ** (1 / 3), rel=0.03)
+
+
+def test_delta_vv_igual_ao_de_capitelli():
+    # eq. (7.39), p. 114: delta_VV = 0.427 Delta E L sqrt(mu / T), Delta E = omega_e x_e, L = 0.2 A (eq. 7.40)
+    livro = 0.427 * WEXE_LIVRO * HCK_LIVRO * L_LIVRO * math.sqrt(MU_LIVRO)
+    assert _coeficiente("dvv") == pytest.approx(livro, rel=5e-3)
+
+
+def test_delta_vv_perto_de_gordiets():
+    # Gordiets et al. 1995: delta_VV = 6.8 / sqrt(T)
+    assert _coeficiente("dvv") == pytest.approx(6.8, rel=0.05)
+
+
+def test_vv_tem_o_fator_de_capitelli():
+    # N2(10) + N2(0) -> N2(9) + N2(1) is k_{v,v-1}^{w-1,w} of eq. (7.40), p. 115, with v = 10 and w = 1:
+    # the index of G_S(v, w) is Delta = |v - w| = 9, since E_{v,v-1} - E_{w,w-1} = 2 omega_e x_e (w - v)
+    # in eq. (7.37) and 2y/3 = delta_VV Delta. Against the simplified form k01 Z_v Z_w g exp(-delta_VV Delta)
+    # the rate has the factor F(y)/F(0) exp(+delta_VV Delta) = 1.5 - 0.5 exp(-delta_VV Delta), both ways
+    t, delta_n = 500.0, 9
+    k = {(tuple(r.reagentes), tuple(r.produtos)): kk for r, kk in _avalia(t)}
+    xe = 14.324 / 2358.57
+    z = lambda n: n * (1 - xe) / (1 - n * xe)  # noqa: E731
+    dvv = _coeficiente("dvv") / math.sqrt(t)
+    simples = 0.9e-14 * (t / 300) ** 1.5 * z(10) * z(1) * 0.645 * math.exp(-dvv * delta_n)
+    q = (ev.energia(10) - ev.energia(9)) - (ev.energia(1) - ev.energia(0))
+    fator = 1.5 - 0.5 * math.exp(-dvv * delta_n)
+    assert k[(("N2(v1)", "N2(v9)"), ("N2", "N2(v10)"))] / simples == pytest.approx(fator, rel=1e-6)
+    assert k[(("N2", "N2(v10)"), ("N2(v1)", "N2(v9)"))] / (simples * math.exp(q / t)) == pytest.approx(fator, rel=1e-6)
+
+
+def test_vv_no_ramo_de_y_acima_de_20():
+    # |v - w| = 45 at 300 K (N2(1) + N2(45) -> N2(0) + N, N from the top, v = 1, w = 46): y > 20 and
+    # F(y) = 8 (pi/3)^(1/2) y^(7/3) exp(-3 y^(2/3)), eq. (7.34), p. 114, with y of eq. (7.37) from the
+    # Morse levels of eq. (3.67). The tool takes 2y/3 = delta_VV |v - w| with the 0.427 of eq. (7.39),
+    # which is 0.32 x 2 x 2/3 = 0.4267 rounded: 0.08% in y, about 1.5% through exp(-3 y^(2/3)) at y = 26
+    t, v, w = 300.0, 1, 46
+    e = lambda n: (WE_LIVRO * n - WEXE_LIVRO * n * (n + 1)) * HCK_LIVRO  # noqa: E731
+    y = 0.32 * ((e(v) - e(v - 1)) - (e(w) - e(w - 1))) * L_LIVRO * math.sqrt(MU_LIVRO / t)
+    assert y > 20
+    xe = WEXE_LIVRO / WE_LIVRO
+    z = lambda n: n * (1 - xe) / (1 - n * xe)  # noqa: E731
+    g = 0.645 + 0.617 * ((w - 10) / 30) ** 3
+    livro = 0.9e-14 * (t / 300) ** 1.5 * z(v) * z(w) * 8 * math.sqrt(math.pi / 3) * y ** (7 / 3) \
+        * math.exp(-3 * y ** (2 / 3)) * g
+    assert ev.k_vv(v, w, t) == pytest.approx(livro, rel=0.02, abs=0)
+    k = {(tuple(r.reagentes), tuple(r.produtos)): kk for r, kk in _avalia(t)}
+    assert k[(("N2(v1)", "N2(v45)"), ("N2", "N", "N"))] == pytest.approx(ev.k_vv(v, w, t), rel=1e-11, abs=0)
+
+
+@precisa_arquivo("casos/n2_amonia_v45/kinet.inp")
+def test_kinet_de_n2_amonia_v45_tem_os_deltas_corretos():
+    # the case as committed carries the expressions the tool writes now
+    texto = (RAIZ / "casos" / "n2_amonia_v45" / "kinet.inp").read_text().splitlines()
+    for linha in ev.variaveis():
+        assert linha in texto, linha
 
 
 def test_vt_com_n_multiquântico():
@@ -105,6 +199,9 @@ def test_coeficientes_do_kinet_gerado_batem_com_as_fórmulas(tmp_path):
     q_ex = (ev.energia(3) - ev.energia(2)) - (ev.energia(12) - ev.energia(11))
     assert coef("N2(V2)+N2(V12)=>N2(V3)+N2(V11)") == pytest.approx(ev.k_vv(3, 12, t) * math.exp(-q_ex / t), rel=1e-10, abs=0)
     assert coef("N2(V12)+N=>N2(V9)+N") == pytest.approx(ev.k_vt_n(12, 3, t), rel=1e-10, abs=0)
+    # |v - w| = 45 at 450 K is in the branch y > 20 of F(y), eq. (7.34)
+    assert 1.5 * ev._delta_vv(t) * 45 > 20
+    assert coef("N2(V1)+N2(V45)=>N2+N+N") == pytest.approx(ev.k_vv(1, 46, t), rel=1e-10, abs=0)
     # the vibrational kinetics of the base chemistry (v <= 8) is replaced, the rest stays
     assert "N2(V9)" in " ".join(q.especies).upper() and "N2(V45)" in " ".join(q.especies).upper()
     assert not any("KVV10_N2N2" in r.upper() for r in texto.splitlines() if "=>" in r)
@@ -141,7 +238,14 @@ def _avalia(t, vmax=45):
     import re
     ambiente = {"exp": math.exp, "sqrt": math.sqrt, "Tgas": t}
     py = lambda s: re.sub(r"(\d)d([+-]?\d)", r"\1e\2", s)  # noqa: E731
-    for linha in ev.variaveis()[1:]:
+    for linha in ev.variaveis(vmax):
+        if linha.startswith("$ double precision"):
+            continue
+        m = re.match(r"\$ if \((.*)\) (\w+) = (.*)$", linha)       # one-line IF of the F(y) branch y > 20
+        if m:
+            if eval(py(m.group(1)), ambiente):
+                ambiente[m.group(2)] = eval(py(m.group(3)), ambiente)
+            continue
         nome, expr = linha[1:].split("=", 1)
         ambiente[nome.strip()] = eval(py(expr), ambiente)
     return [(r, eval(py(r.taxa), ambiente)) for r in ev.reacoes(vmax)]
@@ -279,8 +383,8 @@ def test_fator_g_muda_de_ramo_em_v_10():
     t = 500.0
     xe = 14.324 / 2358.57
     z = lambda n: n * (1 - xe) / (1 - n * xe)  # noqa: E731
-    delta = 0.427 * 2 * 14.324 * HC_K * 0.2 * math.sqrt(14.0 / t)
-    sem_g = lambda v, w: 0.9e-14 * (t / 300) ** 1.5 * z(v) * z(w) * math.exp(-delta * abs(v - w))  # noqa: E731
+    delta = 0.427 * 14.324 * HC_K * 0.2 * math.sqrt(14.0 / t)
+    sem_g = lambda v, w: 0.9e-14 * (t / 300) ** 1.5 * z(v) * z(w) * _f_sobre_f0(1.5 * delta * abs(v - w))  # noqa: E731
     assert ev.k_vv(3, 9, t) == pytest.approx(sem_g(3, 9) * (1 - 0.04 * 9), rel=1e-12, abs=0)
     assert ev.k_vv(3, 10, t) == pytest.approx(sem_g(3, 10) * 0.645, rel=1e-12, abs=0)
     assert ev.k_vv(3, 11, t) == pytest.approx(sem_g(3, 11) * (0.645 + 0.617 / 30 ** 3), rel=1e-12, abs=0)

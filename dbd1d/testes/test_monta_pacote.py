@@ -53,3 +53,43 @@ def test_montagem_para_com_padrao_vazio_ou_arquivo_fora_do_git(tmp_path, monkeyp
     with pytest.raises(SystemExit, match="fora do git"):
         m.main()
     assert not (tmp_path / "p").exists()
+
+
+def test_cabecalho_spdx_proprio_nao_e_duplicado(tmp_path):
+    # bdf_dae.py carries code of scipy and declares GPL-3.0-or-later AND BSD-3-Clause itself
+    m = _montador()
+    m.copia(RAIZ / "dbd1d" / "bdf_dae.py", tmp_path / "bdf_dae.py")
+    texto = (tmp_path / "bdf_dae.py").read_text()
+    assert texto.count("SPDX-License-Identifier") == 1
+    assert texto.startswith("# SPDX-License-Identifier: GPL-3.0-or-later AND BSD-3-Clause")
+    assert (RAIZ / "empacotamento" / "raiz" / "LICENSE-scipy.txt").is_file()
+    m.copia(RAIZ / "dbd1d" / "modelo.py", tmp_path / "modelo.py")
+    assert (tmp_path / "modelo.py").read_text().startswith("# SPDX-License-Identifier: GPL-3.0-or-later\n")
+
+
+def test_modulos_importados_pelos_testes_sao_distribuidos():
+    # the package ships dbd1d/testes/*.py: every repository module that those tests import
+    # (through the sys.path insertions of ferramentas, scripts, ...) has to be in INCLUI,
+    # unless the importing test names the file in a skip guard (precisa_arquivo or a module
+    # level skip), which is how the package leaves out what it does not distribute
+    import ast
+    m = _montador()
+    entregues = {f for p in m.INCLUI for f in RAIZ.glob(p) if f.is_file()}
+    pastas = ["ferramentas", "scripts", "artigo", "validacao", "empacotamento", "docs/literatura/dados", "dbd1d"]
+    faltam = []
+    for teste in sorted((RAIZ / "dbd1d" / "testes").glob("*.py")):
+        fonte = teste.read_text()
+        for no in ast.walk(ast.parse(fonte)):
+            if isinstance(no, ast.Import):
+                nomes = [a.name for a in no.names]
+            elif isinstance(no, ast.ImportFrom) and no.module and no.level == 0:
+                nomes = [no.module]
+            else:
+                continue
+            for nome in nomes:
+                for pasta in pastas:
+                    f = RAIZ / pasta / (nome.split(".")[0] + ".py")
+                    rel = f.relative_to(RAIZ).as_posix()
+                    if f.is_file() and f not in entregues and f'"{rel}"' not in fonte:
+                        faltam.append(f"{teste.name} imports {rel}")
+    assert sorted(set(faltam)) == []

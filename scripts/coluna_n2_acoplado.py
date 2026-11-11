@@ -54,7 +54,7 @@ VMAX = 45
 
 
 def resultado(caso, cond, en, gamas=GAMAS):
-    """Tv, [N]/[N2], populations {v: fraction} at E/N with n_e from the current."""
+    """Tv, [N]/[N2] (N2 in all its levels), populations {v: fraction} at E/N with n_e from the current."""
     c = Coluna0D(caso, cond["p"], cond["tg"], cond["r"], gamas=gamas, estrito=False)
     i_a = CORRENTE_MA[cond["id"]] * 1e-3
     _, y = c.integra(en, c.ne_da_corrente(i_a, en), cond["t"], n_saidas=3)
@@ -62,7 +62,7 @@ def resultado(caso, cond, en, gamas=GAMAS):
     n0 = c.densidades(y[-1])[[s.upper() for s in c.q.especies].index("N2")]
     vib = np.r_[n0, [y[-1, nomes.index(f"N2(V{k})")] for k in range(1, VMAX + 1)]]
     tv = treanor(vib[:5], cond["tg"])
-    return tv, y[-1, nomes.index("N")] / n0, {v: float(x / vib.sum()) for v, x in enumerate(vib)}
+    return tv, y[-1, nomes.index("N")] / vib.sum(), {v: float(x / vib.sum()) for v, x in enumerate(vib)}
 
 
 # (fraction of E_v in the shift, superelastic, minimum shifted threshold in eV, e-V from v > 0)

@@ -33,6 +33,33 @@ quantum at the wall, N2(v) to N2(v - 1), as in the models of Levaton et al. and 
 instead of returning to the ground state (`Coluna0D(quantum_na_parede=False)` keeps the earlier
 behaviour); this changes the results of the column of version 1.3.1.
 
+Version 1.5.0 corrects input data and defects found by a verification of the inputs against their
+primary sources; each correction comes with a test that fails on the earlier data:
+
+- diffusion of N2(v), N2 excited states, N(2D) and N(2P) in the N2 chemistries of the column:
+  `casos/n2_amonia*/transporte.json` held coefficients of an N2-H2 mixture inherited from the
+  ammonia case, and `casos/n2_tese*` held those of the dry air case; both now take the pure N2
+  values of `biblioteca/transporte.json`;
+- cross sections: three blocks of the Biagi database in the supplementary file of Sun et al. 2022
+  labelled as dissociation are excitations already in the Phelps set, and four N2 blocks of the N2-O2
+  file of ZDPlasKin repeat the Morgan set; the statistical weight ratios of the superelastic inverses
+  of that file were 1e4 to 1e45. `ferramentas/corrige_secoes.py` applies these corrections to the
+  user's copy (`casos/README.md`);
+- vibrational ladder (`ferramentas/escada_vibracional.py`): the anharmonic spacing is
+  omega_e x_e and the adiabaticity factors of V-T and V-V are those of Capitelli et al. (2000),
+  eqs. 7.8 and 7.39, with both branches of F(y) (eq. 7.34);
+- coupling: the resonant part of the excitation 0 to 1 (N2(v1res)) has its superelastic inverse,
+  merged with N2 <-> N2(v1), and a rotational block is copied to N2(v) without shifting its threshold;
+- column: the ambipolar loss uses the characteristic energy D_e/mu_e of the electrons and the ion
+  temperature (Capitelli et al., eq. 6.10) by default (`Coluna0D(ambipolar="media")` keeps the earlier
+  (2/3) mean energy), and the dissociation degree [N]/[N2] is divided by N2 in all its vibrational
+  levels instead of N2(v = 0);
+- the scripts of the column record the commit, the SHA-256 of the code they import and of the inputs
+  they read, and refuse to run on files changed outside a commit (`DBD1D_PERMITE_SUJO=1` overrides).
+
+These corrections change the results of the N2 column. Its result files, distributed from 1.3.1 to
+1.4.0, are left out of this version and will return recomputed.
+
 Options, messages and comments are in English. Identifiers, file names and the keys of the data
 files keep their original Portuguese names, and the earlier Portuguese option names (`--pressao`,
 `--forma seno`, ...) are still accepted as aliases. Up to version 1.2.2 the folder `dbd1d/` was
@@ -183,7 +210,8 @@ ion inventory (a few seconds per voltage).
 
 ## License
 
-GPL-3.0-or-later (`LICENSE`). ZDPlasKin, BOLSIG+ and the LXCat cross sections are not part of this
+GPL-3.0-or-later (`LICENSE`). `dbd1d/bdf_dae.py` contains a modified copy of the BDF step of
+scipy, which keeps its BSD 3-Clause license (`LICENSE-scipy.txt`). ZDPlasKin, BOLSIG+ and the LXCat cross sections are not part of this
 package and keep their own conditions of use. `ferramentas/gera_tabela_energia.f90` and
 `ferramentas/sonda_zdplaskin.f90` are compiled by `ferramentas/caso.py` on the user's machine
 against the user's copy of ZDPlasKin and BOLSIG+; no combined program is distributed. The argon

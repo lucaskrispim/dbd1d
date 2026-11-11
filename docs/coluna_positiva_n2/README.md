@@ -39,6 +39,10 @@ built by the scripts that use them.
 
 ## Results and how to reproduce them
 
+The result files listed below are not in version 1.5.0: they were computed before the input
+corrections of that version (README.md at the root of the package) and are being recomputed. The
+scripts write them again.
+
 `scripts/coluna_n2_todos.sh [PROCESSES]` runs everything below in order, then writes the figures
 of the article with `python3 scripts/figuras_coluna_n2.py artigo_coluna_n2/figuras`. The coupled
 runs dominate the cost: 52 chains of four iterations of 20 to 40 minutes each.

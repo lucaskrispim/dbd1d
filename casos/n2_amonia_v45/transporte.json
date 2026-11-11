@@ -20,128 +20,142 @@
   "N2(V1)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V2)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V3)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V4)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V5)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V6)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V7)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V8)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(A3)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.001
+    "perda_na_parede": 0.001,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(B3)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.001
+    "perda_na_parede": 0.001,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(A'1)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.001
+    "perda_na_parede": 0.001,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(C3)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.001
+    "perda_na_parede": 0.001,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N(2D)": {
     "massa_u": 14.007,
     "difusao": {
-      "D0": 5.987880523251743e-05,
+      "D0": 3.3e-05,
       "T0": 300.0,
-      "expoente": 1.686
+      "expoente": 1.75
     },
-    "perda_na_parede": 1.0
+    "perda_na_parede": 1.0,
+    "fonte_difusao": "corrected 10/11/2026: library entry N em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 5.988e-05 m2/s) left over from the ammonia case"
   },
   "N(2P)": {
     "massa_u": 14.007,
     "difusao": {
-      "D0": 5.987880523251743e-05,
+      "D0": 3.3e-05,
       "T0": 300.0,
-      "expoente": 1.686
+      "expoente": 1.75
     },
-    "perda_na_parede": 1.0
+    "perda_na_parede": 1.0,
+    "fonte_difusao": "corrected 10/11/2026: library entry N em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 5.988e-05 m2/s) left over from the ammonia case"
   },
   "N": {
     "massa_u": 14.007,
@@ -353,334 +367,371 @@
   "N2(V9)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V10)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V11)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V12)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V13)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V14)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V15)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V16)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V17)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V18)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V19)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V20)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V21)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V22)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V23)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V24)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V25)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V26)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V27)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V28)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V29)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V30)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V31)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V32)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V33)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V34)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V35)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V36)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V37)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V38)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V39)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V40)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V41)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V42)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V43)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V44)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   },
   "N2(V45)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 4.6405012664292236e-05,
+      "D0": 2.02e-05,
       "T0": 300.0,
-      "expoente": 1.697
+      "expoente": 1.75
     },
-    "perda_na_parede": 0.00045
+    "perda_na_parede": 0.00045,
+    "fonte_difusao": "corrected 10/11/2026: library entry N2(A) em N2 (pure N2); before, a diffusion coefficient of an N2-H2 mixture (D0 4.641e-05 m2/s) left over from the ammonia case"
   }
 }

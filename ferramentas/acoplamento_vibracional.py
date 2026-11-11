@@ -11,7 +11,9 @@ populations of the ladder (ferramentas/escada_vibracional.py).
   threshold falls below LIMIAR_MINIMO is left out (the level already lies above
   the upper state).
 - The excitations N2 -> N2(v1..v8) get the double arrow: BOLSIG+ adds their
-  superelastic inverse.
+  superelastic inverse. The resonant part of 0 -> 1 of the Phelps set, N2(v1res),
+  has no level of its own to come back from, so with the inverse it is summed into
+  N2 <-> N2(v1) (funde_v1res), and the kinet.inp drops it from the @R of 0 -> 1.
 - ev=True: electron impact vibrational excitation from the excited levels,
   N2(v) <-> N2(v + n), with sigma(v -> v + n) = sigma(0 -> n)/(1 + 0.05 v) and the
   threshold E(v + n) - E(v) (Gordiets et al. 1995, eq. (10)), for v up to
@@ -87,7 +89,10 @@ def _vibracional(alvo_linha):
 def _copia(bloco, v, deslocar=1.0, minimo=LIMIAR_MINIMO):
     tipo, alvo = bloco[0].strip(), bloco[1]
     nome = f"N2(v{v})"
-    if tipo in ("ELASTIC", "EFFECTIVE", "ROTATION") or not deslocar:
+    # rotation is copied unshifted whatever its type: in the real banks it is an
+    # EXCITATION block N2 -> N2(rot), which a shift by E_v would push under the minimum
+    rotacao = "rot" in alvo.split("->")[-1].lower()
+    if tipo in ("ELASTIC", "EFFECTIVE", "ROTATION") or rotacao or not deslocar:
         return [bloco[0], alvo.replace("N2", nome, 1)] + [l.replace("e / N2", f"e / {nome}") for l in bloco[2:]]
     limiar = float(bloco[2].split("/")[0])
     novo = limiar_deslocado(limiar, v, deslocar, minimo)
@@ -141,6 +146,30 @@ def secoes_vibracionais(texto):
     return secoes
 
 
+def funde_v1res(texto):
+    """bolsigdb.dat with N2 -> N2(v1res) summed into N2 -> N2(v1) (secoes_vibracionais)
+    and its block removed, so that the double arrow of v1 covers the whole 0 -> 1
+    excitation; unchanged without N2(v1res)."""
+    alvos = [linhas[1].strip() for tipo, linhas in blocos(texto) if tipo == "bloco"]
+    if "N2 -> N2(v1res)" not in alvos:
+        return texto
+    if "N2 -> N2(v1)" not in alvos:
+        raise ValueError("funde_v1res: N2(v1res) without N2(v1)")
+    e, s = secoes_vibracionais(texto)[1]
+    saida = []
+    for tipo, linhas in blocos(texto):
+        alvo = linhas[1].strip() if tipo == "bloco" else None
+        if alvo == "N2 -> N2(v1res)":
+            if saida and not saida[-1].strip():
+                saida.pop()
+            continue
+        if alvo == "N2 -> N2(v1)":
+            k = next(i for i, l in enumerate(linhas) if l.startswith("-----"))
+            linhas = linhas[:k + 1] + [f" {x:.6e}\t{y:.6e}" for x, y in zip(e, s)] + [linhas[k]]
+        saida.extend(linhas)
+    return "\n".join(saida) + "\n"
+
+
 def pares_ev(secoes, vmax, vmax_ev=VMAX_EV):
     """(v, v + n) of the e-V processes from the excited levels."""
     return [(v, v + n) for v in range(1, min(vmax_ev, vmax - 1) + 1) for n in sorted(secoes) if v + n <= vmax]
@@ -167,6 +196,8 @@ def banco_acoplado(texto, vmax, deslocar=1.0, superelastica=True, minimo=LIMIAR_
     minimo replaces LIMIAR_MINIMO (tests of sensitivity); ev adds the e-V processes
     from the excited levels (module docstring)."""
     _confere(deslocar, minimo)
+    if superelastica:
+        texto = funde_v1res(texto)
     saida, copias = [], []
     for tipo, linhas in blocos(texto):
         if tipo == "texto":
@@ -222,6 +253,8 @@ def kinet_acoplado(texto, vmax, banco_base=None, deslocar=1.0, minimo=LIMIAR_MIN
     if ev and banco_base is None:
         raise ValueError("ev needs banco_base, to know the vibrational sections of N2")
     linhas = texto.splitlines()
+    if superelastica:
+        linhas = _sem_v1res(linhas)
     saida, secao, novas = [], None, []
     validos = _processos_validos(banco_base, vmax, deslocar, minimo) if banco_base else None
     i = 0
@@ -278,6 +311,28 @@ def kinet_acoplado(texto, vmax, banco_base=None, deslocar=1.0, minimo=LIMIAR_MIN
         saida.append(linha)
         i += 1
     return "\n".join(saida) + "\n"
+
+
+def _sem_v1res(linhas):
+    """kinet.inp lines with N2(v1res) out of the @R lists of BOLSIG N2 -> @R (it is
+    summed into N2(v1) by funde_v1res); an @R left with one process is written
+    directly."""
+    saida, i = [], 0
+    while i < len(linhas):
+        l = linhas[i]
+        if ("BOLSIG N2 -> @R" in l and i + 1 < len(linhas) and linhas[i + 1].lstrip().startswith("@R")
+                and "N2(v1res)" in linhas[i + 1].split()):
+            cabeca, nomes = linhas[i + 1].split("=", 1)
+            nomes = [n for n in nomes.split() if n != "N2(v1res)"]
+            if len(nomes) == 1:
+                saida.append(l.replace("BOLSIG N2 -> @R", f"BOLSIG N2 -> {nomes[0]}"))
+            else:
+                saida += [l, f"{cabeca}= " + "  ".join(nomes)]
+            i += 2
+            continue
+        saida.append(l)
+        i += 1
+    return saida
 
 
 def composicao(populacoes):

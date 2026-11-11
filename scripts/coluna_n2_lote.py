@@ -16,7 +16,7 @@ RAIZ = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ / "dbd1d"))
 sys.path.insert(0, str(RAIZ / "scripts"))
 from coluna import Coluna0D  # noqa: E402
-from coluna_n2 import GAMAS, condicoes, ne_nosso, treanor  # noqa: E402
+from coluna_n2 import GAMAS, condicoes, n2_total, ne_nosso, treanor  # noqa: E402
 from coluna_n2_en import CORRENTE_MA  # noqa: E402
 
 VIB = [f"N2(V{k})" for k in range(1, 46)]
@@ -57,7 +57,7 @@ def main():
     en = c.en_sustentado(CORRENTE_MA[cid] * 1e-3, cond["t"])
     with open(arquivo, "w") as f:
         f.write("caso,id,variante,tv,dis,en\n")
-        f.write(f"{caso},{cid},{variante},{tv:.6g},{y[-1, nomes.index('N')] / n0:.6g},{en:.6g}\n")
+        f.write(f"{caso},{cid},{variante},{tv:.6g},{y[-1, nomes.index('N')] / n2_total(c, y[-1]):.6g},{en:.6g}\n")
 
 
 if __name__ == "__main__":

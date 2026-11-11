@@ -1,0 +1,8 @@
+# [N]/[N2] (%) calculated by the model of Levaton et al. at the end of the positive column:
+# 10 and 50 mA, 230 Pa: Levaton et al. 2020, Phys. Plasmas 27 063503, section on the atoms (text);
+# 60 mA, 230 and 530 Pa: Levaton et al. 2021, Braz. J. Phys. 51 75, p. 8 of the PDF (text).
+id,dissociacao_pct,fonte
+L20_10mA,0.07,levaton2020
+L20_50mA,0.2,levaton2020
+B21_230Pa,0.4,levaton2021
+B21_530Pa,0.02,levaton2021

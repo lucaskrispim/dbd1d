@@ -12,13 +12,18 @@ tool on a new mixture, not a study of air):
   Ar2^+ + O2 => O2^+ + Ar + Ar    1.0e-10 cm3/s
   Ar* + N2 => Ar + N2(C3)         3.0e-11 cm3/s
   Ar* + O2 => Ar + O + O          2.1e-10 cm3/s
+The cross sections get the corrections of ferramentas/corrige_secoes.py (repeated Morgan
+blocks of N2 and statistical weight ratios, docs/auditoria/2026-11-10/ERROS.md E6 and V1-3).
 Usage: python3 casos/ar_n2_o2/monta.py   (writes kinet.inp, bolsigdb.dat and composicao.txt here)
 """
 import pathlib
 import re
+import sys
 
 AQUI = pathlib.Path(__file__).resolve().parent
 RAIZ = AQUI.parent.parent
+sys.path.insert(0, str(RAIZ / "ferramentas"))
+from corrige_secoes import corrige  # noqa: E402
 
 ar_seco = (AQUI / "original" / "kinet_ar_air2D.inp").read_text()
 argonio = (RAIZ / "kinet.inp").read_text()
@@ -51,7 +56,7 @@ Ar* + O2 => Ar + O + O             !   2.1d-10
 m = re.search(r"^REACTIONS\s*\n.*?^END", kinet, re.S | re.M)
 kinet = kinet[:m.end() - 3] + cruzadas + "\n" + kinet[m.end() - 3:]
 (AQUI / "kinet.inp").write_text(kinet)
-(AQUI / "bolsigdb.dat").write_text((AQUI / "original" / "bolsigdb_ar_air2D.dat").read_text().rstrip() + "\n\n"
-                                   + (RAIZ / "bolsigdb.dat").read_text())
+(AQUI / "bolsigdb.dat").write_text(corrige((AQUI / "original" / "bolsigdb_ar_air2D.dat").read_text().rstrip()
+                                           + "\n\n" + (RAIZ / "bolsigdb.dat").read_text()))
 (AQUI / "composicao.txt").write_text("N2 0.78\nO2 0.21\nAr 0.01\n")
 print("kinet.inp, bolsigdb.dat and composicao.txt written")

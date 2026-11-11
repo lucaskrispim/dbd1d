@@ -103,6 +103,9 @@ def figura_tv(saida):
     ax.set_xticks(x)
     ax.set_xticklabels(ROTULOS, fontsize=8)
     ax.set_ylabel("$T_v$ (K)")
+    ax.set_yticks([2000, 3000, 5000, 10000])
+    ax.set_yticklabels(["2000", "3000", "5000", "10000"])
+    ax.minorticks_off()
     ax.grid(alpha=0.3, which="both")
     ax.legend(fontsize=7.5, ncol=2, loc="upper left")
     fig.tight_layout()
@@ -136,7 +139,7 @@ def figura_mecanismos(saida):
     for k, (rot, y) in enumerate(deltas.items()):
         ax[0].bar(x + (k - 1.5) * w, np.array(y) - base, w, label=rot)
     cores = {"alvo_ev": "tab:cyan", "deslocado_ev": "tab:blue", "completo_ev": "tab:purple"}
-    nomes = {"alvo_ev": "N$_2(v)$ as targets", "deslocado_ev": "+ shifted thresholds", "completo_ev": "+ superelastic"}
+    nomes = {"alvo_ev": "N$_2(v)$ as targets, with e-V", "deslocado_ev": "+ shifted thresholds", "completo_ev": "+ superelastic"}
     for j, (var, rot) in enumerate(PAREDES):
         xs = x + (j - 0.5) * 0.36
         for k, i in enumerate(altos):
@@ -164,7 +167,7 @@ def figura_mecanismos(saida):
     marcas = [Patch(facecolor="0.8", edgecolor="k", lw=0.3, label="ladder v $\\leq$ 45 with the wall")]
     marcas += [Patch(facecolor=cor, edgecolor="k", lw=0.3, label=nomes[m]) for m, cor in cores.items()]
     ax[1].legend(handles=marcas + ax[1].get_legend_handles_labels()[0], fontsize=7, loc="lower left")
-    ax[0].set_ylim(top=6)
+    ax[0].set_ylim(-100, 6)   # room for the legends below the bars
     ax[0].set_title("(a) candidate mechanisms", fontsize=9)
     ax[1].set_title("(b) coupling, L and G walls", fontsize=9)
     fig.tight_layout()
@@ -198,7 +201,10 @@ def figura_radiativos(saida):
                                         ("n2_exemplo", "tab:green", "C"))):
         ax[1].plot(x + 0.12 * (k - 1), [100 * float(next(l for l in e4 if l["id"] == i and l["quimica"] == q)["dis"])
                                         for i in IDS], "o", color=cor, mfc="none", label=rot)
-    ax[1].plot([0, 2], [0.07, 0.2], "x", color="gray", ms=7, label="Levaton et al. model")
+    lev = le_csv(LIT / "levaton2020" / "dissociacao_modelo.csv")
+    lev = [l for l in lev if l["fonte"] == "levaton2020"]
+    ax[1].plot([IDS.index(l["id"]) for l in lev], [float(l["dissociacao_pct"]) for l in lev], "x", color="gray", ms=7,
+               label="Levaton et al. model")
     ax[1].set_yscale("log")
     ax[1].set_xticks(x)
     ax[1].set_xticklabels([r.replace("\n", " ") for r in ROTULOS], fontsize=7, rotation=90)
@@ -235,7 +241,7 @@ def figura_vdf(saida):
             a.plot(dig[:, 0], dig[:, 1], "o", color=cor, ms=3.5, mfc="none")
             mod = [l for l in vdf if l["id"] == cid and l["caso"] == "n2_amonia_v45" and float(l["t"]) == float(t)]
             a.semilogy([int(l["v"]) for l in mod], [float(l["n"]) for l in mod], "-", color=cor, lw=1,
-                       label=f"t = {float(t):.0e} s".replace("e-0", "e-"))
+                       label="t = " + {"1e-6": "1 $\\mu$s", "1e-5": "10 $\\mu$s"}.get(t, "end"))
         final = acoplado(cid)
         if final:
             n0 = next(float(l["n"]) / float(l["fracao"]) for l in vdf if l["id"] == cid and float(l["t"]) == float(tfim))

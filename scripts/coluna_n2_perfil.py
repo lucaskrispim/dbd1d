@@ -22,7 +22,7 @@ RAIZ = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ / "dbd1d"))
 sys.path.insert(0, str(RAIZ / "scripts"))
 from coluna import Coluna0D  # noqa: E402
-from coluna_n2 import QUIMICAS, condicoes, ne_nosso, treanor  # noqa: E402
+from coluna_n2 import QUIMICAS, condicoes, n2_total, ne_nosso, treanor  # noqa: E402
 from coluna_n2_en import CORRENTE_MA  # noqa: E402
 from coluna_n2_lote import gamas  # noqa: E402
 
@@ -41,7 +41,7 @@ def estado(caso, cond, g, perfil):
     tv = treanor(np.r_[n0, [y[-1, nomes.index(s)] for s in vib]], cond["tg"]) if all(s in nomes for s in vib) else np.nan
     b, cc = (nomes.index(s.upper()) for s in B_C[caso])
     en = c.en_sustentado(CORRENTE_MA[cond["id"]] * 1e-3, cond["t"])
-    return c, dict(en=en, tv=tv, dis=y[-1, nomes.index("N")] / n0, b_c=y[-1, b] / y[-1, cc])
+    return c, dict(en=en, tv=tv, dis=y[-1, nomes.index("N")] / n2_total(c, y[-1]), b_c=y[-1, b] / y[-1, cc])
 
 
 def main():

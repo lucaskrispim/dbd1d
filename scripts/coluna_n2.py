@@ -16,7 +16,7 @@ Choices, as in docs/coluna_positiva_n2/README.md:
 - Tv: Treanor fit to N2(v = 0 to 4), anharmonic levels of N2(X) (we 2358.57,
   wexe 14.324 cm-1), as Levaton fits the first five levels; v = 0 is the
   background, depleted by what the other species hold (coluna.py);
-- dissociation: [N]/[N2];
+- dissociation: [N]/[N2], N2 in all its vibrational levels (n2_total);
 - uncertainty: each condition also at the edges of its error bars of E/N, n_e
   and T_g (one at a time; 10% for Gordiets, which gives no error bars); the
   result is the envelope.
@@ -26,6 +26,7 @@ Writes resultados.csv and the figure tv_dissociacao.png.
 """
 import csv
 import pathlib
+import re
 import sys
 
 import numpy as np
@@ -57,6 +58,14 @@ def treanor(n, t_gas):
     x = -v * e1
     inv = np.sum(x * y) / np.sum(x * x)
     return 1.0 / inv
+
+
+def n2_total(c, y):
+    """Density of N2(X) in all its vibrational levels: the background v = 0 plus the
+    N2(vk) of the chemistry (the background alone is only v = 0, coluna.py)."""
+    nomes = [s.upper() for s in c.especies]
+    n0 = c.densidades(y)[[s.upper() for s in c.q.especies].index("N2")]
+    return n0 + sum(y[i] for i, s in enumerate(nomes) if re.fullmatch(r"N2\(V\d+\)", s))
 
 
 def condicoes():
@@ -96,7 +105,7 @@ def roda(caso, cond, en, ne, tg):
     vib = [f"N2(V{k})" for k in range(1, 5)]
     n0 = c.densidades(fim)[[s.upper() for s in c.q.especies].index("N2")]
     tv = treanor(np.r_[n0, [fim[nomes.index(s)] for s in vib]], tg) if all(s in nomes for s in vib) else np.nan
-    return dict(tv=tv, dis=fim[nomes.index("N")] / n0, ne=ne)
+    return dict(tv=tv, dis=fim[nomes.index("N")] / n2_total(c, fim), ne=ne)
 
 
 def main():

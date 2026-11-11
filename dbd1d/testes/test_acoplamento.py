@@ -13,6 +13,7 @@ from conftest import RAIZ, precisa_terceiros
 
 sys.path.insert(0, str(RAIZ / "ferramentas"))
 import acoplamento_vibracional as av  # noqa: E402
+import proveniencia  # noqa: E402
 import escada_vibracional as ev  # noqa: E402
 
 EV_K = 11604.518
@@ -155,13 +156,25 @@ def test_superelástica_também_na_química():
     assert "=> E + N2 !" not in av.kinet_acoplado(KINET, 2, BANCO, superelastica=False)
 
 
-def test_superelástica_só_dos_níveis_com_seta_dupla_no_banco():
-    # N2(v1res), the resonant part of v = 1 in the Phelps set, keeps the single arrow in
-    # banco_acoplado; its inverse does not enter the chemistry either
+RES = ("\nEXCITATION\nN2 -> N2(v1res)\n2.910000e-1/threshold energy\nSPECIES: e / N2\n"
+       "-----------------------------\n 0.000000e+0\t0.000000e+0\n 2.910000e-1\t0.000000e+0\n"
+       " 1.000000e+0\t4.000000e-21\n 2.000000e+0\t0.000000e+0\n-----------------------------\n")
+
+
+def test_parte_ressonante_de_v1_entra_na_inversa():
+    # N2(v1res), the resonant part of 0 -> 1 in the Phelps set, has no level of its own:
+    # with the superelastic inverse it is summed into N2 <-> N2(v1), so that the electrons
+    # also gain from it (the version cited by the first submission left it one way)
+    novo = av.banco_acoplado(BANCO + RES, 2)
+    assert "N2(v1res)" not in novo
+    t = dict(tabela(next(b for b in blocos(novo) if b[1] == "N2 <-> N2(v1)")))
+    assert t[1.0] == pytest.approx(np.interp(1.0, [0.29, 10.0], [0.0, 1e-21]) + 4e-21, rel=1e-6)
+    assert av.banco_acoplado(BANCO + RES, 2, superelastica=False).count("N2 -> N2(v1res)") == 1
     kinet = KINET.replace("! BOLSIG N2 -> N2(v1)", "! BOLSIG N2 -> @R\n    @R = N2(v1)  N2(v1res)")
     novo = av.kinet_acoplado(kinet, 2)
+    assert "v1res" not in novo and re.search(r"E \+ N2 => E \+ N2\(v1\) +! BOLSIG N2 -> N2\(v1\)\n", novo)
     assert novo.count("=> E + N2 ! BOLSIG") == 1 and "E + N2(v1) => E + N2 ! BOLSIG N2(v1) -> N2\n" in novo
-    assert "v1res) -> N2" not in novo
+    assert "N2(v1res)" in av.kinet_acoplado(kinet, 2, superelastica=False)
 
 
 def test_cada_seta_dupla_do_banco_tem_a_inversa_na_química():
@@ -535,3 +548,25 @@ def test_caso_com_ev_passa_no_pré_processador(tmp_path):
     caso.gera_zdplaskin(tmp_path)
     fonte = (tmp_path / "zdplaskin_m.F90").read_text().upper()
     assert "BOLSIG:N2(V20)->N2(V28)" in fonte and "BOLSIG:N2(V28)->N2(V20)" in fonte
+
+
+def test_rotacao_real_copiada_sem_deslocar():
+    # in the real bank the rotation is an EXCITATION block N2 -> N2(rot) with a 0.02 eV threshold
+    base = RAIZ / "casos" / "n2_amonia" / "bolsigdb.dat"
+    if not base.exists():
+        pytest.skip("casos/n2_amonia/bolsigdb.dat is not distributed")
+    novo = blocos(av.banco_acoplado(base.read_text(), 5))
+    for v in range(1, 6):
+        rot = [b for b in novo if b[1] == f"N2(v{v}) -> N2(rot)"]
+        assert len(rot) == 1, v
+        assert float(rot[0][2].split("/")[0]) == pytest.approx(0.02)
+        assert " 2.000000e-2\t0.000000e+0" in rot[0]
+
+
+def test_banco_acoplado_sem_duplicatas():
+    base = RAIZ / "casos" / "n2_amonia_v45" / "bolsigdb.dat"
+    if not base.exists():
+        pytest.skip("casos/n2_amonia_v45/bolsigdb.dat is not distributed")
+    blocos_acoplados = proveniencia.blocos_de_texto(av.banco_acoplado(base.read_text(), 5))
+    assert proveniencia.duplicatas(blocos_acoplados) == []
+    assert [b.nome for b in blocos_acoplados if not proveniencia.rotulo_coerente(b)] == []
