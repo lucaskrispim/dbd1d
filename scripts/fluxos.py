@@ -25,13 +25,19 @@ from resumo import blocos  # noqa: E402
 PADRAO = ("N(2D)", "NH", "NH2", "NH3", "NH4^+", "H")
 
 
-def modelo_da_execucao(d):
+def modelo_da_execucao(d, parceiro_n2=None):
     """Model built with the arguments recorded in parametros.json; the case of
-    another machine becomes the local casos/NAME."""
+    another machine becomes the local casos/NAME. parceiro_n2: None keeps the N2 partner
+    of the run (v0 for runs made before the option existed, version 1.5.1), "total" or "v0"
+    impose one, for a new calculation that only borrows the chemistry of the run."""
     import simula
     # defaults of simula.py for the options that did not exist when the run was made
     a = simula.cria_parser().parse_args([str(d)])
-    vars(a).update(json.loads((d / "parametros.json").read_text())["argumentos"])
+    argumentos = json.loads((d / "parametros.json").read_text())["argumentos"]
+    a.parceiro_n2 = "v0"
+    vars(a).update(argumentos)
+    if parceiro_n2 is not None:
+        a.parceiro_n2 = parceiro_n2
     caso = pathlib.Path(a.caso)
     if not caso.exists():
         caso = RAIZ / "casos" / caso.name if caso.parent.name == "casos" else RAIZ

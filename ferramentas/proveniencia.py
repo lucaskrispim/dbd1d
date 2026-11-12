@@ -142,15 +142,24 @@ if (RAIZ / "bolsigdb.log").exists():
 def referencia_transporte(especie, fundo):
     """Key of biblioteca/transporte.json that holds the transport data of the
     species in the given background, or None when the library has no entry that
-    applies. Only a pure N2 background is covered: N and its excited states take
-    "N em N2", N2 vibrational and electronic states take "N2(A) em N2", and the
-    ions N+, N2+, N3+, N4+ take their own "X em N2" entry."""
+    applies. Only a pure N2 background is covered: the background N2 itself and the N2
+    vibrational states take "N2 em N2", N, N(2D) and N(2P) take their own entry, N2(a'1), N2(B)
+    and N2(C) take their own entry, the other N2 electronic states take "N2(A) em N2", and the ions N+,
+    N2+, N3+, N4+ take their own "X em N2" entry."""
     if [k.upper() for k in fundo] != ["N2"]:
         return None
     s = especie.strip().upper()
-    if s == "N" or re.fullmatch(r"N\((2D|2P)\)", s):
+    if s == "N2" or re.fullmatch(r"N2\(V\d+\)", s):
+        return "N2 em N2"
+    if s == "N":
         return "N em N2"
-    if re.fullmatch(r"N2\((V\d+|A3?|B3?|C3?|A'1?|A`1|A``1|A''1)\)", s):
+    if re.fullmatch(r"N\((2D|2P)\)", s):
+        return f"{s} em N2"
+    if re.fullmatch(r"N2\((A'1?|A`1)\)", s):
+        return "N2(A') em N2"
+    if re.fullmatch(r"N2\((B|C)3?\)", s):
+        return f"N2({s[3]}) em N2"
+    if re.fullmatch(r"N2\((A3?|A``1|A''1)\)", s):
         return "N2(A) em N2"
     if s in ("N^+", "N2^+", "N3^+", "N4^+"):
         return f"{s} em N2"
@@ -325,6 +334,25 @@ def registro(raiz, codigo, caso=None, extras=()):
         if caminho in rel and caminho not in sujo:
             sujo.append(caminho)
     return dict(commit=commit, sujo=sorted(sujo), **hashes)
+
+
+def grava_origem(csv, script, casos, extras=()):
+    """Writes CSV.origem.json beside a CSV that goes to an article: the SHA-256 of the CSV and,
+    for each case of `casos` (names in casos/), the provenance record of the run (`registro`) with
+    the code that `script` imports. A text that cites the CSV can then be checked against the
+    current inputs and code (phase 5 of docs/auditoria/2026-11-11_cadeia/PLANO.md). Returns the
+    path of the record. Without cases (a post-processor of runs), the record of the code and of
+    `extras` goes under "codigo"."""
+    import json
+    csv = pathlib.Path(csv)
+    codigo = codigo_do_script(RAIZ, script)
+    reg = dict(csv=csv.name, sha256_csv=_sha256(csv),
+               casos={c: registro(RAIZ, codigo, RAIZ / "casos" / c, extras=extras) for c in casos})
+    if not casos:   # a post-processor of runs: the code and the files it read, without a case
+        reg["codigo"] = registro(RAIZ, codigo, None, extras=extras)
+    destino = csv.with_name(csv.name + ".origem.json")
+    destino.write_text(json.dumps(reg, indent=1, ensure_ascii=False) + "\n")
+    return destino
 
 
 def exige_arvore_limpa(reg):

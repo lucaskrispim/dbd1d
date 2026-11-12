@@ -1,18 +1,21 @@
-superficie.dat: 5 registros, 6 colunas comuns, DIFERE
-           phi esq  dif. relativa máx. 4.779e-13
-           phi dir  dif. relativa máx. 1.524e-12
-         sigma esq  dif. relativa máx. 1.376e-09
-         sigma dir  dif. relativa máx. 4.471e-10
-perfil.dat: 110 registros, 18 colunas comuns, DIFERE
-              volt  dif. relativa máx. 1.692e-12
-                De  dif. relativa máx. 2.773e-13
-                Me  dif. relativa máx. 5.401e-13
-             veloc  dif. relativa máx. 3.113e-12
-              freq  dif. relativa máx. 5.862e-13
-                Te  dif. relativa máx. 5.293e-13
-                 E  dif. relativa máx. 1.996e-08
-               AR*  dif. relativa máx. 1.439e-08
-              AR^+  dif. relativa máx. 3.676e-09
-             AR2^+  dif. relativa máx. 1.388e-09
-               E/N  dif. relativa máx. 3.645e-12
-             campo  dif. relativa máx. 3.648e-12
+Referência refeita duas vezes em 11/11/2026: (1) k_B do CODATA (ERROS.md V5-6), mudança até 1e-3 do máximo de cada coluna; (2) difusão do Ar* pela medida de Ellis e Twiddy 1969 (ERROS.md A8), mudança medida abaixo, contra a referência de (1):
+superficie.dat: 5 records, 6 common columns, DIFFERS
+           phi esq  max. relative diff. 4.276e-09
+           phi dir  max. relative diff. 1.363e-08
+         sigma esq  max. relative diff. 1.758e-05
+         sigma dir  max. relative diff. 2.741e-05
+perfil.dat: 110 records, 18 common columns, DIFFERS
+              volt  max. relative diff. 1.363e-08
+                De  max. relative diff. 3.128e-09
+                Me  max. relative diff. 6.382e-09
+             veloc  max. relative diff. 3.527e-08
+            rho cv  max. relative diff. 8.460e-14
+              alfa  max. relative diff. 8.464e-14
+              freq  max. relative diff. 6.682e-09
+                Te  max. relative diff. 6.005e-09
+                 E  max. relative diff. 9.419e-04
+               AR*  max. relative diff. 6.305e-03
+              AR^+  max. relative diff. 5.887e-05
+             AR2^+  max. relative diff. 1.692e-05
+               E/N  max. relative diff. 4.142e-08
+             campo  max. relative diff. 5.645e-08

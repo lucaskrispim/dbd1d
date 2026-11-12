@@ -1,0 +1,7 @@
+# Vibrational temperature theta (K) calculated by the model of Levaton et al. 2020, Phys. Plasmas 27
+# 063503, table IX ("Calculated (theta) and experimental (Tv) vibrational temperatures"), 230 Pa;
+# the measured Tv of the same table are in the conditions of the column (condicoes.csv)
+id,theta_K,fonte
+L20_10mA,1600,levaton2020 table IX
+L20_20mA,2300,levaton2020 table IX
+L20_50mA,3800,levaton2020 table IX

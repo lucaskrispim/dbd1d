@@ -648,6 +648,10 @@ def cria_parser():
     op("--residence-time", "--residencia", type=float, default=None,
        help="residence time of the gas in a flowing reactor, s: what the gas carries leaves at the rate n/tau "
             "and clean background gas enters at --t-gas (default: closed cell)")
+    op("--n2-partner", "--parceiro-n2", choices=("total", "v0"), default="total",
+       help="density of N2 as an unchanged collision partner (V-T, quenching, three-body) with --free-gas: total, "
+            "N2(X) in all its vibrational levels (Gordiets et al. 1995); v0, the species N2 alone, as before version "
+            "1.5.1. With the background held fixed, N2 is the whole N2 of the gas and this option has no effect")
     op("--accelerate", "--acelera", nargs=2, type=int, metavar=("K", "M"),
        help="experimental, off by default: cycle acceleration for slow chemistry: after K direct cycles (at least 3), the neutral species and "
             "the gas temperature are projected M cycles ahead from their changes between the ends of the last "
@@ -742,7 +746,7 @@ def monta_modelo(a, caso, faces):
             espessura_dir=a.espessura_dir, eps_dieletrico_dir=a.eps_dieletrico_dir,
             n_gas=a.pressao / (KB * a.t_gas) * 1e-6,
             eps_dieletrico=a.eps_dieletrico, gama_sec=a.gama, freio=not a.sem_freio, faces=faces,
-            reflexao_eletrons=a.reflexao_eletrons, residencia=a.residencia,
+            reflexao_eletrons=a.reflexao_eletrons, residencia=a.residencia, parceiro_n2=a.parceiro_n2,
             aquecimento=a.aquecimento, gas_solto=a.gas_solto, t_parede=a.t_parede, t_gas=a.t_gas,
             k0_ar=a.k0_ar_ion, en_aquecimento_ar=a.en_aquecimento_ar_ion, k0_ar2=a.k0_ar2_ion,
             ganho_tres_corpos=a.ganho_tres_corpos, eps_gas=a.eps_gas,
@@ -793,6 +797,11 @@ def estado_da_retomada(p, a, md):
             if isinstance(agora, pathlib.Path):
                 agora = str(agora.resolve())  # the origin records the absolute path
             return agora
+        # a run made before --n2-partner existed had N2 in v = 0 only as the partner (it matters
+        # only with --free-gas: with the background held fixed, N2 is the whole N2 of the gas)
+        if a.gas_solto and antes.get("parceiro_n2", "v0") != a.parceiro_n2:
+            p.error(f"--n2-partner: the origin used {antes.get('parceiro_n2', 'v0')}; the restart needs the same "
+                    "value")
         for opcao in ("forma", "subida", "largura", "descida", "t_gas", "tensao_tabela"):
             if opcao in antes and antes[opcao] != valor(opcao):
                 p.error(f"--{NOMES[opcao]}: the origin used {antes[opcao]}; the restart needs the same value")

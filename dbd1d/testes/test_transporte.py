@@ -36,9 +36,13 @@ def test_padrao_reproduz_os_valores_do_argonio(pecas):
         assert md.massa[k] == esperado[nome], nome                   # bit a bit
     atomos = {"E": 0.0, "AR": 0.0, "AR*": 1.0, "AR^+": 1.0, "AR2^+": 2.0}
     assert list(md.atomos[0]) == [atomos[n] for n in md.nomes]
-    p_atm = (md.n_gas * 1e6) * (1.38e-23 * 300.0) / 101325.0
+    # k_B of CODATA 2018 (exact), as in the n_gas of the model; before 11/11/2026 the pressure
+    # used 1.38e-23 and the diffusion came out 0.047% high (ERROS.md V5-6)
+    p_atm = (md.n_gas * 1e6) * (1.380649e-23 * 300.0) / 101325.0
+    assert p_atm == pytest.approx(1.0, rel=1e-14)                  # 1 atm at 300 K
     k = md.nomes.index("AR*")
-    assert md.difusao[k] == 17.0e-6 / p_atm * (300.0 / 273.0) ** 1.9
+    # Ar*: N D = 1.7e18 cm-1 s-1 at 300 K, Ellis and Twiddy 1969 (ERROS.md A8)
+    assert md.difusao[k] == 6.949e-6 / p_atm * (300.0 / 300.0) ** 1.9
     campo = np.array([0.0, 1e6, 1e7])
     escala = N_LOSCHMIDT / md.n_gas * 1e-4
     e_n = campo / md.n_gas * 1e15
@@ -57,8 +61,8 @@ def test_cada_especie_usa_os_seus_dados(pecas, dados):
     escala = N_LOSCHMIDT / md.n_gas * 1e-4
     mu = md.mobilidade_ion(md.nomes.index("AR2^+"), campo)
     assert mu[0] == pytest.approx(2.0 * escala / np.sqrt(1.0 + campo[0] / md.n_gas * 1e15 / 100.0), rel=1e-14)
-    p_atm = (md.n_gas * 1e6) * (1.38e-23 * 300.0) / 101325.0
-    assert md.difusao[md.nomes.index("AR*")] == pytest.approx(2.0e-5 / p_atm * (300.0 / 273.0) ** 1.9, rel=1e-14)
+    p_atm = (md.n_gas * 1e6) * (1.380649e-23 * 300.0) / 101325.0
+    assert md.difusao[md.nomes.index("AR*")] == pytest.approx(2.0e-5 / p_atm * (300.0 / dados["AR*"]["difusao"]["T0"]) ** 1.9, rel=1e-14)
     assert md.massa[md.nomes.index("AR2^+")] == pytest.approx(80.0 * U, rel=1e-15)
 
 
@@ -69,7 +73,7 @@ def test_difusao_local_usa_os_dados_da_especie(pecas, dados):
     n = md.separa(md.estado_inicial())[0]
     tg = np.full(md.m, 600.0)
     _, dif, *_ = md.coeficientes(np.zeros(md.m), n, t_gas=tg)
-    p_atm = (md.n_pesadas(n) * 1e6) * (1.38e-23 * 600.0) / 101325.0
+    p_atm = (md.n_pesadas(n) * 1e6) * (1.380649e-23 * 600.0) / 101325.0
     np.testing.assert_allclose(dif[md.nomes.index("AR*")], 3.0e-5 / p_atm * (600.0 / 300.0) ** 1.5, rtol=1e-14)
 
 

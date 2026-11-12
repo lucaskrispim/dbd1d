@@ -34,6 +34,8 @@ def linha_de_comando(argumentos, destino, t0, t_end, dt_saida):
     with the English option names."""
     from simula import NOMES
     linha = [str(destino)]
+    # a run made before --n2-partner existed had N2 in v = 0 only as the partner
+    argumentos = {"parceiro_n2": "v0", **argumentos}
     for k, v in argumentos.items():
         if k in TROCADAS or v is None or v is False:
             continue

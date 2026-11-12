@@ -1,0 +1,24 @@
+Referência refeita duas vezes em 11/11/2026: (1) k_B do CODATA (ERROS.md V5-6), mudança até 1e-3 do máximo de cada coluna; (2) difusão do Ar* pela medida de Ellis e Twiddy 1969 (ERROS.md A8), mudança medida abaixo, contra a referência de (1):
+superficie.dat: 26 records, 6 common columns, DIFFERS
+           phi esq  max. relative diff. 2.620e-04
+           phi dir  max. relative diff. 2.359e-05
+         sigma esq  max. relative diff. 9.816e-05
+         sigma dir  max. relative diff. 1.614e-03
+perfil.dat: 572 records, 19 common columns, DIFFERS
+       Temperature  max. relative diff. 6.670e-08
+              volt  max. relative diff. 2.620e-04
+                De  max. relative diff. 1.716e-03
+                Me  max. relative diff. 4.829e-03
+             veloc  max. relative diff. 1.750e-02
+            diff T  max. relative diff. 3.199e-08
+            rho cv  max. relative diff. 1.233e-09
+              alfa  max. relative diff. 3.124e-08
+              freq  max. relative diff. 3.648e-03
+                Te  max. relative diff. 4.593e-03
+                 E  max. relative diff. 8.644e-03
+               AR*  max. relative diff. 4.976e-01
+              AR^+  max. relative diff. 2.914e-03
+             AR2^+  max. relative diff. 2.080e-03
+               E/N  max. relative diff. 1.745e-02
+             campo  max. relative diff. 8.780e-02
+             n_eps  max. relative diff. 8.831e-03

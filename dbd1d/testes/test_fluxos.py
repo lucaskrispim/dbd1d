@@ -59,3 +59,11 @@ def test_execucao_antiga_sem_opcoes_novas_e_lida(execucao, tmp_path):
     (velha / "parametros.json").write_text(json.dumps(p))
     md = fluxos.modelo_da_execucao(velha)
     assert md.absorcao_eletrons == 1.0
+    # ERROS.md T2: a run made before --n2-partner existed is rebuilt with N2 in v = 0 only;
+    # a new calculation that borrows the chemistry can impose the partner
+    p = json.loads((velha / "parametros.json").read_text())
+    p["argumentos"].pop("parceiro_n2", None)
+    p["argumentos"]["gas_solto"] = True
+    (velha / "parametros.json").write_text(json.dumps(p))
+    assert fluxos.modelo_da_execucao(velha).q.parceiro_total is False
+    assert fluxos.modelo_da_execucao(velha, parceiro_n2="total").q.parceiro_total is True

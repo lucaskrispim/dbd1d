@@ -60,6 +60,20 @@ primary sources; each correction comes with a test that fails on the earlier dat
 These corrections change the results of the N2 column. Its result files, distributed from 1.3.1 to
 1.4.0, are left out of this version and will return recomputed.
 
+Version 1.6.0 continues that verification, from the data to the scripts that write results:
+
+- the N2-N2 V-V block of the mechanism of Sun et al. (2022) is rebuilt by `ferramentas/vv_sun.py`
+  with the decreasing exponent of Capitelli et al. (2000), eq. 3.69, and the reverse rate from
+  detailed balance, in the column chemistries derived from it; the cases that reproduce Sun et al.
+  and Yang et al. keep the published mechanism;
+- the diffusion of Ar* in a mixture (Blanc's law) uses the measured Ar*-Ar pair, N D = 1.7e18
+  cm-1 s-1 at 300 K, instead of an estimate (`casos/ar_n2`, `casos/ar_n2_o2`);
+- the mobilities of N2+, N+, N3+ and N4+ are checked against Ellis et al. (1976), with the page of
+  each ion (`docs/literatura/dados/ellis1976`);
+- every script that writes a result records its provenance (`<file>.origem.json`), and
+  `ferramentas/versoes.py` reports results that are out of date or have no record;
+- the Boltzmann constant is the CODATA value in Python and Fortran.
+
 Options, messages and comments are in English. Identifiers, file names and the keys of the data
 files keep their original Portuguese names, and the earlier Portuguese option names (`--pressao`,
 `--forma seno`, ...) are still accepted as aliases. Up to version 1.2.2 the folder `dbd1d/` was

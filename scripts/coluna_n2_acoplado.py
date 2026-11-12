@@ -39,6 +39,8 @@ import numpy as np
 
 RAIZ = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ / "dbd1d"))
+sys.path.insert(0, str(RAIZ / "ferramentas"))
+import proveniencia  # noqa: E402
 sys.path.insert(0, str(RAIZ / "scripts"))
 sys.path.insert(0, str(RAIZ / "ferramentas"))
 import acoplamento_vibracional as av  # noqa: E402
@@ -117,7 +119,9 @@ def main():
     en = c.en_sustentado(i_a, cond["t"])
     tv, dis, pops = resultado(pasta, cond, en, g)
     dados = dict(id=cid, variante=variante, modo=modo, iteracao=k, en_entrada=en_anterior, en=en, tv=tv, dis=dis,
-                 en_medido=cond["en"], fracao_v_maior_10=sum(f for v, f in pops.items() if v > 10))
+                 en_medido=cond["en"], fracao_v_maior_10=sum(f for v, f in pops.items() if v > 10),
+                 # code and inputs of the case built for this iteration (phase 5 of the chain audit)
+                 versao=proveniencia.registro(RAIZ, proveniencia.codigo_do_script(RAIZ, pathlib.Path(__file__)), pasta))
     (saida / f"{nome}_it{k}.json").write_text(json.dumps(dados, indent=1))
     print(json.dumps(dados), flush=True)
 

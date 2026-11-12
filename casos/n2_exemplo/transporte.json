@@ -10,67 +10,72 @@
   "N": {
     "massa_u": 14.007,
     "difusao": {
-      "D0": 3.3e-05,
-      "T0": 300.0,
-      "expoente": 1.75
+      "D0": 2.8e-05,
+      "T0": 273.0,
+      "expoente": 1.5
     },
     "perda_na_parede": 2.16e-06,
     "atomos_do_fundo": 0.5,
-    "fonte": "estimated diffusion: measured self-diffusion of N2 (0.202 cm2/s, 1 atm, 300 K) scaled by the reduced mass and by the hard-sphere diameter of N (2.75 Å at 280 K, Diffusion coefficients of O and N atoms in inert gases) against 3.75 Å for N2; loss: recombination at the quartz wall, gamma = 2.16e-6 (Mazánková, Trunec and Krčma, 2015, afterglow at 1000 Pa)"
+    "fonte": "diffusion: N(4S)-N2, 0.28 cm2/s at 273 K and 1 atm, beta 1.50, Capitelli, Ferreira, Gordiets and Osipov 2000, Plasma Kinetics in Atmospheric Gases, eq. 6.7 and table 6.2 (p. 97) (before, an estimate from the self-diffusion of N2 with exponent 1.75 assumed); loss: recombination at the quartz wall, gamma = 2.16e-6 (Mazánková, Trunec and Krčma, 2015, afterglow at 1000 Pa)",
+    "fonte_difusao": "corrected 11/11/2026: library entry N em N2 (pure N2), with Capitelli et al. 2000, table 6.2"
   },
   "N2": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 2.02e-05,
-      "T0": 300.0,
-      "expoente": 1.75
+      "D0": 1.7e-05,
+      "T0": 273.0,
+      "expoente": 1.9
     },
     "atomos_do_fundo": 0,
-    "fonte": "self-diffusion taken equal to the measured one of N2(A); used only with --free-gas"
+    "fonte": "self-diffusion N2-N2 of Capitelli et al. 2000, eq. 6.7 and table 6.2 (p. 97), as in the library entry N2 em N2; used only with --free-gas (corrected 11/11/2026, ERROS.md A1, A2: before, the measured 0.202 cm2/s of N2(A) at 300 K with exponent 1.75)"
   },
   "N2(A)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 2.02e-05,
-      "T0": 300.0,
-      "expoente": 1.75
+      "D0": 1.79e-05,
+      "T0": 273.0,
+      "expoente": 1.9
     },
     "perda_na_parede": 1.0,
     "atomos_do_fundo": 1,
-    "fonte": "diffusion: 0.202 cm2/s at 760 Torr and 300 K (Planet. Space Sci., 1967, doi 10.1016/0032-0633(67)90041-4); exponent 1.75 assumed; wall loss 1 assumed (de-excitation)"
+    "fonte": "diffusion: N2(A)-N2, 0.179 cm2/s at 1 atm and 273 K with beta 1.90, Capitelli, Ferreira, Gordiets and Osipov 2000, Plasma Kinetics in Atmospheric Gases, eq. 6.7 and table 6.2 (p. 97), ref. [6] of the table (Zipf 1963; Haydon et al. 1996; Fewell and Haydon 1997); corrected 11/11/2026 (ERROS.md A2): before, 0.202 cm2/s at 300 K of Planet. Space Sci. 1967 (doi 10.1016/0032-0633(67)90041-4), which is not the measurement the table cites; wall loss 1 assumed (de-excitation)",
+    "fonte_difusao": "corrected 11/11/2026: library entry N2(A) em N2 (pure N2), with Capitelli et al. 2000, table 6.2 (N2(A)-N2, 273 K; ERROS.md N5, A2); wall loss of the library (1 already before 11/11/2026 in this case)"
   },
   "N2(B)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 2.02e-05,
-      "T0": 300.0,
-      "expoente": 1.75
+      "D0": 1.79e-05,
+      "T0": 273.0,
+      "expoente": 1.9
     },
     "perda_na_parede": 1.0,
     "atomos_do_fundo": 1,
-    "fonte": "assumed equal to N2(A): short radiative lifetime, transport matters little; diffusion: 0.202 cm2/s at 760 Torr and 300 K (Planet. Space Sci., 1967, doi 10.1016/0032-0633(67)90041-4); exponent 1.75 assumed; wall loss 1 assumed (de-excitation)"
+    "fonte": "assumed equal to N2(A): short radiative lifetime, transport matters little; diffusion: N2(A)-N2, 0.179 cm2/s at 1 atm and 273 K with beta 1.90, Capitelli, Ferreira, Gordiets and Osipov 2000, Plasma Kinetics in Atmospheric Gases, eq. 6.7 and table 6.2 (p. 97), ref. [6] of the table (Zipf 1963; Haydon et al. 1996; Fewell and Haydon 1997); corrected 11/11/2026 (ERROS.md A2): before, 0.202 cm2/s at 300 K of Planet. Space Sci. 1967 (doi 10.1016/0032-0633(67)90041-4), which is not the measurement the table cites; wall loss 1 assumed (de-excitation)",
+    "fonte_difusao": "corrected 11/11/2026: library entry N2(A) em N2 (pure N2), with Capitelli et al. 2000, table 6.2 (N2(A)-N2, 273 K; ERROS.md N5, A2); wall loss of the library (1 already before 11/11/2026 in this case)"
   },
   "N2(A')": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 2.02e-05,
-      "T0": 300.0,
-      "expoente": 1.75
+      "D0": 1.79e-05,
+      "T0": 273.0,
+      "expoente": 1.9
     },
-    "perda_na_parede": 1.0,
+    "perda_na_parede": 0.001,
     "atomos_do_fundo": 1,
-    "fonte": "assumed equal to N2(A): short radiative lifetime, transport matters little; diffusion: 0.202 cm2/s at 760 Torr and 300 K (Planet. Space Sci., 1967, doi 10.1016/0032-0633(67)90041-4); exponent 1.75 assumed; wall loss 1 assumed (de-excitation)"
+    "fonte": "assumed equal to N2(A): short radiative lifetime, transport matters little; diffusion: N2(A)-N2, 0.179 cm2/s at 1 atm and 273 K with beta 1.90, Capitelli, Ferreira, Gordiets and Osipov 2000, Plasma Kinetics in Atmospheric Gases, eq. 6.7 and table 6.2 (p. 97), ref. [6] of the table (Zipf 1963; Haydon et al. 1996; Fewell and Haydon 1997); corrected 11/11/2026 (ERROS.md A2): before, 0.202 cm2/s at 300 K of Planet. Space Sci. 1967 (doi 10.1016/0032-0633(67)90041-4), which is not the measurement the table cites; wall loss 1e-3 as in Capitelli et al. 2000, p. 233 (N2-O2 low pressure discharge model; p. 196 gives <= 1e-2 measured on glass); corrected 11/11/2026 (ERROS.md N9): before, 1 assumed equal to N2(A), without source",
+    "fonte_difusao": "corrected 11/11/2026: library entry N2(A) em N2 (pure N2), with Capitelli et al. 2000, table 6.2 (N2(A)-N2, 273 K; ERROS.md N5, A2); wall loss of the library, 1e-3 of Capitelli et al. 2000, p. 233 (ERROS.md N9; 1 before 11/11/2026 in this case)"
   },
   "N2(C)": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 2.02e-05,
-      "T0": 300.0,
-      "expoente": 1.75
+      "D0": 1.79e-05,
+      "T0": 273.0,
+      "expoente": 1.9
     },
     "perda_na_parede": 1.0,
     "atomos_do_fundo": 1,
-    "fonte": "assumed equal to N2(A): short radiative lifetime, transport matters little; diffusion: 0.202 cm2/s at 760 Torr and 300 K (Planet. Space Sci., 1967, doi 10.1016/0032-0633(67)90041-4); exponent 1.75 assumed; wall loss 1 assumed (de-excitation)"
+    "fonte": "assumed equal to N2(A): short radiative lifetime, transport matters little; diffusion: N2(A)-N2, 0.179 cm2/s at 1 atm and 273 K with beta 1.90, Capitelli, Ferreira, Gordiets and Osipov 2000, Plasma Kinetics in Atmospheric Gases, eq. 6.7 and table 6.2 (p. 97), ref. [6] of the table (Zipf 1963; Haydon et al. 1996; Fewell and Haydon 1997); corrected 11/11/2026 (ERROS.md A2): before, 0.202 cm2/s at 300 K of Planet. Space Sci. 1967 (doi 10.1016/0032-0633(67)90041-4), which is not the measurement the table cites; wall loss 1 assumed (de-excitation)",
+    "fonte_difusao": "corrected 11/11/2026: library entry N2(A) em N2 (pure N2), with Capitelli et al. 2000, table 6.2 (N2(A)-N2, 273 K; ERROS.md N5, A2); wall loss of the library (1 already before 11/11/2026 in this case)"
   },
   "N^+": {
     "massa_u": 14.007,
@@ -123,7 +128,7 @@
       "acima": "raiz"
     },
     "atomos_do_fundo": 0.5,
-    "fonte": "Ellis, Pai, McDaniel, Mason and Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 204-205, experimental data at 300 K; error up to 3%; above the last measured E/N, tail K ~ (E/N)^(-1/2), an estimate (decision of the authors, 18/10/2026)"
+    "fonte": "Ellis, Pai, McDaniel, Mason and Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 204, experimental data at 300 K; error up to 3%; above the last measured E/N, tail K ~ (E/N)^(-1/2), an estimate (decision of the authors, 18/10/2026)"
   },
   "N2^+": {
     "massa_u": 28.014,
@@ -231,7 +236,7 @@
       "acima": "raiz"
     },
     "atomos_do_fundo": 1.5,
-    "fonte": "Ellis, Pai, McDaniel, Mason and Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 204-205, experimental data at 300 K; error up to 7%; above the last measured E/N, tail K ~ (E/N)^(-1/2), an estimate (decision of the authors, 18/10/2026)"
+    "fonte": "Ellis, Pai, McDaniel, Mason and Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 204, experimental data at 300 K; error up to 7%; above the last measured E/N, tail K ~ (E/N)^(-1/2), an estimate (decision of the authors, 18/10/2026)"
   },
   "N4^+": {
     "massa_u": 56.028,
@@ -266,6 +271,6 @@
       "acima": "raiz"
     },
     "atomos_do_fundo": 2,
-    "fonte": "Ellis, Pai, McDaniel, Mason and Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 204-205, experimental data at 300 K; error up to 3%; measured only up to 40 Td (N4+ dissociates above); above the last measured E/N, tail K ~ (E/N)^(-1/2), an estimate (decision of the authors, 18/10/2026)"
+    "fonte": "Ellis, Pai, McDaniel, Mason and Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 205, experimental data at 300 K; error up to 3%; measured only up to 40 Td (N4+ dissociates above); above the last measured E/N, tail K ~ (E/N)^(-1/2), an estimate (decision of the authors, 18/10/2026)"
   }
 }

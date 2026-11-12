@@ -461,12 +461,14 @@ def mobilidade_estimada(ion, fundo, polarizabilidades=None):
     return 1.0 / inverso
 
 
-def difusao_estimada(especie, fundo, _cache={}):
+def difusao_estimada(especie, fundo, medidas=None, _cache={}):
     """Trace diffusion {D0 (m2/s at 1 atm and 300 K), T0, expoente} of the species
     in the background {gas: fraction} from kinetic theory (Cantera, GRI-Mech
     3.0): 1/D = sum x_j/D_kj, exponent fitted from 250 to 1000 K. Excited states
-    and ions use the base species (N2(A3) as N2). None if the species or a
-    background gas is not in GRI-Mech."""
+    and ions use the base species (N2(A3) as N2). medidas: {GAS: {D0, T0, expoente}}
+    of the species itself in that gas (library "SPECIES em GAS"), used for that pair
+    in place of the estimate (ERROS.md A15: Ar* in Ar is a third of ground Ar). None
+    if the species or a background gas is not in GRI-Mech."""
     try:
         import cantera as ct
     except ImportError:
@@ -487,7 +489,13 @@ def difusao_estimada(especie, fundo, _cache={}):
     for temp in ts:
         g.TPX = temp, ct.one_atm, x
         b = g.binary_diff_coeffs
-        d.append(1.0 / sum(v / b[k, g.species_index(n)] for n, v in x.items()))
+        soma = 0.0
+        for n, v in x.items():
+            m = (medidas or {}).get(n.upper())
+            dkj = (m["D0"] * (temp / m["T0"]) ** m["expoente"] if m
+                   else b[k, g.species_index(n)])
+            soma += v / dkj
+        d.append(1.0 / soma)
     d = np.array(d)
     expoente = np.polyfit(np.log(ts / 300.0), np.log(d / d[1]), 1)[0]
     return {"D0": float(d[1]), "T0": 300.0, "expoente": round(float(expoente), 3)}
@@ -527,8 +535,9 @@ def gera_transporte(pasta, biblioteca=None, quimica=None, estimar=False):
             e["massa_u"] = massa_u(esp)
         for campo, valor in biblioteca.get(f"{esp} em {fundo}", {}).items():
             e.setdefault(campo, valor)
+        _completa_por_sinonimo(e, esp, gas["fundo"], fundo, biblioteca)
         if estimar:
-            _estima(e, esp, q.carga[k], gas, nomes_fundo)
+            _estima(e, esp, q.carga[k], gas, nomes_fundo, biblioteca)
         if q.carga[k] != 0:
             exigidos = ["mobilidade"]
         elif q.carga[k] == 0 and esp not in nomes_fundo:
@@ -542,7 +551,26 @@ def gera_transporte(pasta, biblioteca=None, quimica=None, estimar=False):
     return faltam
 
 
-def _estima(e, esp, carga, gas, nomes_fundo):
+def _completa_por_sinonimo(e, esp, fundo_gas, fundo, biblioteca):
+    """Completes e from the library entry that holds the species under another name
+    (N2(A3) in N2(A) em N2, N2(V1) in N2 em N2; proveniencia.referencia_transporte),
+    when the library has no key with the name the chemistry uses. Only the transport
+    fields are copied; atomos_do_fundo belongs to the entry itself."""
+    if f"{esp} em {fundo}" in biblioteca:
+        return
+    from proveniencia import referencia_transporte
+    chave = referencia_transporte(esp, fundo_gas)
+    if chave not in biblioteca:
+        return
+    copiados = [c for c in ("difusao", "perda_na_parede", "mobilidade") if c in biblioteca[chave] and c not in e]
+    for c in copiados:
+        e[c] = biblioteca[chave][c]
+    if copiados:
+        nota = f"{', '.join(copiados)} from the library entry {chave}: {biblioteca[chave].get('fonte', '')}"
+        e["fonte"] = f"{e['fonte']}; {nota}" if isinstance(e.get("fonte"), str) else nota
+
+
+def _estima(e, esp, carga, gas, nomes_fundo, biblioteca):
     """Completes the entry e of the species with the missing estimates."""
     notas = []
     if carga != 0 and "mobilidade" not in e:
@@ -551,10 +579,16 @@ def _estima(e, esp, carga, gas, nomes_fundo):
         notas.append("mobility from the Langevin limit with Blanc's law (no charge exchange)")
     # the background too, for --free-gas, where it diffuses
     if carga == 0 and "difusao" not in e and tem_cantera():
-        d = difusao_estimada(esp, gas["fundo"])
+        medidas = {f.upper(): biblioteca[f"{esp} em {f.upper()}"]["difusao"] for f in gas["fundo"]
+                   if "difusao" in biblioteca.get(f"{esp} em {f.upper()}", {})}
+        d = difusao_estimada(esp, gas["fundo"], medidas=medidas)
         if d is not None:
             e["difusao"] = d
-            notas.append("trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species")
+            nota = "trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species"
+            if medidas:
+                nota += ("; Blanc's law with the measured " + ", ".join(f"{esp} em {f}" for f in medidas)
+                         + " of the library in place of the estimate (ERROS.md A15)")
+            notas.append(nota)
     if notas:
         nota = "automatic estimate (caso.py estimate): " + "; ".join(notas)
         e["fonte"] = f"{e['fonte']}; {nota}" if isinstance(e.get("fonte"), str) else nota

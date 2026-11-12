@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Free background gas, as gas_fixo = .false. in the Fortran code: neutral Ar
-enters the state, diffuses with the coefficient of Ar* (DK), takes part in the
+enters the state, diffuses with its self-diffusion (DK with fundo; until 11/11/2026 the
+coefficient of Ar*, ERROS.md A8), takes part in the
 chemistry and receives back from the wall, as neutral atoms, the argon particles
 that the wall absorbs (finding N15). The N of the electrons (E/N and table
 coefficients) is that of the neutrals of the cell, Ar + Ar*."""
@@ -51,8 +52,11 @@ def test_parede_devolve_os_atomos_como_ar_neutro(pecas):
     n[i_ar] = md.n_gas
     n[i_m, 0] = 1.0e6
     dn = md.rhs(0.0, np.concatenate([n.ravel(), [0.0, 0.0]]))[:-2].reshape(md.n_esp, md.m)
-    difusao = md.difusao[md.nomes.index("AR")] * 1.0e6 / md.d[1] / md.h[0]
-    assert dn[i_ar, 0] + dn[i_m, 0] == pytest.approx(-difusao, rel=1e-6)
+    # the diffusion of Ar*, not of the background Ar (they were equal until 11/11/2026, ERROS.md A8)
+    difusao = md.difusao[md.nomes.index("AR*")] * 1.0e6 / md.d[1] / md.h[0]
+    # the two terms (about 1e13 cm-3/s each) cancel to about 1e9: the rounding left is relative to
+    # them; swapping the D of Ar* for that of Ar would move the sum by 2e9
+    assert dn[i_ar, 0] + dn[i_m, 0] == pytest.approx(-difusao, abs=1e-9 * abs(dn[i_m, 0]))
 
 
 def test_campo_reduzido_com_os_neutros_da_celula(pecas):

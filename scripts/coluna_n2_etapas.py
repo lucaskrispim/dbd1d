@@ -25,6 +25,8 @@ import sys
 RAIZ = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ / "dbd1d"))
 sys.path.insert(0, str(RAIZ / "scripts"))
+sys.path.insert(0, str(RAIZ / "ferramentas"))
+import proveniencia  # noqa: E402
 BASE = RAIZ / "casos" / "n2_amonia"
 DESTINO = RAIZ / "casos" / "n2_amonia_etapas"
 EXCITADOS = {"N2(A3)": 6.17, "N2(B3)": 7.35, "N2(a'1)": 8.40}
@@ -98,7 +100,7 @@ def en(saida):
             ne = c.ne_da_corrente(i_a, e_n)
             _, y = c.integra(e_n, ne, cond["t"], n_saidas=2)
             k, _ = c.coeficientes(e_n)
-            taxas = c.q.taxas(c.densidades(y[-1])[:, None], k[:, None])[:, 0]
+            taxas = c.taxas(y[-1], k)
             ion = [r for r, txt in enumerate(c.q.reacoes) if txt.upper().startswith("BOLSIG:") and "->N2^+" in txt.upper()]
             excit = [r for r in ion if not txt_x(c.q.reacoes[r])]
             fracao = taxas[excit].sum() / taxas[ion].sum()
@@ -113,6 +115,7 @@ def en(saida):
         w = csv.DictWriter(f, fieldnames=list(linhas[0]))
         w.writeheader()
         w.writerows(linhas)
+    proveniencia.grava_origem(saida / "etapas.csv", __file__, ['n2_amonia_etapas'])  # code and inputs beside the CSV
 
 
 def txt_x(reacao):

@@ -6,6 +6,7 @@ import pytest
 
 from conftest import RAIZ, precisa_arquivo
 from coluna import Coluna0D, atomos, beta_robin, fator_perfil, perda_ambipolar, perda_neutro
+from quimica_zdp import Quimica
 
 J0 = 2.404825557695773   # first zero of the Bessel function J0
 KB = 1.380649e-23
@@ -13,7 +14,7 @@ QE = 1.602176634e-19
 CASO = RAIZ / "casos" / "n2_amonia"
 precisa_caso = precisa_arquivo("casos/n2_amonia/quimica.json")
 # wall probabilities of the article (scripts/coluna_n2.py, GAMAS)
-GAMAS = {"N": 3.2e-4, "N2(A3)": 1.0, "N2(a'1)": 1.0, "N(2D)": 1.0, "N(2P)": 1.0}
+GAMAS = {"N": 3.2e-4, "N2(A3)": 1.0, "N2(a'1)": 1e-3, "N(2D)": 1.0, "N(2P)": 1.0}
 
 
 def test_perda_ambipolar():
@@ -79,6 +80,44 @@ def test_estado_e_fundo():
     assert c.n_gas == pytest.approx(230.0 / (KB * 290.0) * 1e-6, rel=1e-12)
 
 
+def _reacao(c, texto):
+    return c.q.reacoes.index(texto.replace(" ", "").upper())
+
+
+@precisa_caso
+def test_parceiro_n2_é_o_n2_em_todos_os_níveis():
+    # the collision partner M = N2 of V-T, quenching and three-body reactions is N2(X) in
+    # every vibrational level (Gordiets et al. 1995, sec. II-B, "M = N2, O2, N, O, NO"),
+    # not the background species N2, which in a chemistry with N2(vk) is v = 0 only
+    c = Coluna0D(CASO, pressao_pa=230.0, t_gas=290.0, raio_cm=0.3)
+    rng = np.random.default_rng(2)
+    y = 10.0 ** rng.uniform(8, 12, len(c.especies))
+    nomes = [s.upper() for s in c.especies]
+    y[nomes.index("N2(V1)")] = 0.3 * c.n_gas
+    d = c.densidades(y)
+    i_n2 = [s.upper() for s in c.q.especies].index("N2")
+    total = d[i_n2] + sum(y[i] for i, s in enumerate(nomes) if s.startswith("N2(V"))
+    k, _ = c.coeficientes(110.0)
+    taxas = c.taxas(y, k)
+    a = [s.upper() for s in c.q.especies].index("N2(A3)")
+    v1 = [s.upper() for s in c.q.especies].index("N2(V1)")
+    b = [s.upper() for s in c.q.especies].index("N2(B3)")
+    r = _reacao(c, "N2(A3) + N2 => N2 + N2")
+    assert taxas[r] == pytest.approx(k[r] * d[a] * total, rel=1e-12)
+    r = _reacao(c, "N2(v1) + N2 => N2 + N2")
+    assert taxas[r] == pytest.approx(k[r] * d[v1] * total, rel=1e-12)
+    # N2 that changes state is the level v = 0 itself: electron impact and transfer to N2(v6)
+    r = _reacao(c, "N2(B3) + N2 => N2(A3) + N2(v6)")
+    assert taxas[r] == pytest.approx(k[r] * d[b] * d[i_n2], rel=1e-12)
+    r = c.q.reacoes.index("bolsig:N2->N2(V1)")
+    assert taxas[r] == pytest.approx(k[r] * y[c.i_e] * d[i_n2], rel=1e-12)
+    antigo = Coluna0D(CASO, pressao_pa=230.0, t_gas=290.0, raio_cm=0.3, parceiro_n2="v0")
+    sem = Quimica.de_json(CASO / "quimica.json")       # the chemistry as written: N2 is v = 0
+    np.testing.assert_allclose(antigo.taxas(y, k), sem.taxas(d[:, None], k[:, None])[:, 0], rtol=1e-12)
+    with pytest.raises(ValueError, match="parceiro_n2"):
+        Coluna0D(CASO, pressao_pa=230.0, t_gas=290.0, raio_cm=0.3, parceiro_n2="outro")
+
+
 @precisa_caso
 def test_rhs_é_fonte_química_menos_perda_radial():
     c = Coluna0D(CASO, pressao_pa=230.0, t_gas=290.0, raio_cm=0.3)
@@ -86,7 +125,7 @@ def test_rhs_é_fonte_química_menos_perda_radial():
     y = 10.0 ** rng.uniform(6, 12, len(c.especies))
     e_n = 110.0
     k, te = c.coeficientes(e_n)
-    fontes = c.q.fontes(c.densidades(y)[:, None], k[:, None])[:, 0][c.indices]
+    fontes = (c.q.estequiometria @ c.taxas(y, k))[c.indices]
     nu = c.frequencias_de_perda(e_n, te)
     dy = c.rhs(0.0, y, e_n, ne=None)
     outras = np.arange(len(y)) != c.i_e          # the electrons: test_eletrons_perdidos_junto_com_os_íons
@@ -125,7 +164,7 @@ def test_eletrons_perdidos_junto_com_os_íons():
     k, te = c.coeficientes(e_n)
     nu = c.frequencias_de_perda(e_n, te)
     perda_ions = sum(nu[c.especies.index(s)] * y[c.especies.index(s)] for s in ("N2^+", "N4^+"))
-    fonte_e = c.q.fontes(c.densidades(y)[:, None], k[:, None])[:, 0][c.indices][c.i_e]
+    fonte_e = (c.q.estequiometria @ c.taxas(y, k))[c.indices][c.i_e]
     assert c.rhs(0.0, y, e_n, ne=None)[c.i_e] == pytest.approx(fonte_e - perda_ions, rel=1e-12)
 
 
@@ -141,9 +180,10 @@ def test_integração_curta_dá_densidades_positivas_e_n2a_crescente():
 
 @precisa_caso
 def test_difusão_do_n_em_cm2_por_s():
-    # transporte.json of the case: D0 = 3.3e-5 m2/s at 1 atm and 300 K, exponent 1.75
+    # transporte.json of the case: N(4S)-N2 of Capitelli et al. 2000, table 6.2, D0 = 0.28 cm2/s
+    # at 1 atm and 273 K, beta 1.50 (eq. 6.7)
     c = Coluna0D(CASO, pressao_pa=230.0, t_gas=290.0, raio_cm=0.3)
-    esperado = 3.3e-5 * 1e4 / (230.0 / 101325.0) * (290.0 / 300.0) ** 1.75
+    esperado = 0.28 / (230.0 / 101325.0) * (290.0 / 273.0) ** 1.50
     assert c.difusao(c.especies.index("N")) == pytest.approx(esperado, rel=1e-12)
 
 
@@ -302,12 +342,16 @@ def test_química_conserva_átomos_de_n():
     for e_n in (60.0, 110.0, 200.0):
         y = 10.0 ** rng.uniform(6, 13, len(c.especies))
         k, _ = c.coeficientes(e_n)
-        f = c.q.fontes(c.densidades(y)[:, None], k[:, None])[:, 0]
+        f = c.q.estequiometria @ c.taxas(y, k)
         escala = np.sum(np.abs(f) * n_atomos)
         assert abs(np.sum(f * n_atomos)) <= 1e-12 * escala
 
 
 @precisa_caso
+@pytest.mark.xfail(strict=False, reason="ERROS.md E14: with N2 in all its levels as the partner, chemistry A at "
+                   "fixed T_g needs about the same field at 10 and 20 mA (109.8 and 109.9 Td on 11/11/2026, within "
+                   "0.1%, so the sign can flip with small changes); the falling field (108.9 and 107.4 Td) was a "
+                   "consequence of the partner in v = 0 only")
 def test_en_sustentado_cai_com_a_corrente():
     # more current, more electrons and more stepwise and associative ionization: a lower field
     c = Coluna0D(CASO, pressao_pa=230.0, t_gas=290.0, raio_cm=0.3, gamas=GAMAS)
@@ -317,7 +361,7 @@ def test_en_sustentado_cai_com_a_corrente():
 # ---------------------------------------------------------------- regression
 
 @precisa_caso
-@pytest.mark.xfail(strict=False, reason="ERROS.md E1 E4 V5-1: value before the correction; recomputed with the reruns")
+@pytest.mark.xfail(strict=False, reason="ERROS.md E1 E4 V5-1 E14 N5: value before the correction; recomputed with the reruns")
 def test_regressão_coluna_de_levaton_10_ma():
     # condition L20_10mA, chemistry A: docs/coluna_positiva_n2/etapa5/en.csv (109.775 Td) and the
     # vibrational population and dissociation at the measured E/N (118 Td) with n_e = 1.31e10 cm-3,
@@ -333,7 +377,7 @@ def test_regressão_coluna_de_levaton_10_ma():
 
 
 @precisa_caso
-@pytest.mark.xfail(strict=False, reason="ERROS.md E1 E4 V5-1: value before the correction; recomputed with the reruns")
+@pytest.mark.xfail(strict=False, reason="ERROS.md E1 E4 V5-1 E14 N5: value before the correction; recomputed with the reruns")
 def test_regressão_coluna_de_levaton_10_ma_um_quantum_na_parede():
     # the same with one quantum lost per wall collision: at 0.43 ms the wall barely acts
     c = Coluna0D(CASO, pressao_pa=230.0, t_gas=290.0, raio_cm=0.3, gamas=GAMAS)
@@ -454,8 +498,11 @@ def test_fator_de_três_perfis_contra_quadratura():
 
 @precisa_caso
 def test_perfil_radial_multiplica_as_reações_entre_espécies_com_perfil():
-    base = Coluna0D(CASO, pressao_pa=230.0, t_gas=290.0, raio_cm=0.3, gamas=GAMAS)
-    c = Coluna0D(CASO, pressao_pa=230.0, t_gas=290.0, raio_cm=0.3, gamas=GAMAS, perfil_radial=True)
+    # both reactants with wall loss 1, so that both have a marked Bessel profile (with the 1e-3
+    # of N2(a'1) of the article, ERROS.md N9, its profile is nearly flat and the factor ~1)
+    gamas = dict(GAMAS, **{"N2(a'1)": 1.0})
+    base = Coluna0D(CASO, pressao_pa=230.0, t_gas=290.0, raio_cm=0.3, gamas=gamas)
+    c = Coluna0D(CASO, pressao_pa=230.0, t_gas=290.0, raio_cm=0.3, gamas=gamas, perfil_radial=True)
     k0, _ = base.coeficientes(110.0)
     k1, _ = c.coeficientes(110.0)
     reacao = lambda f: next(i for i, t in enumerate(base.q.reacoes) if f(t.upper().replace(" ", "")))  # noqa: E731
@@ -490,7 +537,7 @@ def test_parede_tira_um_quantum_de_n2_v():
     rng = np.random.default_rng(3)
     y = 10.0 ** rng.uniform(6, 12, len(c.especies))
     k, te = c.coeficientes(110.0)
-    fontes = c.q.fontes(c.densidades(y)[:, None], k[:, None])[:, 0][c.indices]
+    fontes = (c.q.estequiometria @ c.taxas(y, k))[c.indices]
     nu = c.frequencias_de_perda(110.0, te)
     esperado = fontes - nu * y
     niv = _niveis(c)
@@ -526,7 +573,7 @@ def test_parede_que_leva_ao_fundo_é_a_de_antes():
     rng = np.random.default_rng(4)
     y = 10.0 ** rng.uniform(6, 12, len(c.especies))
     k, te = c.coeficientes(110.0)
-    fontes = c.q.fontes(c.densidades(y)[:, None], k[:, None])[:, 0][c.indices]
+    fontes = (c.q.estequiometria @ c.taxas(y, k))[c.indices]
     nu = c.frequencias_de_perda(110.0, te)
     outras = np.arange(len(y)) != c.i_e
     np.testing.assert_allclose(c.rhs(0.0, y, 110.0, ne=None)[outras], (fontes - nu * y)[outras], rtol=1e-12, atol=1e-30)
@@ -568,7 +615,7 @@ def test_quimica_do_jato_conserva_atomos_de_n():
     rng = np.random.default_rng(7)
     y = 10.0 ** rng.uniform(8, 14, len(c.especies))
     k, _ = c.coeficientes(81.0)
-    fontes = c.q.fontes(c.densidades(y)[:, None], k[:, None])[:, 0]
+    fontes = c.q.estequiometria @ c.taxas(y, k)
     n_atomos = np.array([atomos(s).get("N", 0) for s in c.q.especies], dtype=float)
     assert abs(n_atomos @ fontes) <= 1e-12 * (n_atomos @ np.abs(fontes))
 

@@ -137,10 +137,10 @@ def test_difusao_dos_ions_e_do_ar_metaestavel_com_a_temperatura_local(pecas):
     k_ar = md.nomes.index("AR^+")
     assert np.allclose(dif[k_ar], mob[k_ar] * KB * 600.0 / Q, rtol=1e-12)
     assert np.allclose(temp[k_ar], 600.0)
-    # Ar*: (17e-6/p)(T/273)^1.9 with p = N k_B T (atm), N fixed
+    # Ar*: (6.949e-6/p)(T/300)^1.9 with p = N k_B T (atm), N fixed (Ellis and Twiddy 1969, ERROS.md A8)
     k_m = md.nomes.index("AR*")
-    p = md.n_gas * 1e6 * 1.38e-23 * 600.0 / 101325.0
-    assert np.allclose(dif[k_m], 17e-6 / p * (600.0 / 273.0) ** 1.9, rtol=1e-12)
+    p = md.n_gas * 1e6 * 1.380649e-23 * 600.0 / 101325.0   # CODATA (ERROS.md V5-6)
+    assert np.allclose(dif[k_m], 6.949e-6 / p * (600.0 / 300.0) ** 1.9, rtol=1e-12)
 
 
 def test_sem_aquecimento_nada_muda(pecas):

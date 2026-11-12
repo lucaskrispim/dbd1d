@@ -1,7 +1,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Provenance of the inputs: what each case really loads into BOLSIG+."""
+import hashlib
 import json
 import pathlib
+import re
 import sys
 
 import numpy as np
@@ -32,6 +34,29 @@ def test_casos_tem_log():
         assert (proveniencia.pasta_do_caso(c) / "bolsigdb.log").exists()
 
 
+def test_casos_inclui_as_pastas_aninhadas():
+    # ERROS.md I1, T6: the derived cases one level down (superelastic, coupled) are cases too
+    casos = RAIZ / "casos"
+    aninhados = {str(p.parent.relative_to(casos)) for p in casos.glob("*/*/bolsigdb.log")}
+    aninhados |= {str(p.parent.relative_to(casos)) for p in casos.glob("*/*/*/*/bolsigdb.log")}
+    if not aninhados:
+        pytest.skip("no derived case on disk")
+    assert aninhados <= set(proveniencia.CASOS)
+
+
+@pytest.mark.parametrize("caso", proveniencia.CASOS)
+def test_log_e_do_banco_que_esta_no_disco(caso):
+    # ERROS.md T7: every block of bolsigdb.dat for a species that BOLSIG+ loaded is in the log; a
+    # log written from another bank (the blocks removed by the corrections, say) fails here
+    from collections import Counter
+    pasta = proveniencia.pasta_do_caso(caso)
+    _precisa(pasta / "bolsigdb.dat")
+    carregados = proveniencia.blocos_carregados(pasta)
+    alvos = {b.alvo for b in carregados}
+    no_banco = Counter((b.tipo, b.nome) for b in proveniencia.todos_os_blocos(pasta) if b.alvo in alvos)
+    assert no_banco == Counter((b.tipo, b.nome) for b in carregados)
+
+
 @pytest.mark.parametrize("caso", proveniencia.CASOS)
 def test_blocos_carregados_lista_o_log(caso):
     pasta = proveniencia.pasta_do_caso(caso)
@@ -58,8 +83,10 @@ def test_nomes_repetidos_dao_blocos_distintos():
     _precisa(pasta / "bolsigdb.dat")
     blocos = proveniencia.blocos_carregados(pasta)
     assert len({id(b) for b in blocos}) == len(blocos)
+    # only the three-body block is left; the two-body one repeated the dissociative
+    # attachment and was removed by corrige_secoes.py (ERROS.md T3-1)
     pontos = sorted(len(b.secao) for b in blocos if b.nome.replace(" ", "") == "O2->O2^-")
-    assert len(pontos) == 2 and pontos[0] != pontos[1]
+    assert len(pontos) == 1
 
 
 def test_limiar_so_de_linha_numerica():
@@ -74,7 +101,7 @@ def _transporte_do_caso(caso):
     fundo = json.loads((pasta / "gas.json").read_text())["fundo"]
     dados = json.loads((pasta / "transporte.json").read_text())
     difusivas = {e: d for e, d in dados.items()
-                 if isinstance(d, dict) and "difusao" in d and e.upper() != "N2"}
+                 if isinstance(d, dict) and "difusao" in d}
     return fundo, difusivas
 
 
@@ -83,8 +110,9 @@ def _fonte(d):
 
 
 def erros_de_transporte_n2_puro(difusivas, fundo, bib):
-    """Species of a pure N2 case whose diffusion matches neither the library
-    reference nor a source that states pure N2."""
+    """Species of a pure N2 case whose wall loss differs from the library reference
+    (N2(v) excepted), or whose diffusion matches neither the library reference nor a
+    source that states pure N2."""
     erros = []
     for especie, d in difusivas.items():
         chave = proveniencia.referencia_transporte(especie, fundo)
@@ -93,16 +121,95 @@ def erros_de_transporte_n2_puro(difusivas, fundo, bib):
             if not fonte:
                 erros.append(f"{especie}: no library entry and no fonte")
             continue
-        ref = bib[chave]["difusao"]
-        if (d["difusao"]["D0"], d["difusao"]["expoente"]) == (ref["D0"], ref["expoente"]):
+        # the wall loss of N2(vk) is set per case (Levaton et al., GAMAS of the scripts); the
+        # others take that of the library, also when the diffusion has a source of its own
+        # (the Yang cases kept the wall loss of N2-H2, ERROS.md A6)
+        vib = re.fullmatch(r"N2\(V\d+\)", especie.strip().upper())
+        if not vib and d.get("perda_na_parede") != bib[chave].get("perda_na_parede"):
+            erros.append(f"{especie}: perda_na_parede {d.get('perda_na_parede')} differs from {chave}")
+        # a source of its own for pure N2 (the Yang cases), in a stretch of the source text (between
+        # semicolons) that is neither a correction note nor a pointer to the library: the notes
+        # "corrected ...: library entry ... (pure N2)" are not a source, wherever they are
+        if any("pure n2" in t and "corrected" not in t and "library entry" not in t
+               for t in fonte.lower().split(";")):
             continue
-        if "pure n2" not in fonte.lower():
-            erros.append(f"{especie}: D0 {d['difusao']['D0']} expoente {d['difusao']['expoente']}"
-                         f" differ from {chave} and the fonte does not state pure N2")
+        ref = bib[chave]["difusao"]
+        if any(d["difusao"].get(c) != ref[c] for c in ("D0", "T0", "expoente")):
+            erros.append(f"{especie}: D0 {d['difusao']['D0']} T0 {d['difusao'].get('T0')} expoente "
+                         f"{d['difusao']['expoente']} differ from {chave} and the fonte does not state pure N2")
     return erros
 
 
-@pytest.mark.parametrize("caso", proveniencia.CASOS)
+def test_referencia_dos_estados_de_n():
+    assert proveniencia.referencia_transporte("N", {"N2": 1}) == "N em N2"
+    assert proveniencia.referencia_transporte("N(2D)", {"N2": 1}) == "N(2D) em N2"
+    assert proveniencia.referencia_transporte("N(2P)", {"N2": 1}) == "N(2P) em N2"
+
+
+def test_referencia_do_n2_de_fundo():
+    # the background N2 also has a library entry; without it the correction N5 left the
+    # background with exponent 1.75 and the test did not see it (A1 of ERROS.md)
+    assert proveniencia.referencia_transporte("N2", {"N2": 1}) == "N2 em N2"
+
+
+def test_referencia_dos_n2_vibracionais():
+    # N2(v) in N2 diffuses as N2 itself (N2-N2 of table 6.2), not as the electronic N2(A)
+    assert proveniencia.referencia_transporte("N2(V1)", {"N2": 1}) == "N2 em N2"
+    assert proveniencia.referencia_transporte("N2(V45)", {"N2": 1}) == "N2 em N2"
+    assert proveniencia.referencia_transporte("N2(A3)", {"N2": 1}) == "N2(A) em N2"
+
+
+def test_referencia_dos_estados_eletronicos_de_n2():
+    # each electronic state takes its own library entry; N2(a'1) under N2(A) em N2 took the
+    # wall loss of N2(A), not its own (ERROS.md N9, V5-5)
+    for s in ("N2(A'1)", "N2(A`1)", "N2(a')"):
+        assert proveniencia.referencia_transporte(s, {"N2": 1}) == "N2(A') em N2", s
+    assert proveniencia.referencia_transporte("N2(B3)", {"N2": 1}) == "N2(B) em N2"
+    assert proveniencia.referencia_transporte("N2(C3)", {"N2": 1}) == "N2(C) em N2"
+
+
+def test_biblioteca_de_n2_segue_capitelli():
+    # Capitelli et al. 2000, eq. 6.7 and table 6.2 (p. 97): D = D0 (T/273)^beta / p, D0 at 273 K
+    # and 1 atm; N2-N2 0.17 cm2/s, N2(A)-N2 0.179 (ref. [6], Zipf 1963 and Haydon and Fewell
+    # 1996 and 1997), beta 1.90; N(4S)-N2 0.28, N(2D)-N2 0.227, N(2P)-N2 0.185, beta 1.50.
+    # The 0.202 cm2/s at 300 K of Planet. Space Sci. 1967, used before, is not the measurement
+    # the table cites (ERROS.md A2); one source for D0 and beta
+    bib = json.loads((RAIZ / "biblioteca" / "transporte.json").read_text())
+    for chave in ("N2(A) em N2", "N2(B) em N2", "N2(A') em N2", "N2(C) em N2"):
+        assert bib[chave]["difusao"] == {"D0": 1.79e-05, "T0": 273.0, "expoente": 1.90}, chave
+    assert bib["N2 em N2"]["difusao"] == {"D0": 1.70e-05, "T0": 273.0, "expoente": 1.90}
+    for chave, d0 in (("N em N2", 2.80e-05), ("N(2D) em N2", 2.27e-05), ("N(2P) em N2", 1.85e-05)):
+        assert bib[chave]["difusao"] == {"D0": d0, "T0": 273.0, "expoente": 1.50}, chave
+    assert bib["N(2D) em N2"]["perda_na_parede"] == bib["N(2P) em N2"]["perda_na_parede"] == 1.0
+
+
+# Capitelli et al. 2000, p. 196: gamma of N2(a'1) <= 1e-2 measured on glass; p. 233: 1e-3 in
+# the N2-O2 low pressure discharge model; the value 1 had no source (ERROS.md N9)
+GAMA_A_LINHA = 1e-3
+
+
+def test_perda_de_n2_a_linha_segue_capitelli():
+    bib = json.loads((RAIZ / "biblioteca" / "transporte.json").read_text())
+    assert bib["N2(A') em N2"]["perda_na_parede"] == GAMA_A_LINHA
+
+
+def test_gamas_dos_scripts_de_n2_a_linha():
+    import importlib
+    import sys
+    sys.path.insert(0, str(RAIZ / "scripts"))
+    gamas = importlib.import_module("coluna_n2").GAMAS
+    linha = {k: v for k, v in gamas.items() if k.upper() in ("N2(A'1)", "N2(A`1)", "N2(A')")}
+    assert linha and set(linha.values()) == {GAMA_A_LINHA}, linha
+
+
+# the N2 case of the submitted article 1 keeps its data as submitted (decision of the
+# authors, 11/11/2026): exponents 1.75 and the N(4S) estimate before table 6.2 of Capitelli
+CASOS_DO_ARTIGO_1 = {"n2"}
+
+
+@pytest.mark.parametrize("caso", [pytest.param(c, marks=pytest.mark.xfail(
+    strict=True, reason="article 1 case kept as submitted (ERROS.md N5, N6)")) if c in CASOS_DO_ARTIGO_1 else c
+    for c in proveniencia.CASOS])
 def test_transporte_de_n2_puro_vem_da_biblioteca(caso):
     fundo, difusivas = _transporte_do_caso(caso)
     if [k.upper() for k in fundo] != ["N2"]:
@@ -130,13 +237,10 @@ def test_transporte_de_mistura_cita_o_fundo(caso):
     assert not erros, erros
 
 
-# ar_n2_o2 loads two blocks named O2 -> O2^-; the one marked "Two body
-# attachment" carries the dissociative attachment cross section of O2 -> O^-+O
-# (onset 4.4 eV, same points up to 11.35 eV), so the attachment is loaded
-# twice. Neither block is cited by the chemistry; removing it waits for a
-# decision on the Morgan base, which the plan did not list (T3-1). Only this
-# pair is tolerated: any other duplicate in the case still fails.
-_PARES_PENDENTES = {"ar_n2_o2": [{"O2 -> O2^-", "O2 -> O^-+O"}]}
+# no duplicate pair is tolerated: the one of ar_n2_o2 (two O2 -> O2^- blocks, the "Two body
+# attachment" one with the cross section of O2 -> O^-+O) was removed by corrige_secoes.py on
+# 11/11/2026 (ERROS.md T3-1)
+_PARES_PENDENTES = {}
 
 
 def _duplicatas_novas(pasta, caso):
@@ -152,11 +256,10 @@ def test_sem_secoes_em_duplicata(caso):
     assert _duplicatas_novas(pasta, caso) == []
 
 
-def test_par_pendente_de_ar_n2_o2_ainda_existe():
+def test_ar_n2_o2_sem_a_captura_dissociativa_repetida():
     pasta = proveniencia.pasta_do_caso("ar_n2_o2")
     _precisa(pasta / "bolsigdb.dat")
-    pares = [set(p) for p in proveniencia.duplicatas(proveniencia.blocos_carregados(pasta))]
-    assert pares == _PARES_PENDENTES["ar_n2_o2"], "T3-1 was fixed: drop the tolerance in _PARES_PENDENTES"
+    assert proveniencia.duplicatas(proveniencia.blocos_carregados(pasta)) == []
 
 
 def test_duplicata_nova_em_ar_n2_o2_nao_e_tolerada(tmp_path):
@@ -440,3 +543,171 @@ def test_passo_en_recusa_casos_defasados(tmp_path, monkeypatch):
     monkeypatch.setattr(m, "defasados", lambda *a: ["tv2000/transporte.json"])
     with pytest.raises(SystemExit, match="tv2000/transporte.json.*casos"):
         m.en(tmp_path / "saida")
+
+
+def _secao(linhas):
+    """Points (energy, cross section) between the two dashed lines of a block."""
+    i, j = [k for k, l in enumerate(linhas) if l.startswith("-----")][:2]
+    return [tuple(float(x) for x in l.split()) for l in linhas[i + 1:j]]
+
+
+def test_superelastica_inclui_a_inversa_de_v1res():
+    # the resonant part of the v = 1 excitation (N2 -> N2(v1res), most of it) had no inverse, so
+    # the superelastic collision of v = 1 entered with about 1/19 (ERROS.md E11). The inverse
+    # needs the density of N2(v1), so both parts go into one N2 <-> N2(v1) block; the v1res
+    # block stays, with zero cross section, for the @R sum of the chemistry and its column
+    m = _superelastica()
+    bloco = "EXCITATION\n{p}\n2.9e-1\nSPECIES: e / N2\n-----\n{x}\n-----\n\n"
+    texto = (bloco.format(p="N2 -> N2(v1)", x="0.29 0\n1.0 1e-21\n2.0 2e-21")
+             + bloco.format(p="N2 -> N2(v1res)", x="0.29 0\n1.5 1e-20\n2.0 3e-20"))
+    blocos = [l for t, l in m.blocos(m.bolsigdb_superelastico(texto)) if t == "bloco" and l[1].startswith("N2 ")]
+    por_nome = {l[1].strip(): l for l in blocos}
+    assert set(por_nome) == {"N2 <-> N2(v1)", "N2 -> N2(v1res)"}
+    soma = dict(_secao(por_nome["N2 <-> N2(v1)"]))
+    assert soma[1.0] == pytest.approx(1e-21 + 1e-20 * (1.0 - 0.29) / (1.5 - 0.29))
+    assert soma[1.5] == pytest.approx(1.5e-21 + 1e-20)
+    assert soma[2.0] == pytest.approx(2e-21 + 3e-20)
+    assert all(s == 0.0 for _, s in _secao(por_nome["N2 -> N2(v1res)"]))
+
+
+# Ellis and Twiddy 1969, J. Phys. B 2, 1366 (doi 10.1088/0022-3700/2/12/317): N D of Ar(1s5),
+# the metastable that the chemistry calls Ar*, 1.7e18 cm-1 s-1 at room temperature. The value
+# used before, 0.17 cm2/s at 273 K (17e-6 m2/s, DK of termico.f90), is N2-N2 of Capitelli et al.
+# 2000, table 6.2, about three times the measurement at 300 K (ERROS.md A8)
+ND_AR_METAESTAVEL = 1.7e18
+
+
+@pytest.mark.parametrize("arquivo, chave", [("transporte.json", "AR*"), ("biblioteca/transporte.json", "AR* em AR"),
+                                            ("casos/argonio_jovanovic/transporte.json", "AR*"),
+                                            ("casos/argonio_jovanovic_ci/transporte.json", "AR*"),
+                                            ("casos/argonio_jovanovic_tc/transporte.json", "AR*")])
+def test_difusao_do_ar_metaestavel_segue_a_medida(arquivo, chave):
+    caminho = RAIZ / arquivo
+    _precisa(caminho)
+    d = json.loads(caminho.read_text())[chave]["difusao"]
+    n300 = 101325.0 / (1.380649e-23 * 300.0) * 1e-6                     # cm-3 at 1 atm
+    d300 = d["D0"] * 1e4 * (300.0 / d["T0"]) ** d["expoente"]          # cm2/s at 1 atm
+    assert n300 * d300 == pytest.approx(ND_AR_METAESTAVEL, rel=2e-3)
+
+
+def test_modelo_de_levaton_vem_de_arquivo_com_fonte():
+    # values of the model of Levaton et al. typed in the figure script had no file nor page
+    # (ERROS.md A4): Tv (theta) of table IX of Levaton et al. 2020 and the dissociation
+    import csv
+    pasta = RAIZ / "docs" / "literatura" / "dados" / "levaton2020"
+    tv = {l["id"]: float(l["theta_K"]) for l in csv.DictReader(
+        (x for x in (pasta / "tv_modelo.csv").read_text().splitlines() if not x.startswith("#")))}
+    assert tv == {"L20_10mA": 1600.0, "L20_20mA": 2300.0, "L20_50mA": 3800.0}
+    assert "table IX" in (pasta / "tv_modelo.csv").read_text()
+    texto = (RAIZ / "scripts" / "coluna_n2.py").read_text()
+    assert "[1600, 2300, 3800]" not in texto and "[0.07, 0.2]" not in texto
+
+
+def test_csv_de_artigo_grava_a_origem(tmp_path):
+    # a CSV that goes to an article records the code, the case inputs and its own hash, so the
+    # text can prove that it cites the current version (phase 5 of the chain audit, ERROS.md A13)
+    _precisa(RAIZ / "casos" / "n2_amonia" / "kinet.inp")
+    csv_ = tmp_path / "resultados.csv"
+    csv_.write_text("id,tv\nL20_10mA,2000\n")
+    origem = proveniencia.grava_origem(csv_, RAIZ / "scripts" / "coluna_n2.py", ["n2_amonia"])
+    reg = json.loads(origem.read_text())
+    assert origem.name == "resultados.csv.origem.json"
+    assert reg["sha256_csv"] == hashlib.sha256(csv_.read_bytes()).hexdigest()
+    assert "scripts/coluna_n2.py" in reg["casos"]["n2_amonia"]["sha256"]
+    assert reg["casos"]["n2_amonia"]["sha256_entradas"]["transporte.json"]
+
+
+def test_nota_de_correcao_no_meio_da_fonte_nao_dispensa_a_conferencia():
+    # "(pure N2)" inside a correction note is not a source of its own, wherever the note is in the
+    # text (the glm reviewer of wave 0 pointed out the risk)
+    bib = json.loads((RAIZ / "biblioteca" / "transporte.json").read_text())
+    mistura = {"difusao": {"D0": 4.64e-05, "T0": 300.0, "expoente": 1.697}, "perda_na_parede": 1.0,
+               "fonte_difusao": "assumed equal to N2(A): short radiative lifetime; corrected 11/11/2026: "
+                                "library entry N2(A) em N2 (pure N2), with Capitelli et al. 2000"}
+    assert erros_de_transporte_n2_puro({"N2(B3)": mistura}, {"N2": 1.0}, bib)
+
+
+def fontes_que_contradizem_o_valor(entradas):
+    """Entries whose source text, outside the history clauses ("before, ..."), gives the 1967
+    measurement of N2(A) as their diffusion while D0 is not that value (a value scaled from it, as N
+    of casos/n2, is not caught), or says wall loss 1 while gamma is not 1."""
+    erros = []
+    for nome, e in entradas.items():
+        if not isinstance(e, dict):
+            continue
+        atual = "; ".join(s for s in str(e.get("fonte") or "").split(";") if "before" not in s)
+        d0 = (e.get("difusao") or {}).get("D0")
+        if "diffusion: 0.202 cm2/s" in atual and d0 != 2.02e-05:
+            erros.append(f"{nome}: source cites 0.202 cm2/s, D0 = {d0}")
+        p = e.get("perda_na_parede")
+        if "wall loss 1 assumed" in atual and p is not None and p != 1.0:
+            erros.append(f"{nome}: source says wall loss 1, gamma = {p}")
+    return erros
+
+
+def test_regra_da_fonte_que_contradiz_o_valor():
+    velha = {"N2(A')": {"difusao": {"D0": 1.79e-05}, "perda_na_parede": 0.001,
+                        "fonte": "diffusion: 0.202 cm2/s at 760 Torr and 300 K; wall loss 1 assumed"}}
+    historia = {"N2": {"difusao": {"D0": 1.7e-05},
+                       "fonte": "N2-N2 of Capitelli; corrected (A2): before, the measured 0.202 cm2/s"}}
+    assert len(fontes_que_contradizem_o_valor(velha)) == 2
+    assert fontes_que_contradizem_o_valor(historia) == []
+
+
+@pytest.mark.parametrize("arquivo", sorted(str(p.relative_to(RAIZ)) for p in
+                                           [RAIZ / "biblioteca" / "transporte.json",
+                                            *(RAIZ / "casos").glob("*/transporte.json")]))
+def test_fonte_do_transporte_nao_contradiz_o_valor(arquivo):
+    # the minimax reviewer of wave 1 found casos/n2_exemplo with the value corrected and the old
+    # source left beside it (ERROS.md A2, N9)
+    assert fontes_que_contradizem_o_valor(json.loads((RAIZ / arquivo).read_text())) == []
+
+
+@precisa_arquivo("casos/n2_amonia_superelastica/tv3000/bolsigdb.dat")
+def test_casos_da_superelastica_estao_em_dia_com_a_base():
+    # the five tv* cases carry the merged v1res (ERROS.md E11); the minimax reviewer of wave 1 saw
+    # that only the merging function was tested, not the files on disk
+    assert _superelastica().defasados() == []
+
+
+
+# scripts that write files that are not results of an article: the monitoring panel of a run, and the
+# fine restart, whose run records its own provenance through dbd1d/simula.py (parametros.json)
+SEM_RESULTADO_DE_ARTIGO = {"painel_execucao.py": "monitoring panel", "retoma_fina.py": "log of a run"}
+
+
+@pytest.mark.parametrize("script", sorted(p.name for p in (RAIZ / "scripts").glob("*.py")
+                                          if p.name not in SEM_RESULTADO_DE_ARTIGO))
+def test_script_que_grava_resultado_registra_a_procedencia(script):
+    # wave 3 found coluna_n2_convergencia, _sondas and _lote writing CSVs of the article without
+    # the record of the code and inputs (phase 5 of the chain audit, ERROS.md A13)
+    texto = (RAIZ / "scripts" / script).read_text()
+    # json.dumps inside write_text too (the glm reviewer of wave 3: coluna_n2_acoplado.py)
+    grava = re.search(r'open\([^)]*"w"|\.to_csv\(|json\.dumps?\(|DictWriter|savetxt', texto)
+    if grava:
+        assert "proveniencia" in texto, f"{script} writes results without ferramentas/proveniencia.py"
+
+
+@pytest.mark.parametrize("ion", ["N2^+", "N^+", "N3^+", "N4^+"])
+def test_mobilidade_dos_ions_de_n2_segue_ellis_1976(ion):
+    # Ellis et al. 1976, pages 203 to 205, transcribed by two blind readings (phase 2 of the chain
+    # audit, 12/11/2026); the page cited in the source text is the page of the table
+    import csv
+    arquivo = RAIZ / "docs" / "literatura" / "dados" / "ellis1976" / "mobilidades_n2.csv"
+    linhas = [r for r in csv.DictReader(l for l in arquivo.read_text().splitlines() if not l.startswith("#"))
+              if r["ion"] == ion]
+    m = json.loads((RAIZ / "biblioteca" / "transporte.json").read_text())[f"{ion} em N2"]
+    assert m["mobilidade"]["E_N"] == [float(r["E_N_Td"]) for r in linhas]
+    assert m["mobilidade"]["K0"] == [float(r["K0_cm2_V_s"]) for r in linhas]
+    assert f"(1976), p. {linhas[0]['page']}," in m["fonte"]
+
+
+def test_origem_sem_caso_grava_o_codigo_e_as_entradas_lidas(tmp_path):
+    # post-processors of runs (pulsos.py, figura_convergencia.py) read runs and no case: the record
+    # keeps the code and the files read (parametros.json of the runs), wave 3 of the chain audit
+    saida = tmp_path / "pulsos.json"
+    saida.write_text("{}")
+    origem = proveniencia.grava_origem(saida, RAIZ / "dbd1d" / "simula.py", [], extras=["dbd1d/versao.py"])
+    reg = json.loads(origem.read_text())
+    assert "dbd1d/simula.py" in reg["codigo"]["sha256"]
+    assert reg["codigo"]["sha256_entradas"]["dbd1d/versao.py"]

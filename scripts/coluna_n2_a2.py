@@ -18,6 +18,8 @@ import numpy as np
 
 RAIZ = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ / "scripts"))
+sys.path.insert(0, str(RAIZ / "ferramentas"))
+import proveniencia  # noqa: E402
 from coluna_n2 import condicoes  # noqa: E402
 from coluna_n2_lote import gamas  # noqa: E402
 from coluna_n2_perfil import estado  # noqa: E402
@@ -44,6 +46,7 @@ def main():
         w = csv.DictWriter(f, fieldnames=list(linhas[0]))
         w.writeheader()
         w.writerows(linhas)
+    proveniencia.grava_origem(saida / "a2.csv", __file__, ['n2_amonia', 'n2_amonia_a2', 'n2_tese', 'n2_tese_a2'])  # code and inputs beside the CSV
 
 
 def _ne(c, cond):

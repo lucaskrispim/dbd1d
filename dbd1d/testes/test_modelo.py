@@ -261,10 +261,11 @@ def test_densidade_do_gas_coerente_com_a_temperatura(pecas):
     # at 1 atm: N = p/(k_B T); giving the temperature changes the default density
     md = Modelo(*pecas, n_celulas=4, t_gas=600.0)
     assert md.n_gas == pytest.approx(101325.0 / (1.380649e-23 * 600.0) * 1e-6, rel=1e-15)
-    # and the diffusion of Ar* (DK of the Fortran code, with the k_B of 1.38e-23 of termico.f90)
-    # sai a 1 atm: (17e-6/p)(T/273)^1,9
-    p = md.n_gas * 1e6 * 1.38e-23 * 600.0 / 101325.0
-    assert md.difusao[md.nomes.index("AR*")] == pytest.approx(17e-6 / p * (600.0 / 273.0) ** 1.9, rel=1e-14)
+    # and the diffusion of Ar* (DK of the Fortran code, N D of Ellis and Twiddy 1969 since 11/11/2026, ERROS.md A8, with the k_B of CODATA since 11/11/2026,
+    # ERROS.md V5-6) comes out at 1 atm: (17e-6/p)(T/273)^1.9
+    p = md.n_gas * 1e6 * 1.380649e-23 * 600.0 / 101325.0
+    assert p == pytest.approx(1.0, rel=1e-14)
+    assert md.difusao[md.nomes.index("AR*")] == pytest.approx(6.949e-6 / p * (600.0 / 300.0) ** 1.9, rel=1e-14)
 
 
 def test_frequencia_de_colisao_com_o_n_total(pecas):

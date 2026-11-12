@@ -877,3 +877,58 @@ def test_exporta_com_modulo_sem_os_blocos_da_mensagem_sem_traceback(tmp_path):
     r = subprocess.run([sys.executable, str(RAIZ / "ferramentas" / "caso.py"), "export", str(tmp_path)],
                        capture_output=True, text=True)
     assert r.returncode != 0 and "error:" in r.stderr and "Traceback" not in r.stderr
+
+
+@precisa_arquivo("casos/n2_amonia/zdplaskin_m.F90")
+def test_transporte_de_n2_puro_completa_pelos_nomes_da_quimica(tmp_path):
+    # the chemistries name the states N2(A3), N2(A'1), N2(V1), the library keys are N2(A) em N2,
+    # N2(A') em N2, N2 em N2; without the mapping nothing was completed (ERROS.md V5-5, the
+    # mechanism of E1 and E2)
+    for nome in ("zdplaskin_m.F90", "gas.json"):
+        shutil.copy(RAIZ / "casos" / "n2_amonia" / nome, tmp_path / nome)
+    bib = json.loads((RAIZ / "biblioteca" / "transporte.json").read_text())
+    faltam = caso.gera_transporte(tmp_path)
+    t = json.loads((tmp_path / "transporte.json").read_text())
+    assert t["N2(A3)"]["difusao"] == bib["N2(A) em N2"]["difusao"]
+    assert t["N2(A3)"]["perda_na_parede"] == bib["N2(A) em N2"]["perda_na_parede"]
+    assert t["N2(A'1)"]["perda_na_parede"] == bib["N2(A') em N2"]["perda_na_parede"]
+    assert t["N(2D)"]["difusao"] == bib["N(2D) em N2"]["difusao"]
+    assert t["N2(V1)"]["difusao"] == bib["N2 em N2"]["difusao"]
+    assert "N2 em N2" in t["N2(V1)"]["fonte"]
+    # what belongs to the background entry itself is not copied to its excited states
+    assert "atomos_do_fundo" not in t["N2(V1)"]
+    # the wall loss of N2(v) is set per case, so it stays missing
+    assert faltam.get("N2(V1)") == ["perda_na_parede"]
+
+
+# ERROS.md A15: Ar* in a mixture took the kinetic-theory diffusion of ground Ar (N D about 4.6e18
+# to 4.9e18 cm-1 s-1 against 1.7e18 measured for Ar* in Ar); the measured pair of the library
+# goes into Blanc's law in place of the estimate for that pair
+
+
+def test_estimativa_usa_o_par_medido_na_lei_de_blanc():
+    pytest.importorskip("cantera")
+    medido = {"AR": {"D0": 6.949e-06, "T0": 300.0, "expoente": 1.9}}
+    so_ar = caso.difusao_estimada("AR*", {"Ar": 1.0}, medidas=medido)
+    assert so_ar["D0"] == pytest.approx(6.949e-06, rel=1e-9)
+    assert so_ar["expoente"] == pytest.approx(1.9, abs=1e-3)
+    n2 = caso.difusao_estimada("AR*", {"N2": 1.0})
+    mistura = caso.difusao_estimada("AR*", {"Ar": 0.9, "N2": 0.1}, medidas=medido)
+    assert mistura["D0"] == pytest.approx(1.0 / (0.9 / 6.949e-06 + 0.1 / n2["D0"]), rel=1e-9)
+
+
+@pytest.mark.parametrize("nome", ["ar_n2", "ar_n2_o2"])
+def test_ar_metaestavel_das_misturas_usa_a_medida(nome):
+    pytest.importorskip("cantera")
+    pasta = RAIZ / "casos" / nome
+    gas = json.loads((pasta / "gas.json").read_text())
+    bib = json.loads((RAIZ / "biblioteca" / "transporte.json").read_text())
+    esperado = caso.difusao_estimada("AR*", gas["fundo"], medidas={"AR": bib["AR* em AR"]["difusao"]})
+    dados = json.loads((pasta / "transporte.json").read_text())
+    atual = dados["AR*"]["difusao"]
+    assert atual["D0"] == pytest.approx(esperado["D0"], rel=1e-6)
+    assert atual["expoente"] == pytest.approx(esperado["expoente"], abs=1e-3)
+    # the note of the correction goes with the value it explains (the beam-free and glm reviewers of
+    # wave 3 found it written into N2(V1) of ar_n2_o2, which had the same source text as AR*)
+    com_nota = [k for k, e in dados.items() if isinstance(e, dict) and "ERROS.md A15" in str(e.get("fonte", ""))]
+    assert com_nota == ["AR*"]

@@ -3,7 +3,9 @@
 ratio N2(B)/N2(C) at the end of the column, from the 0D model with the three
 chemistries, against the ratio measured by Levaton et al. (2020, fig. 10 at
 10 mA; 2021, figs. 2 and 3 at 60 mA, 230 and 530 Pa) and against the ratio of
-their own model. The measured densities are relative (normalized by the authors
+their own model. Levaton et al. measured N2(B, v = 2) only: it is divided by the
+fraction f(v = 2) measured by Ferreira et al. 1984 (F_V2) before the comparison with
+the total N2(B) of the models. The measured densities are relative (normalized by the authors
 to their calculated N2(C)), so only the ratio is compared; N2+(B) is left out
 because the chemistries do not have it (its main source, N2(X, v >= 12) + N2+,
 needs vibrational levels above v = 8).
@@ -24,6 +26,8 @@ import numpy as np
 RAIZ = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ / "dbd1d"))
 sys.path.insert(0, str(RAIZ / "scripts"))
+sys.path.insert(0, str(RAIZ / "ferramentas"))
+import proveniencia  # noqa: E402
 from coluna import Coluna0D  # noqa: E402
 from coluna_n2 import GAMAS, QUIMICAS, condicoes, ne_nosso  # noqa: E402
 
@@ -32,6 +36,13 @@ DADOS = RAIZ / "docs" / "literatura" / "dados"
 MEDIDAS = {"L20_10mA": ("levaton2020/fig10_medidos.csv", "levaton2020/fig10_{}_calculado.csv"),
            "B21_230Pa": ("levaton2021/fig2_medidos.csv", "levaton2021/fig2_{}_calculado.csv"),
            "B21_530Pa": ("levaton2021/fig3_medidos.csv", "levaton2021/fig3_{}_calculado.csv")}
+# fraction of N2(B) in v = 2: Levaton et al. measured N2(B, v = 2) only, the models give the total
+# N2(B). Median and range over the six conditions of Ferreira et al. 1984 (J. Phys. B 17, 4439,
+# figs. 1 and 2: 0.7 and 2 Torr, 5 to 50 mA, positive column of pure N2), docs/literatura/dados/
+# ferreira1984.py. Their conditions are not those of Levaton: a tube of 2 cm, stagnant gas, up to
+# 16 mA/cm2 against 212 mA/cm2 at 60 mA in B21 and 4 Torr at 530 Pa, outside 0.7 to 2 Torr; f is
+# extrapolated there and its range covers only the spread of the six conditions (ERROS.md N1)
+F_V2, F_V2_FAIXA = 0.174, (0.146, 0.175)
 NOMES_B_C = {"n2_amonia": ("N2(B3)", "N2(C3)"), "n2_tese": ("N2(B3)", "N2(C3)"), "n2_exemplo": ("N2(B)", "N2(C)")}
 
 
@@ -40,7 +51,8 @@ def medido(cid):
     with open(DADOS / pontos) as f:
         d = {l.split(",")[0]: [float(x) for x in l.split(",")[1:]] for l in f if not l.startswith("#")}
     (t, b, b_inf, b_sup), (_, c, c_inf, c_sup) = d["N2_B"], d["N2_C"]
-    razao, faixa = b / c, (b_inf / c_sup, b_sup / c_inf)
+    # N2(B, v = 2) measured, made total with f(v = 2); the range also takes the range of f
+    razao, faixa = b / c / F_V2, (b_inf / c_sup / F_V2_FAIXA[1], b_sup / c_inf / F_V2_FAIXA[0])
     curvas = {e: np.loadtxt(DADOS / calculado.format(e), delimiter=",") for e in ("N2_B", "N2_C")}
     deles = (np.interp(np.log(t), np.log(curvas["N2_B"][:, 0]), curvas["N2_B"][:, 1])
              / np.interp(np.log(t), np.log(curvas["N2_C"][:, 0]), curvas["N2_C"][:, 1]))
@@ -75,6 +87,7 @@ def main():
         w = csv.DictWriter(f, fieldnames=list(linhas[0]))
         w.writeheader()
         w.writerows(linhas)
+    proveniencia.grava_origem(saida / "v3.csv", __file__, ['n2_amonia', 'n2_tese', 'n2_exemplo'])  # code and inputs beside the CSV
     figura(linhas, saida / "razao_b_c.png")
 
 

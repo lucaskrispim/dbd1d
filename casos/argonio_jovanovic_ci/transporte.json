@@ -11,14 +11,14 @@
     "massa_u": 39.948,
     "difusao": {"D0": 17.0e-6, "T0": 273.0, "expoente": 1.9},
     "atomos_do_fundo": 0,
-    "fonte": "diffusion: the same value as Ar*, as in the Fortran code (DK); used only with --free-gas"
+    "fonte": "self-diffusion of Ar, 17e-6 m2/s at 1 atm and 273 K (DK of termico.f90 with fundo, no primary source recorded); used only with --free-gas; since 11/11/2026 no longer equal to that of Ar* (ERROS.md A8)"
   },
   "AR*": {
     "massa_u": 39.948,
-    "difusao": {"D0": 17.0e-6, "T0": 273.0, "expoente": 1.9},
+    "difusao": {"D0": 6.949e-6, "T0": 300.0, "expoente": 1.9},
     "perda_na_parede": 1.0,
     "atomos_do_fundo": 1,
-    "fonte": "diffusion of the Fortran code (DK in termico.f90), no primary source recorded; loss of every metastable that reaches the wall, as in the Fortran code"
+    "fonte": "diffusion: N D = 1.7e18 cm-1 s-1 of Ar(1s5) at room temperature, Ellis and Twiddy 1969, J. Phys. B 2, 1366 (doi 10.1088/0022-3700/2/12/317), D0 at 1 atm and 300 K, as in DK of termico.f90; exponent 1.9 kept, without source; corrected 11/11/2026 (ERROS.md A8): before, 17e-6 m2/s at 273 K, the N2-N2 of Capitelli et al. 2000, table 6.2, about three times the measurement; loss of every metastable that reaches the wall, as in the Fortran code"
   },
   "AR^+": {
     "massa_u": 39.948,

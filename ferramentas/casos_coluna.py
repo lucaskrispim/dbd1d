@@ -5,7 +5,9 @@ distributed (casos/README.md):
 
 - n2_exemplo: the N2 example of ZDPlasKin, the kinet.inp of casos/n2;
 - n2_amonia: the N2 part of the N2-H2 mechanism of Sun et al. 2022, casos/xu2025
-  without H (ferramentas/subconjunto.py);
+  without H (ferramentas/subconjunto.py), with the N2-N2 V-V block corrected by
+  ferramentas/vv_sun.py (falling form of Capitelli et al. 2000, eq. 3.69, and detailed
+  balance; docs/auditoria/2026-11-10/ERROS.md A5, A7);
 - n2_tese: the N2 part of the N2-O2 mechanism, casos/ar_n2_o2 without O and Ar;
 - n2_amonia_v45, n2_tese_v45: the two above with the vibrational ladder of N2(X)
   up to v = 45 (ferramentas/escada_vibracional.py);
@@ -27,6 +29,7 @@ import sys
 
 from escada_vibracional import substitui_vibracao
 from subconjunto import subconjunto
+from vv_sun import corrige as corrige_vv
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 SUBCONJUNTO = "# Subset of casos/{origem}/kinet.inp without {sem}, made by ferramentas/subconjunto.py\n" \
@@ -91,7 +94,7 @@ def _a2(texto, origem):
 # name: (case it comes from, kinet.inp of the origin -> kinet.inp), in order of dependence
 RECEITAS = {
     "n2_exemplo": ("n2", lambda texto, origem: texto),
-    "n2_amonia": ("xu2025", _sem("H")),
+    "n2_amonia": ("xu2025", lambda texto, origem: corrige_vv(_sem("H")(texto, origem))),
     "n2_tese": ("ar_n2_o2", _sem("O", "Ar")),
     "n2_amonia_v45": ("n2_amonia", _escada),
     "n2_tese_v45": ("n2_tese", _escada),

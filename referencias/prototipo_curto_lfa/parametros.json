@@ -5,11 +5,24 @@
     "agrupamento": 1.5,
     "v_pico": 5000.0,
     "periodo": 1e-07,
+    "forma": "seno",
+    "tensao_tabela": null,
+    "t_gas": 300.0,
+    "subida": 0.0,
+    "largura": 0.0,
+    "descida": 0.0,
     "espessura": 0.00175,
+    "espessura_dir": null,
+    "eps_dieletrico_dir": null,
+    "pressao": 101325.0,
     "gap": 0.0008,
     "eps_dieletrico": 4.8,
     "eps_gas": 1.0,
     "gama": 0.05,
+    "reflexao_eletrons": 0.0,
+    "residencia": null,
+    "parceiro_n2": "total",
+    "acelera": null,
     "ne0": 1000000000.0,
     "neutro": true,
     "sem_freio": false,
@@ -21,6 +34,7 @@
     "energia": false,
     "eps_sec": 5.0,
     "gas_solto": false,
+    "caso": "/home/lucaskrispim/Downloads/Argonio_P4_Temp_Correto",
     "transporte": null,
     "k0_ar_ion": null,
     "en_aquecimento_ar_ion": null,
@@ -35,7 +49,7 @@
     "faces": null
   },
   "argv": [
-    "prototipo/simula.py",
+    "dbd1d/simula.py",
     "execucoes/curto_prototipo_lfa",
     "--v-pico",
     "5e3",
@@ -54,38 +68,56 @@
     "8e-9"
   ],
   "cwd": "/home/lucaskrispim/Downloads/Argonio_P4_Temp_Correto",
-  "commit": "1c1321b2028e60f1de7e095f675d02e2ae91d40d",
+  "versao": "1.5.0",
+  "commit": "ab5be3595c875ca53e3b1f2e655040cdd37eeb1a",
   "alteracoes_locais": {
-    "diff_sha256": "d7a7cad61029be4ec6bed1ee709789b0824d4224ebff8ab47e259debf3c979e9",
-    "arquivos_novos": []
+    "diff_sha256": "320ad0f12219b8db4125a55824c3a92cfaa562e65bd398e99790dddae5b3b5a0",
+    "arquivos_novos": [
+      "dbd1d/testes/test_heranca.py",
+      "dbd1d/testes/test_residencia_sun.py",
+      "dbd1d/testes/test_vv_sun.py",
+      "scripts/fechamento_sun.py",
+      "scripts/figuras_amonia.py",
+      "scripts/linha_base_0d_sun.py",
+      "scripts/periodo_sun_analise.py",
+      "scripts/posdescarga_sun.py",
+      "scripts/residencia_sun.py"
+    ]
   },
   "sha256": {
-    "tabela_energia.dat": "7294d3a8d9d5fe11b6e1acf7ed36c2938ccbc6dcf5b074958c715a2c4d99c9b3",
-    "tabela_energia_tg.dat": "a91a41ac94bb393ce1bb7ac570ecd71557ac2af6f8489d0883860607fe4aa242",
-    "tabela_bolsig.dat": "965460028af4103202fc81992b9f3a7b009b294677207727cd0199f4df17cff8",
-    "tabela_eedf.dat": "9ff74e39b988cc2266ab95387840adfd069b8f20f01467ce1d64b02ad45e11a9",
+    "tabela_energia.dat": "9db90b7a3c307e361a2abd1bbd759a0e6ee29282d48da78634c138825d781d97",
+    "tabela_energia_tg.dat": "377ffffe04d1a8695fe8ee554d5d51ccf7991709ea3bd2d6df89f17f04351f43",
+    "tabela_bolsig.dat": "264e495c4c4b6bf874ea6c55d6509546affaf22f947db03406aa4238f82e9187",
+    "tabela_eedf.dat": "60a90ec0873a54844d6996a3be99f2e8bb76ec28d46341f6c724ca60054d2da1",
     "zdplaskin_m.F90": "ce5a43de8c8db6d612a079a55ad484186021645d28414971ccc221079bfb4c01",
+    "quimica.json": "298a1870f7a40d2893c7071e3bad677689953fc954a28638a9790f24a16ac3f0",
     "bolsigdb.dat": "98c500c6be2673256c7dc19ad9994140719b13963bc6e4593c18bdf40e9ebbc9",
-    "transporte.json": "a502f5c72ef55287330338bdad235d31b98e4ad5ba1417350aff47df9c456e63",
-    "prototipo/bdf_dae.py": "64d34f60fe579a6f920f8c7089c9b0be04f417b8125d50cdd8fec8eeecdeb5d2",
-    "prototipo/jacobiano.py": "a79a39b62b15031cc77f75a9686154904576f3d1229ed06fe299e16389af0461",
-    "prototipo/malha_adaptativa.py": "09af95de0093bdb5fddb8008f1cbdd8461b9727f71ae96915672287626c7cece",
-    "prototipo/modelo.py": "5125e4250287211414f53505472d032699c9f5e91f0ab14b654c7d5edccc590a",
-    "prototipo/quimica_zdp.py": "6a2d4a8575f87dae0b43d249b1aeab4f158d93fc808363f7d6ece8ec4009a84c",
-    "prototipo/simula.py": "8cefc9f418512b3410fe4443eff8d061fa1a99e7c16750d7515be8afdae1788c",
-    "prototipo/tabela.py": "89e517f04aeeb454bc499484bdeb26628ef656a72630251b19d3ef2937d13d19"
+    "transporte.json": "87edaa8dadb4fc263503fe9ced719158b6d2ec43117a7f7acf627f44ec4a44ec",
+    "gas.json": "7cb63152b51a1c46426b709e0d0e5667a4bc98cd3efa08c7a376e794fd7dd0f5",
+    "kinet.inp": "6c49464d9b2df2a997da6688d5f568fb839eb12a9a06478432f8b67d71f4a84a",
+    "dbd1d/acelera.py": "69fbd57839ec87c61859933b724d854420ed263ddf1498a130d38e172fe98dbb",
+    "dbd1d/bdf_dae.py": "2f8cc5ad3eab7e9dbb7457d34acb4deda837853c4757fc1927d1c22cc1b19dce",
+    "dbd1d/coluna.py": "47493539b2fea3dc982f3c2deca17a1969f24e55e54a2c4b4fb96fd763afcb30",
+    "dbd1d/jacobiano.py": "49099ade21a7cc550fb3f9d008c2724bf142ac75b278f52c222337539151652e",
+    "dbd1d/malha_adaptativa.py": "63d5d44429a9f614598aca7826fdae3b6ebd288928bbf501eabafc690917e2a9",
+    "dbd1d/modelo.py": "894cc6327d722e130067dd9a7ee700677f21e0cbaf9b813c1cf80824f17c406b",
+    "dbd1d/pulsado.py": "a7d3931e31edbd8a85934cdabd70bddc3680dd10f4b6254d6a839b3308f294fe",
+    "dbd1d/quimica_zdp.py": "a5bcd644487efd791ec19e30f798ff2acb3501c3143b21d7325800fb9333f62b",
+    "dbd1d/simula.py": "a0441a1a57ceb0c75e1e5a16ef9db2d7ae8219dacdce771f2084a8aab01d512a",
+    "dbd1d/tabela.py": "c60bd271f1eab06f90f27deb4f57eee4093e97e11d9b56e9500cff1bb0272ad1",
+    "dbd1d/versao.py": "dc296f4732c79a24af654bbc988b81e18e29b7fdd415d103c5cae1b88cba2db7"
   },
   "modelo": {
     "n_gas": 2.4463132917924827e+19,
     "t_gas": 300.0,
     "transporte": {
       "_formato": [
-        "Dados de transporte das espécies pesadas, lidos pelo protótipo (prototipo/modelo.py) ou dados por --transporte.",
-        "Cada espécie transportada, menos E, precisa de massa_u, a massa em u. O gás de fundo só é transportado com --gas-solto.",
-        "Íons positivos de carga 1 precisam de mobilidade, reduzida na densidade de Loschmidt em cm2/(V s), do tipo constante (K0) ou frost (K0 e EN_aquecimento em Td, com K = K0 (1 + (E/N)/EN_aquecimento)^(-1/2)).",
-        "Neutros precisam de difusao, D = (D0/p) (T/T0)^expoente em m2/s com p em atm, e de perda_na_parede, a probabilidade gama de perda por choque com a parede (fluxo gama/(2 - gama) n v/2; o gás de fundo solto não precisa).",
-        "Com --gas-solto, as espécies precisam de atomos_do_fundo, os átomos do gás de fundo que a parede devolve por partícula absorvida.",
-        "Campos fonte são só registro."
+        "Transport data of the heavy species, read by the simulator (dbd1d/modelo.py) or given by --transport.",
+        "Each transported species except E needs massa_u, the mass in u. The background gas is transported only with --free-gas.",
+        "Positive ions of charge 1 need mobilidade, reduced to the Loschmidt density in cm2/(V s), of tipo constante (K0), frost (K0 and EN_aquecimento in Td, with K = K0 (1 + (E/N)/EN_aquecimento)^(-1/2)) or tabela (E_N in Td, increasing, and K0, interpolated linearly; below the first point, clamped; above the last, clamped or, with acima = raiz, K = K_last (E/N_last / (E/N))^(1/2)).",
+        "Neutrals need difusao, D = (D0/p) (T/T0)^expoente in m2/s with p in atm, and perda_na_parede, the probability gamma of loss per collision with the wall (flux gamma/(2 - gamma) n v/2; the free background gas does not need it).",
+        "With --free-gas, the species need atomos_do_fundo, the atoms of the background gas that the wall returns per absorbed particle.",
+        "The fonte fields are only a record of the source."
       ],
       "AR": {
         "massa_u": 39.948,
@@ -95,18 +127,18 @@
           "expoente": 1.9
         },
         "atomos_do_fundo": 0,
-        "fonte": "difusão: o mesmo valor do Ar*, como no Fortran (DK); só entra com --gas-solto"
+        "fonte": "self-diffusion of Ar, 17e-6 m2/s at 1 atm and 273 K (DK of termico.f90 with fundo, no primary source recorded); used only with --free-gas; since 11/11/2026 no longer equal to that of Ar* (ERROS.md A8)"
       },
       "AR*": {
         "massa_u": 39.948,
         "difusao": {
-          "D0": 1.7e-05,
-          "T0": 273.0,
+          "D0": 6.949e-06,
+          "T0": 300.0,
           "expoente": 1.9
         },
         "perda_na_parede": 1.0,
         "atomos_do_fundo": 1,
-        "fonte": "difusão do Fortran (DK em termico.f90), sem fonte primária registrada; perda de todo metaestável que atinge a parede, como no Fortran"
+        "fonte": "diffusion: N D = 1.7e18 cm-1 s-1 of Ar(1s5) at room temperature, Ellis and Twiddy 1969, J. Phys. B 2, 1366 (doi 10.1088/0022-3700/2/12/317), D0 at 1 atm and 300 K, as in DK of termico.f90; exponent 1.9 kept, without source; corrected 11/11/2026 (ERROS.md A8): before, 17e-6 m2/s at 273 K, the N2-N2 of Capitelli et al. 2000, table 6.2, about three times the measurement; loss of every metastable that reaches the wall, as in the Fortran code"
       },
       "AR^+": {
         "massa_u": 39.948,
@@ -116,7 +148,7 @@
           "EN_aquecimento": 210.0
         },
         "atomos_do_fundo": 1,
-        "fonte": "Golyatina e Maiorov, Plasma Phys. Rep. 43, 75 (2017), a 300 K; Ellis et al. 1976 medem K0 = 1,53"
+        "fonte": "Golyatina and Maiorov, Plasma Phys. Rep. 43, 75 (2017), at 300 K; Ellis et al. 1976 measure K0 = 1.53"
       },
       "AR2^+": {
         "massa_u": 79.896,
@@ -125,12 +157,14 @@
           "K0": 1.95
         },
         "atomos_do_fundo": 2,
-        "fonte": "Phys. Rev. 160, 130 (1967), autores não registrados no projeto; sem dado de campo alto"
+        "fonte": "Phys. Rev. 160, 130 (1967), authors not recorded in the project; no high-field data"
       }
     },
     "gama_sec": 0.05,
     "eps_sec": 5.0,
     "eps_gas": 1.0,
+    "reflexao_eletrons": 0.0,
+    "residencia": null,
     "faces": [
       0.0,
       1.3741380214189559e-05,

@@ -8,7 +8,9 @@ with a vibrationally excited N2 at several Tv:
   vibrational excitations themselves (same thresholds: an approximation that
   slightly underestimates the effect, since from v > 0 the thresholds are lower);
 - the excitations N2 -> N2(vk) get the double arrow, which turns on the
-  superelastic inverse process in BOLSIG+ (statistical weight ratio 1);
+  superelastic inverse process in BOLSIG+ (statistical weight ratio 1); the resonant
+  v = 1 excitation (N2 -> N2(v1res)) is summed into N2 <-> N2(v1), so that it has an
+  inverse too, and its own block is kept with zero cross section (ERROS.md E11);
 - composicao.txt: N2(vk) fractions of a harmonic Boltzmann distribution at Tv
   (vibrational quantum 0.29 eV), truncated at v = 8 and normalized.
 The chemistry (quimica.json) is that of n2_amonia: the BOLSIG+ columns that the
@@ -34,6 +36,8 @@ import numpy as np
 RAIZ = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ / "dbd1d"))
 sys.path.insert(0, str(RAIZ / "scripts"))
+sys.path.insert(0, str(RAIZ / "ferramentas"))
+import proveniencia  # noqa: E402
 BASE = RAIZ / "casos" / "n2_amonia"
 DESTINO = RAIZ / "casos" / "n2_amonia_superelastica"
 TVS = (1000, 2000, 3000, 4500, 6000)
@@ -60,10 +64,42 @@ def blocos(texto):
     return saida
 
 
+def _pontos(linhas):
+    """Indices of the two dashed lines and the points (energy, cross section) between them."""
+    i, j = [k for k, l in enumerate(linhas) if l.startswith("-----")][:2]
+    return i, j, np.array([[float(x) for x in l.split()] for l in linhas[i + 1:j]])
+
+
+def _com_pontos(linhas, pontos):
+    i, j, _ = _pontos(linhas)
+    return linhas[:i + 1] + [f" {e:.6e}\t{s:.6e}" for e, s in pontos] + linhas[j:]
+
+
+def _junta_v1res(partes):
+    """The resonant part of the v = 1 excitation (N2 -> N2(v1res)) goes into the N2 -> N2(v1)
+    block, summed on the union of the energy grids (linear interpolation, zero outside each
+    grid), so that its superelastic inverse uses the density of N2(v1); the v1res block keeps
+    its energies with zero cross section, so that the @R sum of the chemistry and the column
+    order stay as in the base case (ERROS.md E11: before, v = 1 entered with about 1/19)."""
+    nomes = [l[1].strip() if t == "bloco" else None for t, l in partes]
+    if "N2 -> N2(v1)" not in nomes or "N2 -> N2(v1res)" not in nomes:
+        return partes
+    i1, ir = nomes.index("N2 -> N2(v1)"), nomes.index("N2 -> N2(v1res)")
+    a, r = _pontos(partes[i1][1])[2], _pontos(partes[ir][1])[2]
+    e = np.union1d(a[:, 0], r[:, 0])
+    soma = (np.interp(e, a[:, 0], a[:, 1], left=0.0, right=0.0)
+            + np.interp(e, r[:, 0], r[:, 1], left=0.0, right=0.0))
+    partes = list(partes)
+    partes[i1] = ("bloco", _com_pontos(partes[i1][1], np.c_[e, soma]))
+    partes[ir] = ("bloco", _com_pontos(partes[ir][1], np.c_[r[:, 0], np.zeros(len(r))]))
+    return partes
+
+
 def bolsigdb_superelastico(texto):
-    """Copies of the N2 cross sections for each N2(vk) and the double arrow on N2 -> N2(vk)."""
+    """Copies of the N2 cross sections for each N2(vk) and the double arrow on N2 -> N2(vk),
+    with the resonant v = 1 excitation inside N2 <-> N2(v1) (_junta_v1res)."""
     saida, copias = [], []
-    for tipo, linhas in blocos(texto):
+    for tipo, linhas in _junta_v1res(blocos(texto)):
         if tipo == "texto":
             saida.extend(linhas)
             continue
@@ -176,6 +212,7 @@ def en(saida):
         w = csv.DictWriter(f, fieldnames=list(linhas[0]))
         w.writeheader()
         w.writerows(linhas)
+    proveniencia.grava_origem(saida / "superelastica.csv", __file__, ['n2_amonia_superelastica/tv1000', 'n2_amonia_superelastica/tv2000', 'n2_amonia_superelastica/tv3000', 'n2_amonia_superelastica/tv4500', 'n2_amonia_superelastica/tv6000'])  # code and inputs beside the CSV
 
 
 if __name__ == "__main__":

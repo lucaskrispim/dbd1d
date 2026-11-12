@@ -44,10 +44,38 @@ def test_corrige_bloco_sintetico():
                                  "-----\n0 0\n-----\n")
 
 
-@precisa_arquivo("casos/ar_n2_o2/original/bolsigdb_ar_air2D.dat")
+@precisa_arquivo("casos/ar_n2_o2/original/bolsigdb_ar_air2D.dat", "casos/ar_n2_o2/original/kinet_ar_air2D.inp",
+                 "bolsigdb.dat")
 def test_monta_de_ar_n2_o2_escreve_o_banco_corrigido(tmp_path):
-    sys.path.insert(0, str(RAIZ / "casos" / "ar_n2_o2"))
-    texto = cb.corrige((RAIZ / "casos" / "ar_n2_o2" / "original" / "bolsigdb_ar_air2D.dat").read_text().rstrip()
-                       + "\n\n" + (RAIZ / "bolsigdb.dat").read_text())
-    assert texto == (RAIZ / "casos" / "ar_n2_o2" / "bolsigdb.dat").read_text()
-    assert 'corrige' in (RAIZ / "casos" / "ar_n2_o2" / "monta.py").read_text()
+    # ERROS.md T8: monta.py run on a copy of the tree writes the corrected bank of the case
+    import shutil
+    (tmp_path / "casos").mkdir()
+    shutil.copytree(RAIZ / "casos" / "ar_n2_o2" / "original", tmp_path / "casos" / "ar_n2_o2" / "original")
+    shutil.copy(RAIZ / "casos" / "ar_n2_o2" / "monta.py", tmp_path / "casos" / "ar_n2_o2")
+    shutil.copytree(RAIZ / "ferramentas", tmp_path / "ferramentas", ignore=shutil.ignore_patterns("__pycache__"))
+    for f in ("kinet.inp", "bolsigdb.dat"):
+        shutil.copy(RAIZ / f, tmp_path / f)
+    subprocess.run([sys.executable, str(tmp_path / "casos" / "ar_n2_o2" / "monta.py")], check=True,
+                   capture_output=True)
+    assert ((tmp_path / "casos" / "ar_n2_o2" / "bolsigdb.dat").read_text()
+            == (RAIZ / "casos" / "ar_n2_o2" / "bolsigdb.dat").read_text())
+
+
+def test_razao_zero_fica_zero():
+    # an exact zero switches the superelastic inverse off on purpose (casos ar_n2, n2): kept
+    texto = "EXCITATION\nN2 <-> N2(V1)\n  2.910e-1 0.0d0 / threshold energy\n-----\n0 0\n-----\n"
+    assert cb.corrige(texto) == texto
+
+
+def test_corrige_tira_a_captura_dissociativa_repetida():
+    # the ZDPlasKin N2-O2 file has two O2 -> O2^- blocks; the "Two body attachment" one carries
+    # the dissociative attachment cross section of O2 -> O^-+O (onset 4.4 eV), loaded twice by
+    # BOLSIG+ (ERROS.md T3-1); the three-body block stays
+    bloco = "ATTACHMENT\n{p}\nCOMMENT: {c}\n-----\n{x}\n-----\n\n"
+    texto = (bloco.format(p="O2 -> O^-+O", c="2-body attachment", x="4.4 0\n5 1e-22")
+             + bloco.format(p="O2 -> O2^-", c="Three body attachment (energy loss taken to be kT @ 300K)", x="0 1e-21")
+             + bloco.format(p="O2 -> O2^-", c="Two body attachment (energy loss taken to be kT @ 300K)", x="4.4 0\n5 1e-22"))
+    saida = cb.corrige(texto)
+    assert "Two body attachment" not in saida
+    assert "Three body attachment" in saida and "O2 -> O^-+O" in saida
+    assert cb.corrige(saida) == saida

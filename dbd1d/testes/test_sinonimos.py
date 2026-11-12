@@ -12,7 +12,7 @@ sys.path.insert(0, str(RAIZ / "dbd1d"))
 from simula import cria_parser  # noqa: E402
 
 # a value of each kind of option, written as on the command line
-VALORES = {"forma": ["pulse"], "jac": ["fd"], "acelera": ["4", "50"], "retoma": ["/m/origem", "1e-6"]}
+VALORES = {"forma": ["pulse"], "jac": ["fd"], "parceiro_n2": ["v0"], "acelera": ["4", "50"], "retoma": ["/m/origem", "1e-6"]}
 
 
 def _valor(acao):

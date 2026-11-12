@@ -109,7 +109,7 @@ def fator_perfil(betas, raio):
 
 class Coluna0D:
     def __init__(self, caso, pressao_pa, t_gas, raio_cm, gamas=None, fatores=None, estrito=True, perfil_radial=False,
-                 quantum_na_parede=True, troca_fluxo=0.0, ambipolar="caracteristica"):
+                 quantum_na_parede=True, troca_fluxo=0.0, ambipolar="caracteristica", parceiro_n2="total"):
         """gamas: wall loss probability per neutral species, replacing the one of
         transporte.json; a name that is not a species of the case is an error, unless
         estrito=False (one set of probabilities for several chemistries).
@@ -119,9 +119,15 @@ class Coluna0D:
         ambipolar: electron energy in the ambipolar loss of the ions. "caracteristica":
         D_a = mu_i (D_e/mu_e + k T_g/e) (Capitelli et al. 2000, eq. 6.10, with T_+ = T_g and
         D_e/mu_e from the table); "media": mu_i (2/3) <eps>, no ion term (the form before
-        the correction, to reproduce old results)."""
+        the correction, to reproduce old results).
+        parceiro_n2: density of N2 as a collision partner that leaves the reaction unchanged
+        (V-T, quenching, three-body). "total": N2(X) in all its vibrational levels, the M = N2
+        of Gordiets et al. 1995 (sec. II-B); "v0": the species N2 alone, which in a chemistry
+        with N2(vk) is v = 0 (the form before the correction, to reproduce old results)."""
         if ambipolar not in ("caracteristica", "media"):
             raise ValueError(f"ambipolar = {ambipolar!r}: use 'caracteristica' or 'media'")
+        if parceiro_n2 not in ("total", "v0"):
+            raise ValueError(f"parceiro_n2 = {parceiro_n2!r}: use 'total' or 'v0'")
         self.ambipolar = ambipolar
         caso = pathlib.Path(caso)
         self.q = Quimica.de_json(caso / "quimica.json")
@@ -163,6 +169,7 @@ class Coluna0D:
         niveis = {int(m.group(1)): k for k, s in enumerate(self.especies)
                   if (m := re.fullmatch(r"N2\(V(\d+)\)", s.upper()))}
         self.escada = [(niveis[v], niveis[v - 1]) for v in sorted(niveis) if v - 1 in niveis] if quantum_na_parede else []
+        self.q.usa_parceiro_total(parceiro_n2 == "total")
         self.fator_radial = np.ones(len(self.q.reacoes))
         if perfil_radial:
             self.betas = self._betas()
@@ -194,6 +201,11 @@ class Coluna0D:
         for i, f in self.fundo.items():
             d[i] = f * self.n_gas - self.no_fundo @ y
         return d
+
+    def taxas(self, y, k):
+        """Rate of each reaction (cm-3/s) for the state y and the coefficients k (with N2 as a
+        partner in all its levels unless parceiro_n2="v0", Quimica.usa_parceiro_total)."""
+        return self.q.taxas(self.densidades(y)[:, None], k[:, None])[:, 0]
 
     def coeficientes(self, e_n):
         """Rate coefficients (reactions,) and Te (K) at E/N (Td), local field."""
@@ -254,7 +266,7 @@ class Coluna0D:
             y = y.copy()
             y[self.i_e] = ne(t) if callable(ne) else ne
         k, te = self.coeficientes(e_n)
-        fontes = self.q.fontes(self.densidades(y)[:, None], k[:, None])[:, 0][self.indices]
+        fontes = (self.q.estequiometria @ self.taxas(y, k))[self.indices]
         nu = self.frequencias_de_perda(e_n, te)
         dy = fontes - (nu + self.troca_fluxo) * y + self.parede_vibracional(y, nu)
         if ne is not None:
@@ -279,7 +291,7 @@ class Coluna0D:
         ne = self.ne_da_corrente(corrente_a, e_n)
         _, y = self.integra(e_n, ne, t_res, n_saidas=2)
         k, te = self.coeficientes(e_n)
-        quimica = self.q.fontes(self.densidades(y[-1])[:, None], k[:, None])[:, 0][self.indices][self.i_e]
+        quimica = (self.q.estequiometria @ self.taxas(y[-1], k))[self.indices][self.i_e]
         ions = self.carga > 0
         nu = self.frequencias_de_perda(e_n, te)
         media = np.sum(nu[ions] * y[-1][ions]) / np.sum(y[-1][ions])

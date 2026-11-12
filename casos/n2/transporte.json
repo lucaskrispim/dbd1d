@@ -123,7 +123,7 @@
       "acima": "raiz"
     },
     "atomos_do_fundo": 0.5,
-    "fonte": "Ellis, Pai, McDaniel, Mason and Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 204-205, experimental data at 300 K; error up to 3%; above the last measured E/N, tail K ~ (E/N)^(-1/2), an estimate (decision of the authors, 18/10/2026)"
+    "fonte": "Ellis, Pai, McDaniel, Mason and Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 204, experimental data at 300 K; error up to 3%; above the last measured E/N, tail K ~ (E/N)^(-1/2), an estimate (decision of the authors, 18/10/2026)"
   },
   "N2^+": {
     "massa_u": 28.014,
@@ -231,7 +231,7 @@
       "acima": "raiz"
     },
     "atomos_do_fundo": 1.5,
-    "fonte": "Ellis, Pai, McDaniel, Mason and Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 204-205, experimental data at 300 K; error up to 7%; above the last measured E/N, tail K ~ (E/N)^(-1/2), an estimate (decision of the authors, 18/10/2026)"
+    "fonte": "Ellis, Pai, McDaniel, Mason and Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 204, experimental data at 300 K; error up to 7%; above the last measured E/N, tail K ~ (E/N)^(-1/2), an estimate (decision of the authors, 18/10/2026)"
   },
   "N4^+": {
     "massa_u": 56.028,
@@ -266,6 +266,6 @@
       "acima": "raiz"
     },
     "atomos_do_fundo": 2,
-    "fonte": "Ellis, Pai, McDaniel, Mason and Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 204-205, experimental data at 300 K; error up to 3%; measured only up to 40 Td (N4+ dissociates above); above the last measured E/N, tail K ~ (E/N)^(-1/2), an estimate (decision of the authors, 18/10/2026)"
+    "fonte": "Ellis, Pai, McDaniel, Mason and Viehland, At. Data Nucl. Data Tables 17, 177 (1976), p. 205, experimental data at 300 K; error up to 3%; measured only up to 40 Td (N4+ dissociates above); above the last measured E/N, tail K ~ (E/N)^(-1/2), an estimate (decision of the authors, 18/10/2026)"
   }
 }

@@ -1,2 +1,22 @@
-superficie.dat: 5 registros, 6 colunas comuns, OK
-perfil.dat: 110 registros, 19 colunas comuns, OK
+Referência refeita duas vezes em 11/11/2026: (1) k_B do CODATA (ERROS.md V5-6), mudança até 1e-3 do máximo de cada coluna; (2) difusão do Ar* pela medida de Ellis e Twiddy 1969 (ERROS.md A8), mudança medida abaixo, contra a referência de (1):
+superficie.dat: 5 records, 6 common columns, DIFFERS
+           phi esq  max. relative diff. 2.515e-10
+           phi dir  max. relative diff. 8.019e-10
+         sigma esq  max. relative diff. 1.044e-06
+         sigma dir  max. relative diff. 2.753e-05
+perfil.dat: 110 records, 19 common columns, DIFFERS
+              volt  max. relative diff. 8.019e-10
+                De  max. relative diff. 2.054e-04
+                Me  max. relative diff. 4.123e-04
+             veloc  max. relative diff. 4.123e-04
+            rho cv  max. relative diff. 7.428e-14
+              alfa  max. relative diff. 7.428e-14
+              freq  max. relative diff. 4.138e-04
+                Te  max. relative diff. 2.796e-04
+                 E  max. relative diff. 1.387e-04
+               AR*  max. relative diff. 4.997e-01
+              AR^+  max. relative diff. 6.601e-06
+             AR2^+  max. relative diff. 1.710e-06
+               E/N  max. relative diff. 4.135e-09
+             campo  max. relative diff. 4.309e-09
+             n_eps  max. relative diff. 1.409e-04

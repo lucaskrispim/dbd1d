@@ -15,6 +15,8 @@ import csv
 import json
 import pathlib
 import sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "ferramentas"))
+import proveniencia  # noqa: E402
 
 EN_MEDIDO = {"L20_10mA": 118.0, "L20_20mA": 108.0, "L20_50mA": 90.0, "B21_230Pa": 94.0,
              "B21_530Pa": 48.0, "G95_15mA": 66.7, "G95_30mA": 63.0, "G95_80mA": 69.9}
@@ -78,6 +80,7 @@ def main():
         w.writeheader()
         for r in linhas:
             w.writerow({k: ("" if x is None else f"{x:.6g}" if isinstance(x, float) else x) for k, x in r.items()})
+    proveniencia.grava_origem(pasta / ("resumo_ev.csv" if ev else "resumo.csv"), __file__, ['n2_amonia_v45'])  # code and inputs beside the CSV
 
 
 if __name__ == "__main__":

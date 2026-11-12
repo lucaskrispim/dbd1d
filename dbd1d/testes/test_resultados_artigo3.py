@@ -4,7 +4,9 @@
 docs/coluna_positiva_n2 recomputed with the scripts that wrote them, so that a change of
 coluna.py, of the chemistries or of the scripts that moves a published number fails here.
 The coupled roots (pendencias/raiz) take hours and are not recomputed; their summary is
-checked against the root files in test_raiz_resumo.py."""
+checked against the root files in test_raiz_resumo.py. The published rows are those of the reruns
+of wave 3 of the chain audit (docs/coluna_positiva_n2/onda3, inputs corrected on 11/11/2026); the
+rows before the corrections stay in docs/coluna_positiva_n2 for the comparison."""
 import csv
 import sys
 
@@ -13,7 +15,7 @@ import pytest
 
 from conftest import RAIZ, precisa_arquivo
 
-D = RAIZ / "docs" / "coluna_positiva_n2"
+D = RAIZ / "docs" / "coluna_positiva_n2" / "onda3"
 pytestmark = [precisa_arquivo("scripts/coluna_n2.py", "scripts/coluna_n2_en.py", "scripts/coluna_n2_lote.py",
                               "casos/n2_amonia/quimica.json", "casos/n2_tese/quimica.json",
                               "casos/n2_exemplo/quimica.json", "casos/n2_amonia_v45/quimica.json"),
@@ -40,11 +42,9 @@ def _condicao(cid):
 
 
 @pytest.mark.parametrize("cid, quimica", [
-    pytest.param("L20_50mA", "n2_amonia", marks=pytest.mark.xfail(strict=False, reason="ERROS.md E1 E4 V5-1: value before the correction; recomputed with the reruns")),
-    pytest.param("G95_80mA", "n2_tese", marks=pytest.mark.xfail(strict=False, reason="ERROS.md E2 E6 E12 V5-1: value before the correction; recomputed with the reruns")),
-    pytest.param("B21_530Pa", "n2_exemplo", marks=pytest.mark.xfail(
-        strict=False, reason="ERROS.md V5-1: value before the characteristic-energy "
-        "ambipolar loss; recomputed with the reruns"))])
+    ("L20_50mA", "n2_amonia"),
+    ("G95_80mA", "n2_tese"),
+    ("B21_530Pa", "n2_exemplo")])
 def test_campo_sustentado_da_etapa5(cid, quimica):
     _, coluna_n2_en, _ = _scripts()
     publicado = float(_linha(D / "etapa5" / "en.csv", id=cid, quimica=quimica)["en"])
@@ -52,8 +52,8 @@ def test_campo_sustentado_da_etapa5(cid, quimica):
 
 
 @pytest.mark.parametrize("cid, quimica", [
-    pytest.param("B21_530Pa", "n2_amonia", marks=pytest.mark.xfail(strict=False, reason="ERROS.md E1 E4 V5-1: value before the correction; recomputed with the reruns")),
-    pytest.param("L20_20mA", "n2_tese", marks=pytest.mark.xfail(strict=False, reason="ERROS.md E1 E2 E6 E12 T2-1 V5-1: value before the correction; recomputed with the reruns"))])
+    ("B21_530Pa", "n2_amonia"),
+    ("L20_20mA", "n2_tese")])
 def test_tv_e_dissociacao_da_etapa4(cid, quimica):
     coluna_n2, _, _ = _scripts()
     cond = _condicao(cid)
@@ -63,7 +63,6 @@ def test_tv_e_dissociacao_da_etapa4(cid, quimica):
     assert r["dis"] == pytest.approx(float(publicado["dis"]), rel=1e-5)
 
 
-@pytest.mark.xfail(strict=False, reason="ERROS.md E1 E4 E9 E10 V5-1: value before the correction; recomputed with the reruns")
 def test_escada_ate_v45(tmp_path, monkeypatch):
     # falta/escada_v45.csv, chemistry A with the ladder, narrow tube at 230 Pa and 60 mA
     _, _, coluna_n2_lote = _scripts()

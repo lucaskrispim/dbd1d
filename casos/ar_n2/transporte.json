@@ -19,11 +19,11 @@
   "AR*": {
     "massa_u": 39.948,
     "difusao": {
-      "D0": 1.8814522433840688e-05,
+      "D0": 7.432994642282208e-06,
       "T0": 300.0,
-      "expoente": 1.748
+      "expoente": 1.893
     },
-    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss of the single-gas case (property of the surface)",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; Blanc's law with the measured AR* em AR of the library in place of the estimate (ERROS.md A15: before, the estimate of ground Ar for that pair too, D0 1.8815e-05 at 300 K, exponent 1.748); wall loss of the single-gas case (property of the surface)",
     "perda_na_parede": 1.0
   },
   "AR^+": {
@@ -88,8 +88,8 @@
       "T0": 300.0,
       "expoente": 1.728
     },
-    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss of the single-gas case (property of the surface)",
-    "perda_na_parede": 1.0
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss of the single-gas case (property of the surface); wall loss 1e-3 as in Capitelli et al. 2000, p. 233 (N2-O2 low pressure discharge model; p. 196 gives <= 1e-2 measured on glass); corrected 11/11/2026 (ERROS.md N9): before, 1 assumed equal to N2(A), without source",
+    "perda_na_parede": 0.001
   },
   "N2(C)": {
     "massa_u": 28.014,

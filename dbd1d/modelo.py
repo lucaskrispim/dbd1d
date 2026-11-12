@@ -156,7 +156,12 @@ class Modelo:
                  transporte=None, gas=None, tabela_calor=None,
                  forma="seno", subida=0.0, largura=0.0, descida=0.0,
                  espessura_dir=None, eps_dieletrico_dir=None, tabela_tensao=None, reflexao_eletrons=0.0,
-                 residencia=None):
+                 residencia=None, parceiro_n2="total"):
+        if parceiro_n2 not in ("total", "v0"):
+            raise ValueError(f"parceiro_n2 = {parceiro_n2!r}: use 'total' or 'v0'")
+        # N2 as an unchanged partner in all its vibrational levels (Quimica.usa_parceiro_total);
+        # with the background held fixed, the species N2 is already the whole N2 of the gas
+        quimica.usa_parceiro_total(parceiro_n2 == "total" and gas_solto)
         self.q, self.tab = quimica, tabela
         if quimica.bolsig_tres_corpos:
             raise ErroQuimica("BOLSIG+ reactions with two reacting electrons: "
@@ -403,7 +408,7 @@ class Modelo:
             if k not in fundo_solto:
                 gama = self._numero(s, "perda_na_parede", faixa="between 0 and 1")
                 self.fator_parede[k] = gama / (2.0 - gama)
-        p_atm = (self.n_gas * 1e6) * (1.38e-23 * self.t_gas) / 101325.0
+        p_atm = (self.n_gas * 1e6) * (KB * self.t_gas) / 101325.0
         self.difusao = np.zeros(len(self.nomes))
         for k, dif in self._dif.items():
             self.difusao[k] = dif["D0"] / p_atm * (self.t_gas / dif["T0"]) ** dif["expoente"]
@@ -669,7 +674,7 @@ class Modelo:
                 mob[k] = self.mobilidade_ion(k, campo_cel, n_pes)
                 dif[k] = mob[k] * KB * tg / (abs(self.carga[k]) * Q)       # Einstein, charge z
             elif local:
-                p_atm = (n_pes * 1e6) * (1.38e-23 * tg) / 101325.0
+                p_atm = (n_pes * 1e6) * (KB * tg) / 101325.0
                 d = self._dif[k]
                 dif[k] = d["D0"] / p_atm * (tg / d["T0"]) ** d["expoente"]
             else:

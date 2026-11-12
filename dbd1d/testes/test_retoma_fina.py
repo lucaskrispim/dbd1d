@@ -62,7 +62,7 @@ def test_ida_e_volta_com_todas_as_opcoes():
              "--free-gas", "--case", "/m/casos/sun", "--transport", "/m/t.json", "--k0-ar-ion", "1.5",
              "--en-heating-ar-ion", "50", "--k0-ar2-ion", "1.8", "--t-wall", "373", "--three-body-gain", "0.5",
              "--heating", "--adaptive", "--dt-mesh", "1e-11", "--adaptive-weight", "2.0", "--jac", "fd",
-             "--faces", "/m/faces.txt"]
+             "--faces", "/m/faces.txt", "--n2-partner", "v0"]
     original = _gravados(linha)
     padrao = vars(cria_parser().parse_args(["/m/x"]))
     trocadas = {"dir", "retoma", "t_end", "dt_saida", "acelera"}
@@ -74,3 +74,14 @@ def test_ida_e_volta_com_todas_as_opcoes():
             assert a[k] == v, k
     assert a["acelera"] is None                                   # the fine window does not jump
     assert a["retoma"] == ["/m/origem", repr(4e-5)] and a["dir"] == "/m/destino"
+
+
+def test_origem_anterior_ao_parceiro_n2_retoma_com_v0():
+    # a run made before --n2-partner existed had N2 in v = 0 only as the partner, and the
+    # restart refuses a different one
+    linha = retoma_fina.linha_de_comando({"dir": "/m/origem", "periodo": 3.3e-5}, "/m/destino", 4e-5, 4.024e-5, 5e-10)
+    assert linha[linha.index("--n2-partner") + 1] == "v0"
+    # an origin that recorded the total partner keeps it (ERROS.md T2)
+    linha = retoma_fina.linha_de_comando({"dir": "/m/origem", "periodo": 3.3e-5, "parceiro_n2": "total"},
+                                         "/m/destino", 4e-5, 4.024e-5, 5e-10)
+    assert linha[linha.index("--n2-partner") + 1] == "total"

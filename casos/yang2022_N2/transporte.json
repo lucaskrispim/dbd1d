@@ -10,12 +10,12 @@
   "N2": {
     "massa_u": 28.014,
     "difusao": {
-      "D0": 2.02e-05,
-      "T0": 300.0,
-      "expoente": 1.75
+      "D0": 1.7e-05,
+      "T0": 273.0,
+      "expoente": 1.9
     },
     "atomos_do_fundo": 0,
-    "fonte": "self-diffusion taken equal to the measured one of N2(A); used only with --free-gas"
+    "fonte": "self-diffusion N2-N2 of Capitelli et al. 2000, eq. 6.7 and table 6.2 (p. 97), as in the library entry N2 em N2; used only with --free-gas (corrected 11/11/2026, ERROS.md A1, A2: before, the measured 0.202 cm2/s of N2(A) at 300 K with exponent 1.75)"
   },
   "H2": {
     "difusao": {
@@ -153,8 +153,8 @@
       "T0": 300.0,
       "expoente": 1.712
     },
-    "perda_na_parede": 0.001,
-    "fonte": "trace diffusion in pure N2 by kinetic theory (as N2); wall loss as in the library entry N2(A3) em N2+H2",
+    "perda_na_parede": 1.0,
+    "fonte": "trace diffusion in pure N2 by kinetic theory (as N2); wall loss 1 as in the library entry N2(A) em N2 (pure N2; Capitelli et al. 2000, p. 196, N2(A) near 1; corrected 11/11/2026, ERROS.md A6: before, 0.001 of N2(A3) em N2+H2)",
     "massa_u": 28.014
   },
   "N2(B3)": {
@@ -163,8 +163,8 @@
       "T0": 300.0,
       "expoente": 1.712
     },
-    "perda_na_parede": 0.001,
-    "fonte": "trace diffusion in pure N2 by kinetic theory (as N2); wall loss as in the library entry N2(B3) em N2+H2",
+    "perda_na_parede": 1.0,
+    "fonte": "trace diffusion in pure N2 by kinetic theory (as N2); wall loss 1 as in the library entry N2(B) em N2 (pure N2; Capitelli et al. 2000, p. 196, N2(A) near 1; corrected 11/11/2026, ERROS.md A6: before, 0.001 of N2(B3) em N2+H2)",
     "massa_u": 28.014
   },
   "N2(A'1)": {
@@ -174,7 +174,7 @@
       "expoente": 1.712
     },
     "perda_na_parede": 0.001,
-    "fonte": "trace diffusion in pure N2 by kinetic theory (as N2); wall loss as in the library entry N2(A'1) em N2+H2",
+    "fonte": "trace diffusion in pure N2 by kinetic theory (as N2); wall loss 1e-3 as in the library entry N2(A') em N2 (Capitelli et al. 2000, p. 233; corrected 11/11/2026, ERROS.md A6: before, the same value taken from N2(A'1) em N2+H2)",
     "massa_u": 28.014
   },
   "N2(C3)": {
@@ -183,8 +183,8 @@
       "T0": 300.0,
       "expoente": 1.712
     },
-    "perda_na_parede": 0.001,
-    "fonte": "trace diffusion in pure N2 by kinetic theory (as N2); wall loss as in the library entry N2(C3) em N2+H2",
+    "perda_na_parede": 1.0,
+    "fonte": "trace diffusion in pure N2 by kinetic theory (as N2); wall loss 1 as in the library entry N2(C) em N2 (pure N2; Capitelli et al. 2000, p. 196, N2(A) near 1; corrected 11/11/2026, ERROS.md A6: before, 0.001 of N2(C3) em N2+H2)",
     "massa_u": 28.014
   },
   "N(2D)": {

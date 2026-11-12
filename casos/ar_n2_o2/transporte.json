@@ -499,11 +499,11 @@
   "AR*": {
     "massa_u": 39.948,
     "difusao": {
-      "D0": 1.988603678662254e-05,
+      "D0": 1.953475372141907e-05,
       "T0": 300.0,
-      "expoente": 1.731
+      "expoente": 1.735
     },
-    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; wall loss of the existing case (property of the surface)",
+    "fonte": "automatic estimate (caso.py estimate): trace diffusion from kinetic theory (Cantera, GRI-Mech 3.0) of the base species; Blanc's law with the measured AR* em AR of the library in place of the estimate (ERROS.md A15: before, the estimate of ground Ar for that pair too, D0 1.9886e-05 at 300 K, exponent 1.731); wall loss of the existing case (property of the surface)",
     "perda_na_parede": 1.0
   },
   "AR^+": {

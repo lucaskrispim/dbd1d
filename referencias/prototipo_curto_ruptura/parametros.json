@@ -21,6 +21,7 @@
     "gama": 0.05,
     "reflexao_eletrons": 0.0,
     "residencia": null,
+    "parceiro_n2": "total",
     "acelera": null,
     "ne0": 1000000000.0,
     "neutro": true,
@@ -69,23 +70,14 @@
     "5e-8"
   ],
   "cwd": "/home/lucaskrispim/Downloads/Argonio_P4_Temp_Correto",
-  "versao": "1.4.0",
-  "commit": "70e9d6466bf3456567c12212c488c42a57cdd126",
+  "versao": "1.5.0",
+  "commit": "ab5be3595c875ca53e3b1f2e655040cdd37eeb1a",
   "alteracoes_locais": {
-    "diff_sha256": "90f5f679df9b527308cd3b0ea9b54e7d23e0ed565378e7edc58bed6a4a3e8d13",
+    "diff_sha256": "320ad0f12219b8db4125a55824c3a92cfaa562e65bd398e99790dddae5b3b5a0",
     "arquivos_novos": [
-      "dbd1d/testes/test_conservacao_quimicas.py",
-      "dbd1d/testes/test_monta_pacote.py",
-      "dbd1d/testes/test_raiz_resumo.py",
+      "dbd1d/testes/test_heranca.py",
       "dbd1d/testes/test_residencia_sun.py",
-      "dbd1d/testes/test_sinonimos.py",
-      "scripts/coluna_n2_a2.py",
-      "scripts/coluna_n2_dmu.py",
-      "scripts/coluna_n2_kumar.py",
-      "scripts/coluna_n2_perfil.py",
-      "scripts/coluna_n2_raiz.py",
-      "scripts/coluna_n2_raiz_resumo.py",
-      "scripts/coluna_n2_vdf.py",
+      "dbd1d/testes/test_vv_sun.py",
       "scripts/fechamento_sun.py",
       "scripts/figuras_amonia.py",
       "scripts/linha_base_0d_sun.py",
@@ -102,19 +94,20 @@
     "zdplaskin_m.F90": "ce5a43de8c8db6d612a079a55ad484186021645d28414971ccc221079bfb4c01",
     "quimica.json": "298a1870f7a40d2893c7071e3bad677689953fc954a28638a9790f24a16ac3f0",
     "bolsigdb.dat": "98c500c6be2673256c7dc19ad9994140719b13963bc6e4593c18bdf40e9ebbc9",
-    "transporte.json": "70f191ea71b7e8be5d0c7273515017d38af042043390023b4539d3dc7b5af7f6",
+    "transporte.json": "87edaa8dadb4fc263503fe9ced719158b6d2ec43117a7f7acf627f44ec4a44ec",
     "gas.json": "7cb63152b51a1c46426b709e0d0e5667a4bc98cd3efa08c7a376e794fd7dd0f5",
     "kinet.inp": "6c49464d9b2df2a997da6688d5f568fb839eb12a9a06478432f8b67d71f4a84a",
     "dbd1d/acelera.py": "69fbd57839ec87c61859933b724d854420ed263ddf1498a130d38e172fe98dbb",
-    "dbd1d/bdf_dae.py": "326c88b13301ee6779671c58f6cdcd8441452ba368061ffa3bc0ff7aa9eceb78",
-    "dbd1d/coluna.py": "dd593317d1427a7ea7f7f43a7907b9a1cfae83d40dfc62bd1f83a3e29f509319",
+    "dbd1d/bdf_dae.py": "2f8cc5ad3eab7e9dbb7457d34acb4deda837853c4757fc1927d1c22cc1b19dce",
+    "dbd1d/coluna.py": "47493539b2fea3dc982f3c2deca17a1969f24e55e54a2c4b4fb96fd763afcb30",
     "dbd1d/jacobiano.py": "49099ade21a7cc550fb3f9d008c2724bf142ac75b278f52c222337539151652e",
     "dbd1d/malha_adaptativa.py": "63d5d44429a9f614598aca7826fdae3b6ebd288928bbf501eabafc690917e2a9",
-    "dbd1d/modelo.py": "37f695d11c338131270960f3b478ec489c9701704267c098d1b427460b157913",
-    "dbd1d/quimica_zdp.py": "835fee3175812472e6fc0993b8e084e6fde3f29748e004a744d1dacf31b135b6",
-    "dbd1d/simula.py": "d7690aa89d171d088a2a408b04ca207f64ad317eca87d4c5d773f7190be6447d",
+    "dbd1d/modelo.py": "894cc6327d722e130067dd9a7ee700677f21e0cbaf9b813c1cf80824f17c406b",
+    "dbd1d/pulsado.py": "a7d3931e31edbd8a85934cdabd70bddc3680dd10f4b6254d6a839b3308f294fe",
+    "dbd1d/quimica_zdp.py": "a5bcd644487efd791ec19e30f798ff2acb3501c3143b21d7325800fb9333f62b",
+    "dbd1d/simula.py": "a0441a1a57ceb0c75e1e5a16ef9db2d7ae8219dacdce771f2084a8aab01d512a",
     "dbd1d/tabela.py": "c60bd271f1eab06f90f27deb4f57eee4093e97e11d9b56e9500cff1bb0272ad1",
-    "dbd1d/versao.py": "eda55ea4d2dab147458ebe835ea68cab7d57e153a47957f87823b73d95e3d1a2"
+    "dbd1d/versao.py": "dc296f4732c79a24af654bbc988b81e18e29b7fdd415d103c5cae1b88cba2db7"
   },
   "modelo": {
     "n_gas": 2.4463132917924827e+19,
@@ -136,18 +129,18 @@
           "expoente": 1.9
         },
         "atomos_do_fundo": 0,
-        "fonte": "diffusion: the same value as Ar*, as in the Fortran code (DK); used only with --free-gas"
+        "fonte": "self-diffusion of Ar, 17e-6 m2/s at 1 atm and 273 K (DK of termico.f90 with fundo, no primary source recorded); used only with --free-gas; since 11/11/2026 no longer equal to that of Ar* (ERROS.md A8)"
       },
       "AR*": {
         "massa_u": 39.948,
         "difusao": {
-          "D0": 1.7e-05,
-          "T0": 273.0,
+          "D0": 6.949e-06,
+          "T0": 300.0,
           "expoente": 1.9
         },
         "perda_na_parede": 1.0,
         "atomos_do_fundo": 1,
-        "fonte": "diffusion of the Fortran code (DK in termico.f90), no primary source recorded; loss of every metastable that reaches the wall, as in the Fortran code"
+        "fonte": "diffusion: N D = 1.7e18 cm-1 s-1 of Ar(1s5) at room temperature, Ellis and Twiddy 1969, J. Phys. B 2, 1366 (doi 10.1088/0022-3700/2/12/317), D0 at 1 atm and 300 K, as in DK of termico.f90; exponent 1.9 kept, without source; corrected 11/11/2026 (ERROS.md A8): before, 17e-6 m2/s at 273 K, the N2-N2 of Capitelli et al. 2000, table 6.2, about three times the measurement; loss of every metastable that reaches the wall, as in the Fortran code"
       },
       "AR^+": {
         "massa_u": 39.948,

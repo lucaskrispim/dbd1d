@@ -300,9 +300,13 @@ def test_janela_tolera_o_arredondamento_da_digitalizacao():
     assert m["n"] == 2
 
 
-@precisa_arquivo("docs/jato_n2/resultados/n2_amonia_v45_3kV_200ns.csv")
+# a run archived before the reruns (ERROS.md E1, V4-7): the test is about the metric, not the values
+ARQUIVADA = "docs/jato_n2/resultados/d_mistura_h2/n2_amonia_v45_3kV_200ns.csv"
+
+
+@precisa_arquivo(ARQUIVADA)
 def test_pontos_antes_da_ignicao_nao_entram_tambem_na_metrica_do_periodo():
-    sim = jato_n2_compara.le_simulacao(RAIZ / "docs" / "jato_n2" / "resultados" / "n2_amonia_v45_3kV_200ns.csv")
+    sim = jato_n2_compara.le_simulacao(RAIZ / ARQUIVADA)
     linhas = {x["grandeza"]: x for x in jato_n2_compara.linhas_de("A45", "3kV_200ns", "base", sim)}
     d = jato_n2_compara.le("I_fig20_3kV_200ns")
     t = jato_n2_compara.tempo_sim("I_fig20_3kV_200ns", d[:, 0])

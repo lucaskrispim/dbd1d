@@ -621,12 +621,42 @@ class Quimica:
                               "assigned in one IF branch only, without ELSE or an earlier value)")
         return k
 
+    parceiro_total = False
+
+    def usa_parceiro_total(self, ativo=True):
+        """From now on (ativo=False switches it off again), N2 as an unchanged collision
+        partner (V-T, quenching, three-body: the N2 on both sides of a reaction, as many as
+        the smaller of its reactants and products) takes the density of N2(X) in all its
+        vibrational levels, the M = N2 of Gordiets et al. 1995 (sec. II-B); the species N2
+        alone, in a chemistry with N2(vk), is v = 0. Transfers that change the level of N2
+        and electron impact that excites it keep v = 0; electron impact that leaves N2 in its
+        level (the rotational excitation, with no stoichiometry or energy) counts all levels.
+        Without the species N2, nothing changes. For a model that holds N2 at the whole N2
+        of the gas (the fixed background of modelo.py) it does not apply."""
+        self.parceiro_total = bool(ativo)
+        if not ativo:
+            return
+        n2 = self.indice.get("N2")
+        self._vib = [i for s, i in self.indice.items() if re.fullmatch(r"N2\(V\d+\)", s)]
+        self._espectador = np.zeros(len(self.reacoes))
+        if n2 is not None and self._vib:
+            self._espectador = np.minimum(self.ordem[n2], self.ordem[n2] + self.estequiometria[n2])
+        self._ordem_parceiro = self.ordem.copy()
+        if n2 is not None:
+            self._ordem_parceiro[n2] -= self._espectador
+        self._n2 = n2
+
     def taxas(self, dens, k):
         """Rate of each reaction (reactions, cells); dens in cm-3 (species, cells)."""
+        ordem = self._ordem_parceiro if self.parceiro_total else self.ordem
         produto = np.ones_like(k)
         for s in range(len(self.especies)):
-            for i in np.nonzero(self.ordem[s])[0]:
-                produto[i] *= dens[s] ** self.ordem[s, i]
+            for i in np.nonzero(ordem[s])[0]:
+                produto[i] *= dens[s] ** ordem[s, i]
+        if self.parceiro_total and np.any(self._espectador):
+            com = np.nonzero(self._espectador)[0]
+            total = dens[self._n2] + dens[self._vib].sum(axis=0)
+            produto[com] *= total ** self._espectador[com][:, None]
         return k * produto
 
     def fontes(self, dens, k):

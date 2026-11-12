@@ -15,6 +15,8 @@ import sys
 RAIZ = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ / "dbd1d"))
 sys.path.insert(0, str(RAIZ / "scripts"))
+sys.path.insert(0, str(RAIZ / "ferramentas"))
+import proveniencia  # noqa: E402
 from coluna import Coluna0D  # noqa: E402
 from coluna_n2 import GAMAS, QUIMICAS, condicoes  # noqa: E402
 from coluna_n2_en import CORRENTE_MA  # noqa: E402
@@ -35,6 +37,7 @@ def main():
         w = csv.DictWriter(f, fieldnames=list(linhas[0]))
         w.writeheader()
         w.writerows(linhas)
+    proveniencia.grava_origem(pathlib.Path(sys.argv[1]), __file__, list(QUIMICAS))  # code and inputs beside the CSV
 
 
 if __name__ == "__main__":

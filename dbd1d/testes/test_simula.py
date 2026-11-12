@@ -309,6 +309,33 @@ def test_retomada_recusa_malha_diferente(tmp_path):
     assert r.returncode != 0 and "malha" in r.stderr + r.stdout
 
 
+def test_retomada_de_rodada_antiga_exige_o_mesmo_parceiro_n2(tmp_path):
+    # a run made before --n2-partner existed used N2 in v = 0 only: restarting it with the
+    # default (total) would change the physics in the middle of the run
+    roda(tmp_path / "a", "--t-end", "2e-9", "--free-gas")
+    par = tmp_path / "a" / "parametros.json"
+    d = json.loads(par.read_text())
+    del d["argumentos"]["parceiro_n2"]
+    par.write_text(json.dumps(d))
+    r = subprocess.run([sys.executable, str(PROTOTIPO / "simula.py"), str(tmp_path / "b"), *BASE, "--t-end", "4e-9",
+                        "--retoma", str(tmp_path / "a"), "2e-9", "--free-gas"],
+                       capture_output=True, text=True, env={"OPENBLAS_NUM_THREADS": "1", "PATH": ""})
+    assert r.returncode != 0 and "n2-partner" in r.stderr + r.stdout
+    roda(tmp_path / "c", "--t-end", "4e-9", "--retoma", str(tmp_path / "a"), "2e-9", "--free-gas", "--n2-partner", "v0")
+    # with the background held fixed the option has no effect and the restart does not ask for it
+    roda(tmp_path / "f", "--t-end", "2e-9")
+    roda(tmp_path / "g", "--t-end", "4e-9", "--retoma", str(tmp_path / "f"), "2e-9")
+
+
+def test_simula_repassa_o_parceiro_ao_modelo():
+    # ERROS.md T1: the option has to reach the model, not only parametros.json
+    import simula
+    for valor, esperado in (("total", True), ("v0", False)):
+        a = simula.cria_parser().parse_args([str(RAIZ / "x"), "--free-gas", "--n2-partner", valor])
+        md = simula.monta_modelo(a, RAIZ, None)
+        assert md.q.parceiro_total is esperado
+
+
 def test_retomada_no_mesmo_diretorio_preserva_o_historico(tmp_path):
     # restart in the middle: the records after 4 ns are redone, not duplicated
     # restart in the middle: the records up to 4 ns stay intact byte by byte, the

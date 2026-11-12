@@ -15,6 +15,8 @@ import numpy as np
 RAIZ = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ / "dbd1d"))
 sys.path.insert(0, str(RAIZ / "scripts"))
+sys.path.insert(0, str(RAIZ / "ferramentas"))
+import proveniencia  # noqa: E402
 from coluna import Coluna0D  # noqa: E402
 from coluna_n2 import GAMAS, condicoes, n2_total, ne_nosso, treanor  # noqa: E402
 from coluna_n2_en import CORRENTE_MA  # noqa: E402
@@ -58,6 +60,7 @@ def main():
     with open(arquivo, "w") as f:
         f.write("caso,id,variante,tv,dis,en\n")
         f.write(f"{caso},{cid},{variante},{tv:.6g},{y[-1, nomes.index('N')] / n2_total(c, y[-1]):.6g},{en:.6g}\n")
+    proveniencia.grava_origem(pathlib.Path(arquivo), __file__, [caso])  # code and inputs beside the CSV
 
 
 if __name__ == "__main__":
