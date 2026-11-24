@@ -62,7 +62,7 @@ def test_ida_e_volta_com_todas_as_opcoes():
              "--free-gas", "--case", "/m/casos/sun", "--transport", "/m/t.json", "--k0-ar-ion", "1.5",
              "--en-heating-ar-ion", "50", "--k0-ar2-ion", "1.8", "--t-wall", "373", "--three-body-gain", "0.5",
              "--heating", "--adaptive", "--dt-mesh", "1e-11", "--adaptive-weight", "2.0", "--jac", "fd",
-             "--faces", "/m/faces.txt", "--n2-partner", "v0"]
+             "--faces", "/m/faces.txt", "--n2-partner", "v0", "--te-floor-tg"]
     original = _gravados(linha)
     padrao = vars(cria_parser().parse_args(["/m/x"]))
     trocadas = {"dir", "retoma", "t_end", "dt_saida", "acelera"}

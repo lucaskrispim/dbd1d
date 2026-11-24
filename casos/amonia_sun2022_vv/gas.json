@@ -1,0 +1,58 @@
+{
+  "_formato": [
+    "Properties of the background gas of the case, read by the simulator (dbd1d/modelo.py).",
+    "fundo: species of kinet.inp that form the background gas and their fractions.",
+    "cv_por_kb: specific heat at constant volume per heavy particle, in units of k_B (1.5 for a monatomic gas, 2.5 for a diatomic one without vibration).",
+    "condutividade: thermal conductivity in W/(m K); tipo linear_com_raiz, (a T + b) escala, times (T/t_raiz)^(1/2) above t_raiz, or tipo tabela, with T (K) and kappa, interpolated linearly and clamped at the ends.",
+    "ion_inicial: positive ion seeded with the electrons in the neutral initial plasma.",
+    "calor (optional): enthalpies in eV per particle, for the heat of each reaction (-sum of nu h), and processos_rapidos, BOLSIG+ processes whose energy becomes gas heat within picoseconds.",
+    "The fonte fields are only a record of the source."
+  ],
+  "fundo": {
+    "N2": 0.5,
+    "H2": 0.5
+  },
+  "cv_por_kb": 2.5,
+  "condutividade": {
+    "tipo": "tabela",
+    "T": [
+      260,
+      300,
+      373,
+      400,
+      500,
+      573,
+      600,
+      700,
+      773,
+      800,
+      900,
+      1000,
+      1200,
+      1500
+    ],
+    "kappa": [
+      0.0673,
+      0.0754,
+      0.089,
+      0.0936,
+      0.1094,
+      0.1202,
+      0.1241,
+      0.1387,
+      0.1495,
+      0.1536,
+      0.1686,
+      0.1826,
+      0.212,
+      0.2553
+    ]
+  },
+  "ion_inicial": "N2^+",
+  "fonte": [
+    "N2:H2 1:1 mixture of Sun et al. 2022",
+    "conductivity of the 1:1 mixture by kinetic theory (Cantera 3.2, Mason and Saxena mixing with the GRI-Mech 3.0 parameters); the pure gases agree with the references (N2 0.0263 against 0.0260 W/(m K) at 300 K, Engineering ToolBox; H2 0.187 against about 0.182)",
+    "cv of a diatomic gas without vibration, 2.5 k_B; the vibration of N2 and H2 is in the vibrational species of the mechanism",
+    "no calor block for now (enthalpies of the 38 species not yet compiled)"
+  ]
+}

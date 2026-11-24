@@ -156,12 +156,14 @@ class Modelo:
                  transporte=None, gas=None, tabela_calor=None,
                  forma="seno", subida=0.0, largura=0.0, descida=0.0,
                  espessura_dir=None, eps_dieletrico_dir=None, tabela_tensao=None, reflexao_eletrons=0.0,
-                 residencia=None, parceiro_n2="total"):
+                 residencia=None, parceiro_n2="total", te_minimo_tg=False):
         if parceiro_n2 not in ("total", "v0"):
             raise ValueError(f"parceiro_n2 = {parceiro_n2!r}: use 'total' or 'v0'")
         # N2 as an unchanged partner in all its vibrational levels (Quimica.usa_parceiro_total);
         # with the background held fixed, the species N2 is already the whole N2 of the gas
         quimica.usa_parceiro_total(parceiro_n2 == "total" and gas_solto)
+        # T_e of the rate coefficients held at or above T_g (te_das_taxas)
+        self.te_minimo_tg = bool(te_minimo_tg)
         self.q, self.tab = quimica, tabela
         if quimica.bolsig_tres_corpos:
             raise ErroQuimica("BOLSIG+ reactions with two reacting electrons: "
@@ -681,12 +683,20 @@ class Modelo:
                 dif[k] = self.difusao[k]
         return mob, dif, temp, k_bolsig, e_n, extra
 
+    def te_das_taxas(self, te, tg):
+        """T_e (K) given to the rate coefficients. The tables in T_g have no superelastic
+        collisions, and at their floor the electrons are colder than the gas (306 K at
+        T_g = 375 K in casos/amonia_sun2022); with te_minimo_tg the rates take
+        max(T_e, T_g), the electrons thermalized with the gas. The transport keeps T_e."""
+        return np.maximum(te, tg) if self.te_minimo_tg else te
+
     # electron density below which the mean energy tends to the local field value
     N_MIN_ENERGIA = 1.0e-2        # cm-3
 
     def energia_media(self, n, n_eps, e_n, t_gas=None, com_bruta=False):
         """Mean energy (eV) per cell, held within the range of the table at the T_g
-        of the cell (with the table in T_g, the floor is ~(3/2) k T_g):
+        of the cell (the floor is that of E/N = 1e-4 Td, which without superelastic
+        collisions can be below (3/2) k T_g; see te_das_taxas):
         (n_eps + n_min*eps_LFA)/(n_e + n_min). With n_e >> n_min it is n_eps/n_e;
         where there are no electrons (n_e zero or slightly negative from the
         integrator) the ratio has no meaning and the local field energy applies.
@@ -835,7 +845,7 @@ class Modelo:
         G, out, gama_ions = self.fluxos(n, campo, mob, dif, temp)
         dn = -np.diff(G, axis=1) / self.h
         tg = t_gas if self.aquecimento else np.full(self.m, self.t_gas)
-        k = self.q.coeficientes(k_bolsig, tg, temp[self.i_e], e_n,
+        k = self.q.coeficientes(k_bolsig, tg, self.te_das_taxas(temp[self.i_e], tg), e_n,
                                 self.densidade_neutra(n) if self.q.usa_any_neutral else None)
         if self.calor_reacao is not None:
             taxas = self.q.taxas(self.densidades_completas(n), k)
@@ -918,7 +928,8 @@ class Modelo:
         # take the threshold energy; each electron lost in recombination takes the
         # mean energy (new electrons enter without energy: ionization already pays
         # the threshold in P_inel and the rest stays with the electrons)
-        k = self.q.coeficientes(extra["k_bolsig"], extra["tg"], temp[self.i_e], extra["e_n"],
+        k = self.q.coeficientes(extra["k_bolsig"], extra["tg"], self.te_das_taxas(temp[self.i_e], extra["tg"]),
+                                extra["e_n"],
                                 self.densidade_neutra(n) if self.q.usa_any_neutral else None)
         taxas = self.q.taxas(self.densidades_completas(n), k)
         perdidos = np.minimum(self.q.estequiometria[self.q.indice["E"]], 0.0)

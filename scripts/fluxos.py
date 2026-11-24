@@ -83,7 +83,7 @@ def taxas_no_gap(md, t, y):
     t_gas = md.temperatura_do_estado(y) if md.aquecimento else None
     _, _, temp, k_bolsig, e_n, _ = md.coeficientes(campo_cel, n, n_eps, t_gas)
     tg = t_gas if md.aquecimento else np.full(md.m, md.t_gas)
-    k = md.q.coeficientes(k_bolsig, tg, temp[md.i_e], e_n,
+    k = md.q.coeficientes(k_bolsig, tg, md.te_das_taxas(temp[md.i_e], tg), e_n,
                           md.densidade_neutra(n) if md.q.usa_any_neutral else None)
     return md.q.taxas(md.densidades_completas(n), k) @ md.h
 

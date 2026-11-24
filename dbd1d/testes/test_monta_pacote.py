@@ -55,6 +55,66 @@ def test_montagem_para_com_padrao_vazio_ou_arquivo_fora_do_git(tmp_path, monkeyp
     assert not (tmp_path / "p").exists()
 
 
+def test_arquivo_modificado_vai_como_no_commit_salvo_se_aceito(tmp_path, monkeypatch):
+    # a tracked file changed on disk and not committed goes into the package as it is in
+    # HEAD; only the files named with --aceita-modificado (the version bump of the release)
+    # go as they are on disk
+    m = _montador()
+    alvo, outro = RAIZ / "dbd1d" / "versao.py", RAIZ / "dbd1d" / "tabela.py"
+    commit = {alvo: b"VERSAO = 'do commit'\n", outro: b"# tabela do commit\n"}
+    monkeypatch.setattr(m, "modificados", lambda: {alvo, outro})
+    monkeypatch.setattr(m, "do_commit", lambda f: commit[f])
+    monkeypatch.setattr(m, "INCLUI", ["dbd1d/versao.py", "dbd1d/tabela.py"])
+    monkeypatch.setattr(sys, "argv", ["monta_pacote.py", str(tmp_path / "p"), "--aceita-modificado", "dbd1d/versao.py"])
+    m.main()
+    assert (tmp_path / "p" / "dbd1d" / "versao.py").read_text().endswith(alvo.read_text())
+    assert (tmp_path / "p" / "dbd1d" / "tabela.py").read_text() == \
+        "# SPDX-License-Identifier: GPL-3.0-or-later\n# tabela do commit\n"
+    # a name given to --aceita-modificado that is not a modified file of the package stops
+    monkeypatch.setattr(sys, "argv", ["monta_pacote.py", str(tmp_path / "q"), "--aceita-modificado", "dbd1d/simula.py"])
+    with pytest.raises(SystemExit, match="não é arquivo modificado do pacote"):
+        m.main()
+    # the forms that would be ignored without notice stop, and so does a file missing from HEAD,
+    # before anything is written
+    for argv in (["--aceita-modificado=dbd1d/versao.py"], ["--aceita-modificado"]):
+        monkeypatch.setattr(sys, "argv", ["monta_pacote.py", str(tmp_path / "r"), *argv])
+        with pytest.raises(SystemExit, match="um arquivo por vez"):
+            m.main()
+
+    def fora_do_head(f):
+        raise SystemExit(f"{f} não está no HEAD")
+    monkeypatch.setattr(m, "do_commit", fora_do_head)
+    monkeypatch.setattr(sys, "argv", ["monta_pacote.py", str(tmp_path / "s")])
+    with pytest.raises(SystemExit, match="não está no HEAD"):
+        m.main()
+    assert not (tmp_path / "q").exists() and not (tmp_path / "r").exists() and not (tmp_path / "s").exists()
+
+
+def test_modificados_e_do_commit_leem_o_git():
+    m = _montador()
+    assert all(f.is_relative_to(RAIZ) for f in m.modificados())
+    assert b"class Modelo" in m.do_commit(RAIZ / "dbd1d" / "modelo.py")
+
+
+def test_testes_que_rodam_lancadores_nao_distribuidos_pulam_no_pacote():
+    # a test that runs shell scripts of remoto/ which the package does not ship has to skip
+    # there (bash returns 127 otherwise): it names one of those scripts in a skip guard
+    import re
+    m = _montador()
+    entregues = {f for p in m.INCLUI for f in RAIZ.glob(p) if f.is_file()}
+    sem_guarda = []
+    for teste in sorted((RAIZ / "dbd1d" / "testes").glob("*.py")):
+        fonte = teste.read_text()
+        if not re.search(r'RAIZ\s*/\s*"remoto"', fonte):
+            continue
+        nomes = set(re.findall(r'"([\w.]+\.sh)"', fonte))
+        faltam = sorted(n for n in nomes if RAIZ / "remoto" / n not in entregues)
+        guardas = re.findall(r'(?:skip|exists)\([^\n]*remoto/([\w.]+\.sh)', fonte)
+        if faltam and not any(g in faltam for g in guardas):
+            sem_guarda.append(f"{teste.name}: {', '.join(faltam)}")
+    assert sem_guarda == []
+
+
 def test_cabecalho_spdx_proprio_nao_e_duplicado(tmp_path):
     # bdf_dae.py carries code of scipy and declares GPL-3.0-or-later AND BSD-3-Clause itself
     m = _montador()

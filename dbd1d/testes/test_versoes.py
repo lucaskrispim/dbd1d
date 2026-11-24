@@ -86,3 +86,59 @@ def test_origem_sem_caso_confere_o_codigo(tmp_path):
     assert versoes.confere_origem(origem, tmp_path) == []
     (tmp_path / "scripts" / "s.py").write_text("y")
     assert versoes.confere_origem(origem, tmp_path) == ["scripts/s.py"]
+
+
+def test_arvore_de_nome_qualquer_na_maquina_remota_e_mapeada(tmp_path):
+    # the runs of the ammonia wave 3 live in ~/amonia_onda3_<date> or ~/onda3_20261112, whose
+    # names do not start with Argonio (docs/campanha_amonia/onda3/PLANO.md, section 9)
+    raiz = tmp_path / "Argonio_X"
+    caso, arquivo = _rodada(tmp_path, "/home/lucas/amonia_onda3_20261121/casos/c")
+    assert versoes._local("/home/lucas/amonia_onda3_20261121/casos/c", raiz) == caso
+    assert versoes.confere(arquivo, raiz)[1:] == ([], ["falta.dat"])
+
+
+def test_transporte_e_origem_da_retomada_sao_conferidos(tmp_path):
+    # --transport and --restart record sha256 of files outside the case (keys transporte and
+    # parametros_da_origem); without them, every such run was sem_entrada_local
+    raiz = tmp_path / "Argonio_X"
+    caso, _ = _rodada(tmp_path, None)
+    sens = raiz / "execucoes" / "sens"
+    sens.mkdir(parents=True)
+    (sens / "gH.json").write_text("t")
+    origem = raiz / "execucoes" / "pulsos" / "T573"
+    origem.mkdir(parents=True)
+    (origem / "parametros.json").write_text("p")
+    sha = lambda b: hashlib.sha256(b).hexdigest()
+    arquivo = tmp_path / "r.json"
+    arquivo.write_text(json.dumps({
+        "argumentos": {"caso": "/home/lucas/amonia_onda3/casos/c",
+                       "transporte": "/home/lucas/amonia_onda3/execucoes/sens/gH.json",
+                       "retoma": ["/home/lucas/amonia_onda3/execucoes/pulsos/T573", "0.0004"]},
+        "sha256": {"kinet.inp": sha(b"a"), "transporte": sha(b"t"), "parametros_da_origem": sha(b"p")}}))
+    assert versoes.confere(arquivo, raiz)[1:] == ([], [])
+    (sens / "gH.json").write_text("u")
+    (origem / "parametros.json").write_text("q")
+    assert versoes.confere(arquivo, raiz)[1] == ["transporte", "parametros_da_origem"]
+
+
+def test_caminho_relativo_e_lido_a_partir_do_cwd_da_rodada(tmp_path, monkeypatch):
+    # the launch scripts pass --restart execucoes/... relative to the folder of the run, which
+    # simula.py records as cwd; the check must not depend on the folder it is run from
+    raiz = tmp_path / "Argonio_X"
+    _rodada(tmp_path, None)
+    origem = raiz / "execucoes" / "pulsos" / "T573"
+    origem.mkdir(parents=True)
+    (origem / "parametros.json").write_text("p")
+    arquivo = tmp_path / "r.json"
+    arquivo.write_text(json.dumps({
+        "cwd": "/home/lucas/amonia_onda3_20261121",
+        "argumentos": {"caso": "/home/lucas/amonia_onda3_20261121/casos/c",
+                       "retoma": ["execucoes/pulsos/T573", "0.0004"]},
+        "sha256": {"parametros_da_origem": hashlib.sha256(b"p").hexdigest()}}))
+    # from another folder that holds a different file under the same relative path
+    outra = tmp_path / "outra"
+    (outra / "execucoes" / "pulsos" / "T573").mkdir(parents=True)
+    (outra / "execucoes" / "pulsos" / "T573" / "parametros.json").write_text("outro")
+    for pasta in (outra, raiz, tmp_path):
+        monkeypatch.chdir(pasta)
+        assert versoes.confere(arquivo, raiz)[1:] == ([], []), pasta

@@ -25,7 +25,9 @@ def _sha(caminho):
 
 
 def _local(caminho, raiz=RAIZ):
-    """Path of this repository for a path recorded here or on another machine."""
+    """Path of this repository for a path recorded here or on another machine: the part after
+    a folder named Argonio*/argonio*, or else after the first folder whose next part is a
+    top-level folder of the repository (the trees ~/onda3_20261112, ~/amonia_onda3_<date>)."""
     p = pathlib.Path(caminho)
     if p.exists():
         return p
@@ -35,18 +37,40 @@ def _local(caminho, raiz=RAIZ):
             candidato = raiz.joinpath(*partes[i + 1:])
             if candidato.exists():
                 return candidato
+    for i in range(1, len(partes) - 1):
+        if (raiz / partes[i + 1]).is_dir():
+            candidato = raiz.joinpath(*partes[i + 1:])
+            if candidato.exists():
+                return candidato
     return None
 
 
 def confere(arquivo, raiz=RAIZ):
     """(case, changed inputs, missing inputs) of one parametros.json."""
     d = json.loads(pathlib.Path(arquivo).read_text())
+
+    def gravado(caminho):
+        # a relative path (the launch scripts pass --restart execucoes/...) is relative to the
+        # folder of the run, recorded as cwd, not to the folder this check runs from
+        if caminho and d.get("cwd") and not pathlib.Path(caminho).is_absolute():
+            return str(pathlib.Path(d["cwd"]) / caminho)
+        return caminho
+
     caso_gravado = (d.get("argumentos") or {}).get("caso") or str(raiz)
-    caso = _local(caso_gravado, raiz)
+    caso = _local(gravado(caso_gravado), raiz)
+    argumentos = d.get("argumentos") or {}
+    # inputs outside the case, recorded by simula.py under the name of the option
+    fora = {"faces": argumentos.get("faces"), "transporte": argumentos.get("transporte"),
+            "tensao_tabela": argumentos.get("tensao_tabela"),
+            "parametros_da_origem": (str(pathlib.Path(argumentos["retoma"][0]) / "parametros.json")
+                                     if argumentos.get("retoma") else None)}
     mudados, ausentes = [], []
     for nome, sha in (d.get("sha256") or {}).items():
-        base = raiz if "/" in nome else caso
-        atual = base / nome if base is not None else None
+        if nome in fora:
+            atual = _local(gravado(fora[nome]), raiz) if fora[nome] else None
+        else:
+            base = raiz if "/" in nome else caso
+            atual = base / nome if base is not None else None
         if atual is None or not atual.is_file():
             ausentes.append(nome)
         elif _sha(atual) != sha:

@@ -652,6 +652,10 @@ def cria_parser():
        help="density of N2 as an unchanged collision partner (V-T, quenching, three-body) with --free-gas: total, "
             "N2(X) in all its vibrational levels (Gordiets et al. 1995); v0, the species N2 alone, as before version "
             "1.5.1. With the background held fixed, N2 is the whole N2 of the gas and this option has no effect")
+    op("--te-floor-tg", "--te-minimo-tg", action="store_true",
+       help="electron temperature of the rate coefficients held at or above T_g, max(Te, Tg): the tables in T_g have "
+            "no superelastic collisions and at their floor (afterglow) the electrons are colder than the gas "
+            "(default: Te of the table, as before version 1.6.1)")
     op("--accelerate", "--acelera", nargs=2, type=int, metavar=("K", "M"),
        help="experimental, off by default: cycle acceleration for slow chemistry: after K direct cycles (at least 3), the neutral species and "
             "the gas temperature are projected M cycles ahead from their changes between the ends of the last "
@@ -747,6 +751,7 @@ def monta_modelo(a, caso, faces):
             n_gas=a.pressao / (KB * a.t_gas) * 1e-6,
             eps_dieletrico=a.eps_dieletrico, gama_sec=a.gama, freio=not a.sem_freio, faces=faces,
             reflexao_eletrons=a.reflexao_eletrons, residencia=a.residencia, parceiro_n2=a.parceiro_n2,
+            te_minimo_tg=a.te_minimo_tg,
             aquecimento=a.aquecimento, gas_solto=a.gas_solto, t_parede=a.t_parede, t_gas=a.t_gas,
             k0_ar=a.k0_ar_ion, en_aquecimento_ar=a.en_aquecimento_ar_ion, k0_ar2=a.k0_ar2_ion,
             ganho_tres_corpos=a.ganho_tres_corpos, eps_gas=a.eps_gas,
@@ -802,6 +807,9 @@ def estado_da_retomada(p, a, md):
         if a.gas_solto and antes.get("parceiro_n2", "v0") != a.parceiro_n2:
             p.error(f"--n2-partner: the origin used {antes.get('parceiro_n2', 'v0')}; the restart needs the same "
                     "value")
+        # the floor of T_e changes the rates of the afterglow: a restart keeps that of the origin
+        if antes.get("te_minimo_tg", False) != a.te_minimo_tg:
+            p.error(f"--te-floor-tg: the origin used {antes.get('te_minimo_tg', False)}; the restart needs the same value")
         for opcao in ("forma", "subida", "largura", "descida", "t_gas", "tensao_tabela"):
             if opcao in antes and antes[opcao] != valor(opcao):
                 p.error(f"--{NOMES[opcao]}: the origin used {antes[opcao]}; the restart needs the same value")

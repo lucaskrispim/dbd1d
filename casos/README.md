@@ -50,6 +50,8 @@ coefficients change):
 | `yang2022_N2_pool50`, `yang2022_1pcH2_pool50` | `N2(A3) + N2(A3)`: 1.6e-10 to `N2 + N2(B3)`, 0.8e-10 to `N2 + N2(C3)`, 2.4e-10 to `N2 + N + N` cm3/s (50% dissociation, total kept at 4.8e-10) |
 | `yang2022_1pcH2_h05`, `yang2022_1pcH2_pool50_h05` | `N2(a'1) + H2 => N2 + H + H` split into 1.3e-11 to `N2 + H + H` and 1.3e-11 to `N2 + H2` cm3/s (50% H yield), the second also with the pooling change |
 | `amonia_sun2022_hongW98` | `N + H2(v) => NH + H` in the corrected form of Hong et al., J. Phys. D 51 (2018) 109501 (W98): 4e-10 (Tg/300)^0.5 exp(-(16600 - 0.3 Ev)/Tg), with Ev from the BOLSIG+ thresholds |
+| `amonia_sun2022_vv` | the N2-N2 V-V block rebuilt by `ferramentas/vv_sun.py` (decreasing exponent of Capitelli et al. 2000, eq. 3.69, and reverse rate from detailed balance); built from `amonia_sun2022` by `python3 ferramentas/casos_sun.py amonia_sun2022_vv` |
+| `amonia_sun2022_nh_congelado` | `NH + H2 + M => NH3 + M` with its coefficient fixed at the value of 373 K, 2.5e-35 (373/300) exp(1700/373) cm6/s, at every T_g; built by `python3 ferramentas/casos_sun.py amonia_sun2022_nh_congelado` |
 | `yang2022_N2_calor` | `yang2022_N2` with the heat block in `gas.json` (rotational excitation of N2 as fast heating, enthalpies by `caso.py enthalpies` plus six ions given in the file); needs `caso.py heat` and `caso.py tables` |
 
 The case `argonio_jovanovic` is complete and runs as is: the argon mechanism at the repository root with

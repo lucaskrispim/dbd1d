@@ -74,6 +74,15 @@ Version 1.6.0 continues that verification, from the data to the scripts that wri
   `ferramentas/versoes.py` reports results that are out of date or have no record;
 - the Boltzmann constant is the CODATA value in Python and Fortran.
 
+Version 1.6.1 adds the option `--te-floor-tg`. The energy tables in T_g have no superelastic
+collisions, so at their floor, in the afterglow, the electrons come out colder than the gas (306 K at
+T_g = 375 K in the case of Sun et al. 2022), and the recombinations in (300/T_e)^a run too fast. With
+the option the rate coefficients written in T_e take max(T_e, T_g); the BOLSIG+ rates follow the mean
+energy, and the transport keeps T_e. It is off by
+default, so earlier runs are reproduced, and a restart refuses a value different from the origin.
+`ferramentas/versoes.py` also checks the inputs recorded outside the case (`--faces`,
+`--transport`, `--voltage-table` and the run a restart comes from).
+
 Options, messages and comments are in English. Identifiers, file names and the keys of the data
 files keep their original Portuguese names, and the earlier Portuguese option names (`--pressao`,
 `--forma seno`, ...) are still accepted as aliases. Up to version 1.2.2 the folder `dbd1d/` was
@@ -148,8 +157,8 @@ package `poppler-utils`); without it, its four vector tests are skipped.
 
 Tested with numpy 2.2 and 2.5, scipy 1.15 and 1.18. The integrator builds on the internal BDF
 implementation of scipy (`scipy.integrate._ivp`), so scipy is bounded below 1.19 until a newer
-version is tested. With the command above, 682 tests pass, 129 are skipped and 23 slow ones (marked
-`lento`) are deselected; without `-m "not lento"`, 686 pass and 148 are skipped. Each skipped test states, before
+version is tested. With the command above, 852 tests pass, 212 are skipped and 23 slow ones (marked
+`lento`) are deselected; without `-m "not lento"`, 856 pass and 231 are skipped. Each skipped test states, before
 running, the file it needs: ZDPlasKin and BOLSIG+ (to generate cases), the gas mixtures whose
 mechanisms and cross sections we cannot redistribute (`casos/README.md`), or the old Fortran code of
 the research repository with its references. With `ZDPLASKIN_DIR` set and those cases rebuilt, the
